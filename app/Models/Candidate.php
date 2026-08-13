@@ -12,6 +12,7 @@ class Candidate extends Model
     protected $fillable = [
         'pageant_id',
         'candidate_number',
+        'full_name',
         'first_name',
         'last_name',
         'photo_url',
@@ -20,11 +21,14 @@ class Candidate extends Model
     ];
 
     /**
-     * Get the full name of the candidate.
+     * Get the display name — prefers full_name, falls back to first+last.
      */
-    public function getFullNameAttribute(): string
+    public function getDisplayNameAttribute(): string
     {
-        return "{$this->first_name} {$this->last_name}";
+        if (!empty($this->full_name)) {
+            return $this->full_name;
+        }
+        return trim("{$this->first_name} {$this->last_name}");
     }
 
     /**
