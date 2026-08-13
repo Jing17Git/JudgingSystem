@@ -48,6 +48,19 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="gender" class="form-label">Gender</label>
+                    <select id="gender" name="gender" class="form-input @error('gender') border-[var(--danger)] @enderror">
+                        <option value="" disabled {{ old('gender', $candidate->gender) ? '' : 'selected' }}>Select gender...</option>
+                        <option value="Male"   {{ old('gender', $candidate->gender) === 'Male'   ? 'selected' : '' }}>Male</option>
+                        <option value="Female" {{ old('gender', $candidate->gender) === 'Female' ? 'selected' : '' }}>Female</option>
+                        <option value="Other"  {{ old('gender', $candidate->gender) === 'Other'  ? 'selected' : '' }}>Other</option>
+                    </select>
+                    @error('gender')
+                        <p class="form-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="form-group">
                     <label for="picture" class="form-label">Picture</label>
                     <div x-data="{ preview: '{{ $candidate->photo_url ? asset('storage/' . $candidate->photo_url) : '' }}' }" class="space-y-3">
                         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">

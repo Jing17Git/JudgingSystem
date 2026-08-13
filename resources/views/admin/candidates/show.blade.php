@@ -76,6 +76,18 @@
                     @endif
                 </div>
                 <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">Gender</p>
+                    @if($candidate->gender === 'Male')
+                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">♂ Male</span>
+                    @elseif($candidate->gender === 'Female')
+                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-pink-700 bg-pink-50 px-2 py-0.5 rounded-full">♀ Female</span>
+                    @elseif($candidate->gender === 'Other')
+                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">⚧ Other</span>
+                    @else
+                        <span class="text-sm text-[var(--text-muted)]">Not specified</span>
+                    @endif
+                </div>
+                <div>
                     <p class="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">Date Created</p>
                     <p class="text-sm font-medium text-[var(--text-primary)]">{{ $candidate->created_at->format('M d, Y — h:i A') }}</p>
                 </div>

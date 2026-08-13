@@ -56,6 +56,7 @@
                     <th>Candidate No.</th>
                     <th>Picture</th>
                     <th>Full Name</th>
+                    <th>Gender</th>
                     <th>Created Date</th>
                     <th class="text-right">Actions</th>
                 </tr>
@@ -83,6 +84,17 @@
                             @endif
                         </td>
                         <td class="font-medium text-[var(--text-primary)]">{{ $candidate->display_name }}</td>
+                        <td>
+                            @if($candidate->gender === 'Male')
+                                <span class="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">♂ Male</span>
+                            @elseif($candidate->gender === 'Female')
+                                <span class="inline-flex items-center gap-1 text-xs font-semibold text-pink-700 bg-pink-50 px-2 py-0.5 rounded-full">♀ Female</span>
+                            @elseif($candidate->gender === 'Other')
+                                <span class="inline-flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">⚧ Other</span>
+                            @else
+                                <span class="text-xs text-[var(--text-muted)]">—</span>
+                            @endif
+                        </td>
                         <td class="text-sm text-[var(--text-muted)]">
                             {{ $candidate->created_at->format('M d, Y') }}
                         </td>
