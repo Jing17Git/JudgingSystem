@@ -13,6 +13,7 @@ class Candidate extends Model
         'pageant_id',
         'candidate_number',
         'full_name',
+        'gender',
         'first_name',
         'last_name',
         'photo_url',

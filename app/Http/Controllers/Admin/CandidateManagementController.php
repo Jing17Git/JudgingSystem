@@ -44,8 +44,16 @@ class CandidateManagementController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'candidate_number' => 'required|integer|min:1|unique:candidates,candidate_number',
+            'candidate_number' => [
+                'required',
+                'integer',
+                'min:1',
+                \Illuminate\Validation\Rule::unique('candidates', 'candidate_number')->where(function ($query) use ($request) {
+                    return $query->where('gender', $request->gender);
+                }),
+            ],
             'full_name' => 'required|string|min:3|max:100',
+            'gender' => 'nullable|in:Male,Female,Other',
             'picture' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
         ]);
 
@@ -57,6 +65,7 @@ class CandidateManagementController extends Controller
         Candidate::create([
             'candidate_number' => $validated['candidate_number'],
             'full_name' => $validated['full_name'],
+            'gender' => $validated['gender'] ?? null,
             'first_name' => $validated['full_name'],
             'last_name' => '',
             'photo_url' => $photoPath,
@@ -88,13 +97,22 @@ class CandidateManagementController extends Controller
     public function update(Request $request, Candidate $candidate)
     {
         $validated = $request->validate([
-            'candidate_number' => ['required', 'integer', 'min:1', \Illuminate\Validation\Rule::unique('candidates', 'candidate_number')->ignore($candidate->id)],
+            'candidate_number' => [
+                'required',
+                'integer',
+                'min:1',
+                \Illuminate\Validation\Rule::unique('candidates', 'candidate_number')->where(function ($query) use ($request) {
+                    return $query->where('gender', $request->gender);
+                })->ignore($candidate->id),
+            ],
             'full_name' => 'required|string|min:3|max:100',
+            'gender' => 'nullable|in:Male,Female,Other',
             'picture' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
         ]);
 
         $candidate->candidate_number = $validated['candidate_number'];
         $candidate->full_name = $validated['full_name'];
+        $candidate->gender = $validated['gender'] ?? null;
         $candidate->first_name = $validated['full_name'];
 
         if ($request->hasFile('picture')) {
