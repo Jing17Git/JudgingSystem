@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -20,8 +19,12 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
+        'role',
+        'avatar_url',
+        'is_active',
     ];
 
     /**
@@ -44,6 +47,39 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Check if the user is an administrator.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Check if the user is a judge.
+     */
+    public function isJudge(): bool
+    {
+        return $this->role === 'judge';
+    }
+
+    /**
+     * Get the judge assignments for this user.
+     */
+    public function judgeAssignments()
+    {
+        return $this->hasMany(JudgeAssignment::class);
+    }
+
+    /**
+     * Get the pageants this user is assigned to as a judge.
+     */
+    public function assignedPageants()
+    {
+        return $this->belongsToMany(Pageant::class, 'judge_assignments');
     }
 }
