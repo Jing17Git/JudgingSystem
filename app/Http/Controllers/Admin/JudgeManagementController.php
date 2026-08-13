@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class JudgeManagementController extends Controller
@@ -48,7 +49,13 @@ class JudgeManagementController extends Controller
             'username' => 'required|string|min:4|max:50|unique:users,username',
             'password' => 'required|string|min:8|confirmed',
             'is_active' => 'required|boolean',
+            'picture' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
         ]);
+
+        $photoPath = null;
+        if ($request->hasFile('picture')) {
+            $photoPath = $request->file('picture')->store('judges', 'public');
+        }
 
         User::create([
             'name' => $validated['name'],
@@ -56,6 +63,7 @@ class JudgeManagementController extends Controller
             'email' => $validated['username'] . '@judge.local',
             'password' => $validated['password'],
             'role' => 'judge',
+            'photo_url' => $photoPath,
             'is_active' => $validated['is_active'],
         ]);
 
@@ -101,11 +109,19 @@ class JudgeManagementController extends Controller
             'username' => ['required', 'string', 'min:4', 'max:50', Rule::unique('users', 'username')->ignore($judge->id)],
             'password' => 'nullable|string|min:8|confirmed',
             'is_active' => 'required|boolean',
+            'picture' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
         ]);
 
         $judge->name = $validated['name'];
         $judge->username = $validated['username'];
         $judge->is_active = $validated['is_active'];
+
+        if ($request->hasFile('picture')) {
+            if ($judge->photo_url && Storage::disk('public')->exists($judge->photo_url)) {
+                Storage::disk('public')->delete($judge->photo_url);
+            }
+            $judge->photo_url = $request->file('picture')->store('judges', 'public');
+        }
 
         if (!empty($validated['password'])) {
             $judge->password = $validated['password'];
