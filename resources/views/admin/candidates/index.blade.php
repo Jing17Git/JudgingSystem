@@ -65,7 +65,7 @@
                 @forelse($candidates as $candidate)
                     <tr>
                         <td>
-                            <span class="text-xs font-mono font-semibold text-[var(--green-600)] bg-green-50 px-2 py-1 rounded-md">{{ $candidate->id }}</span>
+                            <span class="text-xs font-mono font-semibold text-[var(--green-600)] bg-green-50 px-2.5 py-1 rounded-md">{{ $candidates->firstItem() + $loop->index }}</span>
                         </td>
                         <td>
                             <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-emerald-700 text-white text-xs font-bold shadow-sm">

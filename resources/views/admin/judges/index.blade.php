@@ -65,13 +65,17 @@
                 @forelse($judges as $judge)
                     <tr>
                         <td>
-                            <span class="text-xs font-mono font-semibold text-[var(--green-600)] bg-green-50 px-2 py-1 rounded-md">J{{ str_pad($judge->id, 3, '0', STR_PAD_LEFT) }}</span>
+                            <span class="text-xs font-mono font-semibold text-[var(--green-600)] bg-green-50 px-2.5 py-1 rounded-md">{{ $judges->firstItem() + $loop->index }}</span>
                         </td>
                         <td>
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold shadow-md">
-                                    {{ strtoupper(substr($judge->name, 0, 1)) }}
-                                </div>
+                                @if($judge->photo_url)
+                                    <img src="{{ asset('storage/' . $judge->photo_url) }}" alt="{{ $judge->name }}" class="w-10 h-10 rounded-lg object-cover border border-[var(--border-default)] shadow-sm flex-shrink-0">
+                                @else
+                                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold shadow-md flex-shrink-0">
+                                        {{ strtoupper(substr($judge->name, 0, 1)) }}
+                                    </div>
+                                @endif
                                 <div>
                                     <p class="font-medium text-[var(--text-primary)]">{{ $judge->name }}</p>
                                     <p class="text-xs text-[var(--text-muted)]">Judge</p>

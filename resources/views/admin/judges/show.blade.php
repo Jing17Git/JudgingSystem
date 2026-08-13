@@ -34,9 +34,13 @@
     <div class="panel-body">
         {{-- Judge Avatar & Name Header --}}
         <div class="flex items-center gap-4 pb-6 mb-6 border-b border-[var(--border-default)]">
-            <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-                {{ strtoupper(substr($judge->name, 0, 1)) }}
-            </div>
+            @if($judge->photo_url)
+                <img src="{{ asset('storage/' . $judge->photo_url) }}" alt="{{ $judge->name }}" class="w-16 h-16 rounded-xl object-cover border border-[var(--border-default)] shadow-lg">
+            @else
+                <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                    {{ strtoupper(substr($judge->name, 0, 1)) }}
+                </div>
+            @endif
             <div>
                 <h2 class="text-xl font-bold text-[var(--text-primary)]">{{ $judge->name }}</h2>
                 <div class="flex items-center gap-3 mt-1">
