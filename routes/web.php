@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AdminManagementController;
+use App\Http\Controllers\Admin\JudgeManagementController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -29,6 +30,10 @@ Route::prefix('admin')->middleware('admin')->name('admin.')->group(function () {
 
     // Admin Management
     Route::resource('admins', AdminManagementController::class)->except(['show']);
+
+    // Judge Management
+    Route::patch('/judges/{judge}/toggle-status', [JudgeManagementController::class, 'toggleStatus'])->name('judges.toggle-status');
+    Route::resource('judges', JudgeManagementController::class);
 });
 
 // Judge routes (placeholder for future implementation)

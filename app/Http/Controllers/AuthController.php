@@ -12,9 +12,6 @@ class AuthController extends Controller
      */
     public function showLogin()
     {
-        if (Auth::check()) {
-            return $this->redirectByRole(Auth::user());
-        }
         return view('auth.login');
     }
 
@@ -39,6 +36,14 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
             return $this->redirectByRole(Auth::user());
+        }
+
+        // Check if the account exists but is deactivated
+        $user = \App\Models\User::where($loginField, $request->input('username'))->first();
+        if ($user && !$user->is_active) {
+            return back()->withErrors([
+                'username' => 'Your account has been deactivated. Please contact the administrator.',
+            ])->withInput($request->only('username'));
         }
 
         return back()->withErrors([
