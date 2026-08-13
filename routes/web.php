@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AdminManagementController;
 use App\Http\Controllers\Admin\JudgeManagementController;
+use App\Http\Controllers\Admin\CandidateManagementController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -34,6 +35,9 @@ Route::prefix('admin')->middleware('admin')->name('admin.')->group(function () {
     // Judge Management
     Route::patch('/judges/{judge}/toggle-status', [JudgeManagementController::class, 'toggleStatus'])->name('judges.toggle-status');
     Route::resource('judges', JudgeManagementController::class);
+
+    // Candidate Management
+    Route::resource('candidates', CandidateManagementController::class);
 });
 
 // Judge routes (placeholder for future implementation)
