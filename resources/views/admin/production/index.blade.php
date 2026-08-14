@@ -11,7 +11,7 @@
             </svg>
             Production — Scoring Table
         </h1>
-        <p class="page-subtitle">Scores given by each judge per candidate (1–10). Totals and rankings update live.</p>
+        <p class="page-subtitle">Scores given by each judge per candidate (1–10). Read-only view.</p>
     </div>
     <div class="flex items-center gap-2">
         <span class="text-xs text-[var(--text-muted)] bg-[var(--bg-card)] border border-[var(--border-default)] px-3 py-1.5 rounded-lg">
@@ -42,25 +42,13 @@
     </div>
 @else
 
-{{-- Auto-save toast --}}
-<div id="save-toast" class="fixed top-5 right-5 z-50 hidden">
-    <div class="flex items-center gap-2 bg-green-600 text-white text-sm font-medium px-4 py-2.5 rounded-xl shadow-lg">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-        </svg>
-        Score saved!
-    </div>
-</div>
-
 @php
     $groups = [
         'Male'   => ['label' => '♂ Male Candidates',   'key' => 'Male',   'candidates' => $candidates->filter(fn($c) => $c->gender === 'Male')],
         'Female' => ['label' => '♀ Female Candidates', 'key' => 'Female', 'candidates' => $candidates->filter(fn($c) => $c->gender === 'Female')],
-        'Other'  => ['label' => '⚧ Other Candidates',  'key' => 'Other',  'candidates' => $candidates->filter(fn($c) => $c->gender === 'Other')],
-        'Unset'  => ['label' => '— Unspecified',        'key' => 'Unset',  'candidates' => $candidates->filter(fn($c) => !in_array($c->gender, ['Male','Female','Other']))],
+        'Unset'  => ['label' => '— Unspecified',        'key' => 'Unset',  'candidates' => $candidates->filter(fn($c) => !in_array($c->gender, ['Male','Female']))],
     ];
 
-    // Per-group rank computation (only candidates with total > 0 get ranked)
     $groupRanks = [];
     foreach ($groups as $gKey => $group) {
         $gCandidates = $group['candidates'];
@@ -72,19 +60,10 @@
         arsort($gTotals);
         $r = 1; $prev = null; $same = 1;
         foreach ($gTotals as $cid => $tot) {
-            if ($tot <= 0) {
-                $groupRanks[$cid] = null;
-                continue;
-            }
-            if ($prev !== null && $tot === $prev) {
-                $groupRanks[$cid] = $r - $same;
-                $same++;
-            } else {
-                $groupRanks[$cid] = $r;
-                $same = 1;
-            }
-            $prev = $tot;
-            $r++;
+            if ($tot <= 0) { $groupRanks[$cid] = null; continue; }
+            if ($prev !== null && $tot === $prev) { $groupRanks[$cid] = $r - $same; $same++; }
+            else { $groupRanks[$cid] = $r; $same = 1; }
+            $prev = $tot; $r++;
         }
     }
 @endphp
@@ -94,11 +73,21 @@
     @if($gCandidates->isEmpty()) @continue @endif
 
     @php
-        $sortedGroup = $gCandidates->sortBy(fn($c) => $c->candidate_number);
-        $groupId = strtolower($gKey) . '-table';
+        $sortedGroup = $gCandidates->sort(function($a, $b) use ($candidateTotals) {
+            $totA = $candidateTotals[$a->id] ?? 0;
+            $totB = $candidateTotals[$b->id] ?? 0;
+            if ($totA > 0 && $totB > 0) {
+                if ($totA == $totB) {
+                    return $a->candidate_number <=> $b->candidate_number;
+                }
+                return $totB <=> $totA;
+            }
+            if ($totA > 0) return -1;
+            if ($totB > 0) return 1;
+            return $a->candidate_number <=> $b->candidate_number;
+        });
     @endphp
 
-    {{-- Group Section --}}
     <div class="mb-8 animate-fade-in-up">
         {{-- Section Header --}}
         <div class="flex items-center gap-3 mb-3">
@@ -114,12 +103,6 @@
                     <span class="bg-white/25 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">{{ $gCandidates->count() }}</span>
                 </div>
                 <div class="h-px flex-1 bg-pink-200 opacity-60"></div>
-            @elseif($gKey === 'Other')
-                <div class="flex items-center gap-2 text-white text-sm font-bold px-4 py-2 rounded-xl shadow-md" style="background-color: #9333ea;">
-                    {{ $group['label'] }}
-                    <span class="bg-white/25 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">{{ $gCandidates->count() }}</span>
-                </div>
-                <div class="h-px flex-1 bg-purple-200 opacity-60"></div>
             @else
                 <div class="flex items-center gap-2 text-white text-sm font-bold px-4 py-2 rounded-xl shadow-md" style="background-color: #4b5563;">
                     {{ $group['label'] }}
@@ -131,7 +114,7 @@
 
         {{-- Scoring Table --}}
         <div class="panel overflow-x-auto border border-[var(--border-default)] shadow-sm rounded-xl">
-            <table class="data-table min-w-full" id="{{ $groupId }}" data-group="{{ $gKey }}">
+            <table class="data-table min-w-full">
                 <thead>
                     <tr class="bg-gray-50 border-b border-gray-200">
                         <th class="sticky left-0 z-10 bg-gray-50 min-w-[110px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">Cand. #</th>
@@ -144,8 +127,6 @@
                             <th class="text-center min-w-[100px] text-xs font-bold text-blue-700 uppercase tracking-wider py-3 px-4" style="background-color: #eff6ff;">Total</th>
                         @elseif($gKey === 'Female')
                             <th class="text-center min-w-[100px] text-xs font-bold text-pink-700 uppercase tracking-wider py-3 px-4" style="background-color: #fdf2f8;">Total</th>
-                        @elseif($gKey === 'Other')
-                            <th class="text-center min-w-[100px] text-xs font-bold text-purple-700 uppercase tracking-wider py-3 px-4" style="background-color: #faf5ff;">Total</th>
                         @else
                             <th class="text-center min-w-[100px] text-xs font-bold text-gray-700 uppercase tracking-wider py-3 px-4" style="background-color: #f3f4f6;">Total</th>
                         @endif
@@ -159,7 +140,7 @@
                             $total = $candidateTotals[$candidate->id] ?? 0;
                             $rank  = $groupRanks[$candidate->id] ?? null;
                         @endphp
-                        <tr data-candidate-id="{{ $candidate->id }}" data-group="{{ $gKey }}" class="hover:bg-gray-50/80 transition-colors">
+                        <tr class="hover:bg-gray-50/80 transition-colors">
                             {{-- Candidate Number --}}
                             <td class="sticky left-0 bg-white py-3 px-4">
                                 @if($gKey === 'Male')
@@ -168,10 +149,6 @@
                                     </span>
                                 @elseif($gKey === 'Female')
                                     <span class="inline-flex items-center justify-center w-10 h-10 rounded-full text-white text-base font-black shadow-md" style="background-color: #db2777; border: 2px solid #f472b6;">
-                                        {{ $candidate->candidate_number }}
-                                    </span>
-                                @elseif($gKey === 'Other')
-                                    <span class="inline-flex items-center justify-center w-10 h-10 rounded-full text-white text-base font-black shadow-md" style="background-color: #9333ea; border: 2px solid #c084fc;">
                                         {{ $candidate->candidate_number }}
                                     </span>
                                 @else
@@ -205,69 +182,51 @@
                                 </div>
                             </td>
 
-                            {{-- Score inputs per judge --}}
+                            {{-- Read-only scores per judge --}}
                             @foreach($judges as $judge)
                                 @php
                                     $key = $candidate->id . '_' . $judge->id;
-                                    $existingScore = isset($scores[$key]) ? $scores[$key]->score : '';
+                                    $existingScore = isset($scores[$key]) ? $scores[$key]->score : null;
                                 @endphp
-                                <td class="text-center p-2">
-                                    <input
-                                        type="number"
-                                        min="1" max="10" step="0.01"
-                                        value="{{ $existingScore }}"
-                                        placeholder="—"
-                                        data-candidate="{{ $candidate->id }}"
-                                        data-judge="{{ $judge->id }}"
-                                        data-group="{{ $gKey }}"
-                                        class="score-input w-20 text-center text-sm font-bold border border-gray-300 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all placeholder:text-gray-300"
-                                        title="Score for {{ $candidate->display_name }} by {{ $judge->name }}"
-                                    >
+                                <td class="text-center py-3 px-4">
+                                    @if($existingScore !== null)
+                                        <span class="inline-flex items-center justify-center w-10 h-7 rounded-md bg-gray-100 text-sm font-bold text-gray-800">
+                                            {{ number_format($existingScore, 1) }}
+                                        </span>
+                                    @else
+                                        <span class="text-gray-300 font-medium">—</span>
+                                    @endif
                                 </td>
                             @endforeach
 
                             {{-- Total --}}
                             @if($gKey === 'Male')
                                 <td class="text-center py-3 px-4" style="background-color: #eff6ff;">
-                                    <span class="total-cell font-extrabold text-lg text-blue-700" data-candidate="{{ $candidate->id }}">
-                                        {{ $total > 0 ? number_format($total, 2) : '—' }}
-                                    </span>
+                                    <span class="font-extrabold text-lg text-blue-700">{{ $total > 0 ? number_format($total, 2) : '—' }}</span>
                                 </td>
                             @elseif($gKey === 'Female')
                                 <td class="text-center py-3 px-4" style="background-color: #fdf2f8;">
-                                    <span class="total-cell font-extrabold text-lg text-pink-700" data-candidate="{{ $candidate->id }}">
-                                        {{ $total > 0 ? number_format($total, 2) : '—' }}
-                                    </span>
-                                </td>
-                            @elseif($gKey === 'Other')
-                                <td class="text-center py-3 px-4" style="background-color: #faf5ff;">
-                                    <span class="total-cell font-extrabold text-lg text-purple-700" data-candidate="{{ $candidate->id }}">
-                                        {{ $total > 0 ? number_format($total, 2) : '—' }}
-                                    </span>
+                                    <span class="font-extrabold text-lg text-pink-700">{{ $total > 0 ? number_format($total, 2) : '—' }}</span>
                                 </td>
                             @else
                                 <td class="text-center py-3 px-4" style="background-color: #f3f4f6;">
-                                    <span class="total-cell font-extrabold text-lg text-gray-700" data-candidate="{{ $candidate->id }}">
-                                        {{ $total > 0 ? number_format($total, 2) : '—' }}
-                                    </span>
+                                    <span class="font-extrabold text-lg text-gray-700">{{ $total > 0 ? number_format($total, 2) : '—' }}</span>
                                 </td>
                             @endif
 
                             {{-- Rank --}}
                             <td class="text-center py-3 px-4" style="background-color: #fffbeb;">
-                                <span class="rank-cell" data-candidate="{{ $candidate->id }}">
-                                    @if(empty($rank))
-                                        <span class="text-gray-400 font-medium">—</span>
-                                    @elseif($rank === 1)
-                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-black shadow-md" style="background-color: #f59e0b;" title="1st Place">🥇</span>
-                                    @elseif($rank === 2)
-                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-gray-700 text-sm font-black shadow-md" style="background-color: #d1d5db;" title="2nd Place">🥈</span>
-                                    @elseif($rank === 3)
-                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-black shadow-md" style="background-color: #fb923c;" title="3rd Place">🥉</span>
-                                    @else
-                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 border border-gray-300 text-gray-600 text-xs font-bold">{{ $rank }}</span>
-                                    @endif
-                                </span>
+                                @if(empty($rank))
+                                    <span class="text-gray-400 font-medium">—</span>
+                                @elseif($rank === 1)
+                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-black shadow-md" style="background-color: #f59e0b;" title="1st Place">🥇</span>
+                                @elseif($rank === 2)
+                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-gray-700 text-sm font-black shadow-md" style="background-color: #d1d5db;" title="2nd Place">🥈</span>
+                                @elseif($rank === 3)
+                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-black shadow-md" style="background-color: #fb923c;" title="3rd Place">🥉</span>
+                                @else
+                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 border border-gray-300 text-gray-600 text-xs font-bold">{{ $rank }}</span>
+                                @endif
                             </td>
                         </tr>
                     @endforeach
@@ -282,129 +241,8 @@
     <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span> 1st Place</span>
     <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-300 inline-block"></span> 2nd Place</span>
     <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-orange-400 inline-block"></span> 3rd Place</span>
-    <span>· Rankings are <strong>per gender group</strong>. Scores 1–10. Auto-saves on change.</span>
+    <span>· Rankings are <strong>per gender group</strong>. Scores are submitted by judges.</span>
 </div>
 
 @endif
 @endsection
-
-@push('scripts')
-<script>
-(function () {
-    const SAVE_URL = "{{ route('admin.production.save-score') }}";
-    const CSRF    = "{{ csrf_token() }}";
-
-    function debounce(fn, delay) {
-        let timer;
-        return function (...args) {
-            clearTimeout(timer);
-            timer = setTimeout(() => fn.apply(this, args), delay);
-        };
-    }
-
-    function showToast() {
-        const toast = document.getElementById('save-toast');
-        toast.classList.remove('hidden');
-        clearTimeout(toast._timer);
-        toast._timer = setTimeout(() => toast.classList.add('hidden'), 2000);
-    }
-
-    function rankBadge(r) {
-        if (!r || r <= 0) return `<span class="text-gray-400 font-medium">—</span>`;
-        if (r === 1) return `<span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-black shadow-md" style="background-color: #f59e0b;" title="1st Place">🥇</span>`;
-        if (r === 2) return `<span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-gray-700 text-sm font-black shadow-md" style="background-color: #d1d5db;" title="2nd Place">🥈</span>`;
-        if (r === 3) return `<span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-black shadow-md" style="background-color: #fb923c;" title="3rd Place">🥉</span>`;
-        return `<span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 border border-gray-300 text-gray-600 text-xs font-bold">${r}</span>`;
-    }
-
-    function recalculate() {
-        document.querySelectorAll('[id$="-table"]').forEach(table => {
-            const rows = table.querySelectorAll('tbody tr');
-            const totals = {};
-
-            rows.forEach(row => {
-                const cid = row.dataset.candidateId;
-                let sum = 0;
-                row.querySelectorAll('.score-input').forEach(inp => {
-                    const v = parseFloat(inp.value);
-                    if (!isNaN(v)) sum += v;
-                });
-                totals[cid] = sum;
-
-                const totalEl = row.querySelector('.total-cell');
-                if (totalEl) totalEl.textContent = sum > 0 ? sum.toFixed(2) : '—';
-            });
-
-            // Rank within this table only for candidates with sum > 0
-            const scored = Object.entries(totals).filter(([cid, total]) => total > 0).sort((a, b) => b[1] - a[1]);
-            const rankMap = {};
-            let rank = 1;
-            for (let i = 0; i < scored.length; i++) {
-                const [cid, total] = scored[i];
-                if (i > 0 && total === scored[i - 1][1]) {
-                    rankMap[cid] = rankMap[scored[i - 1][0]];
-                } else {
-                    rankMap[cid] = rank;
-                }
-                rank++;
-            }
-
-            rows.forEach(row => {
-                const cid = row.dataset.candidateId;
-                const rankEl = row.querySelector('.rank-cell');
-                if (rankEl) rankEl.innerHTML = rankBadge(rankMap[cid] || 0);
-            });
-        });
-    }
-
-    const saveScore = debounce(function(input) {
-        const score = parseFloat(input.value);
-        if (isNaN(score) || score < 1 || score > 10) return;
-
-        input.classList.add('border-green-400', 'bg-green-50');
-
-        fetch(SAVE_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': CSRF,
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({
-                candidate_id: input.dataset.candidate,
-                judge_id: input.dataset.judge,
-                score: score,
-            })
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                showToast();
-                recalculate();
-                setTimeout(() => input.classList.remove('border-green-400', 'bg-green-50'), 1500);
-            }
-        })
-        .catch(() => {
-            input.classList.remove('border-green-400', 'bg-green-50');
-            input.classList.add('border-red-400', 'bg-red-50');
-            setTimeout(() => input.classList.remove('border-red-400', 'bg-red-50'), 2000);
-        });
-    }, 600);
-
-    document.querySelectorAll('.score-input').forEach(input => {
-        input.addEventListener('input', function () {
-            recalculate();
-            saveScore(this);
-        });
-
-        input.addEventListener('blur', function () {
-            const v = parseFloat(this.value);
-            if (this.value !== '' && (isNaN(v) || v < 1 || v > 10)) {
-                this.value = '';
-                recalculate();
-            }
-        });
-    });
-})();
-</script>
-@endpush

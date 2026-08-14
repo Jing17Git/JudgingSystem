@@ -10,6 +10,9 @@ use App\Http\Controllers\Admin\FitnessController;
 use App\Http\Controllers\Admin\IndigenousAttireController;
 use App\Http\Controllers\Admin\TraditionalAttireController;
 use App\Http\Controllers\Admin\OverallController;
+use App\Http\Controllers\Judge\JudgeDashboardController;
+use App\Http\Controllers\Judge\JudgeScoringController;
+use App\Http\Controllers\Judge\JudgeProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -64,9 +67,22 @@ Route::prefix('admin')->middleware('admin')->name('admin.')->group(function () {
     Route::get('/overall', [OverallController::class, 'index'])->name('overall.index');
 });
 
-// Judge routes (placeholder for future implementation)
+// Judge routes
 Route::prefix('judge')->middleware('judge')->name('judge.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('judge.dashboard');
-    })->name('dashboard');
+    // Judge Dashboard
+    Route::get('/dashboard', [JudgeDashboardController::class, 'index'])->name('dashboard');
+
+    // Scoring Categories
+    Route::get('/production', [JudgeScoringController::class, 'production'])->name('production.index');
+    Route::get('/fitness', [JudgeScoringController::class, 'fitness'])->name('fitness.index');
+    Route::get('/traditional-attire', [JudgeScoringController::class, 'traditionalAttire'])->name('traditional-attire.index');
+    Route::get('/indigenous-attire', [JudgeScoringController::class, 'indigenousAttire'])->name('indigenous-attire.index');
+
+    // Scoring Actions
+    Route::post('/save-score', [JudgeScoringController::class, 'saveScore'])->name('save-score');
+    Route::post('/reset-score', [JudgeScoringController::class, 'resetScore'])->name('reset-score');
+
+    // Account Profile
+    Route::get('/profile', [JudgeProfileController::class, 'show'])->name('profile');
+    Route::put('/profile', [JudgeProfileController::class, 'update'])->name('profile.update');
 });

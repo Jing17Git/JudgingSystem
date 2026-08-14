@@ -36,8 +36,7 @@
     $groups = [
         'Male'   => ['label' => '♂ Male Candidates',   'key' => 'Male',   'candidates' => $candidates->filter(fn($c) => $c->gender === 'Male')],
         'Female' => ['label' => '♀ Female Candidates', 'key' => 'Female', 'candidates' => $candidates->filter(fn($c) => $c->gender === 'Female')],
-        'Other'  => ['label' => '⚧ Other Candidates',  'key' => 'Other',  'candidates' => $candidates->filter(fn($c) => $c->gender === 'Other')],
-        'Unset'  => ['label' => '— Unspecified',        'key' => 'Unset',  'candidates' => $candidates->filter(fn($c) => !in_array($c->gender, ['Male','Female','Other']))],
+        'Unset'  => ['label' => '— Unspecified',        'key' => 'Unset',  'candidates' => $candidates->filter(fn($c) => !in_array($c->gender, ['Male','Female']))],
     ];
 
     // Compute ranks per gender division for candidates with total > 0
@@ -74,7 +73,19 @@
     @if($gCandidates->isEmpty()) @continue @endif
 
     @php
-        $sortedGroup = $gCandidates->sortBy(fn($c) => $c->candidate_number);
+        $sortedGroup = $gCandidates->sort(function($a, $b) use ($breakdown) {
+            $totA = $breakdown[$a->id]['total'] ?? 0;
+            $totB = $breakdown[$b->id]['total'] ?? 0;
+            if ($totA > 0 && $totB > 0) {
+                if ($totA == $totB) {
+                    return $a->candidate_number <=> $b->candidate_number;
+                }
+                return $totB <=> $totA;
+            }
+            if ($totA > 0) return -1;
+            if ($totB > 0) return 1;
+            return $a->candidate_number <=> $b->candidate_number;
+        });
     @endphp
 
     {{-- Group Section --}}

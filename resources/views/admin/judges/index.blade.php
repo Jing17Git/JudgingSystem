@@ -78,7 +78,7 @@
                                 @endif
                                 <div>
                                     <p class="font-medium text-[var(--text-primary)]">{{ $judge->name }}</p>
-                                    <p class="text-xs text-[var(--text-muted)]">Judge</p>
+                                    <p class="text-xs text-[var(--text-muted)]">{{ $judge->email }}</p>
                                 </div>
                             </div>
                         </td>

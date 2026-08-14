@@ -18,11 +18,12 @@ class JudgeManagementController extends Controller
     {
         $query = User::where('role', 'judge');
 
-        // Search by name or username
+        // Search by name, username, or email
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('username', 'like', "%{$search}%");
+                  ->orWhere('username', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -47,6 +48,7 @@ class JudgeManagementController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|min:3|max:100',
             'username' => 'required|string|min:4|max:50|unique:users,username',
+            'email' => 'nullable|email|max:100|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
             'is_active' => 'required|boolean',
             'picture' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
@@ -60,7 +62,7 @@ class JudgeManagementController extends Controller
         User::create([
             'name' => $validated['name'],
             'username' => $validated['username'],
-            'email' => $validated['username'] . '@judge.local',
+            'email' => !empty($validated['email']) ? $validated['email'] : ($validated['username'] . '@judge.local'),
             'password' => $validated['password'],
             'role' => 'judge',
             'photo_url' => $photoPath,
@@ -107,6 +109,7 @@ class JudgeManagementController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|min:3|max:100',
             'username' => ['required', 'string', 'min:4', 'max:50', Rule::unique('users', 'username')->ignore($judge->id)],
+            'email' => ['nullable', 'email', 'max:100', Rule::unique('users', 'email')->ignore($judge->id)],
             'password' => 'nullable|string|min:8|confirmed',
             'is_active' => 'required|boolean',
             'picture' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
@@ -114,6 +117,7 @@ class JudgeManagementController extends Controller
 
         $judge->name = $validated['name'];
         $judge->username = $validated['username'];
+        $judge->email = !empty($validated['email']) ? $validated['email'] : ($validated['username'] . '@judge.local');
         $judge->is_active = $validated['is_active'];
 
         if ($request->hasFile('picture')) {
