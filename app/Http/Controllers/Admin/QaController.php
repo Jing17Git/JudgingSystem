@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
 class QaController extends Controller
 {
     /**
-     * Display Q&A Final Judging Table (Top 3 Candidates per division) and Questions CRUD.
+     * Display Q&A Final Judging Table (Top 5 Candidates per division) and Questions CRUD.
      */
     public function index()
     {

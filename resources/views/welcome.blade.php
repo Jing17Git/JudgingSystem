@@ -1142,7 +1142,7 @@
   <div class="wrap">
     <div class="section-heading">
       <h2>Category Results</h2>
-      <p>Top 3 candidates per scoring category, updated in real-time from judge submissions.</p>
+      <p>Top 5 candidates per scoring category, updated in real-time from judge submissions.</p>
     </div>
 
     <div class="results-grid">
@@ -1150,11 +1150,11 @@
       <div class="result-card">
         <div class="result-cat-label">Production</div>
         @php
-          $prodRank = collect($leaderboard)->sortByDesc('production')->take(3)->values();
+          $prodRank = collect($leaderboard)->sortByDesc('production')->take(5)->values();
         @endphp
         @forelse($prodRank as $i => $r)
           <div class="result-item">
-            <span class="result-rank {{ $i === 0 ? 'rank-1' : ($i === 1 ? 'rank-2' : 'rank-3') }}">{{ $i + 1 }}</span>
+            <span class="result-rank {{ $i === 0 ? 'rank-1' : ($i === 1 ? 'rank-2' : ($i === 2 ? 'rank-3' : 'rank-default')) }}">{{ $i + 1 }}</span>
             <span class="result-name">{{ $r['name'] }}</span>
             <span class="result-score">{{ number_format($r['production'], 1) }}</span>
           </div>
@@ -1167,11 +1167,11 @@
       <div class="result-card">
         <div class="result-cat-label">Fitness</div>
         @php
-          $fitRank = collect($leaderboard)->sortByDesc('fitness')->take(3)->values();
+          $fitRank = collect($leaderboard)->sortByDesc('fitness')->take(5)->values();
         @endphp
         @forelse($fitRank as $i => $r)
           <div class="result-item">
-            <span class="result-rank {{ $i === 0 ? 'rank-1' : ($i === 1 ? 'rank-2' : 'rank-3') }}">{{ $i + 1 }}</span>
+            <span class="result-rank {{ $i === 0 ? 'rank-1' : ($i === 1 ? 'rank-2' : ($i === 2 ? 'rank-3' : 'rank-default')) }}">{{ $i + 1 }}</span>
             <span class="result-name">{{ $r['name'] }}</span>
             <span class="result-score">{{ number_format($r['fitness'], 1) }}</span>
           </div>
@@ -1184,11 +1184,11 @@
       <div class="result-card">
         <div class="result-cat-label">Traditional</div>
         @php
-          $tradRank = collect($leaderboard)->sortByDesc('traditional')->take(3)->values();
+          $tradRank = collect($leaderboard)->sortByDesc('traditional')->take(5)->values();
         @endphp
         @forelse($tradRank as $i => $r)
           <div class="result-item">
-            <span class="result-rank {{ $i === 0 ? 'rank-1' : ($i === 1 ? 'rank-2' : 'rank-3') }}">{{ $i + 1 }}</span>
+            <span class="result-rank {{ $i === 0 ? 'rank-1' : ($i === 1 ? 'rank-2' : ($i === 2 ? 'rank-3' : 'rank-default')) }}">{{ $i + 1 }}</span>
             <span class="result-name">{{ $r['name'] }}</span>
             <span class="result-score">{{ number_format($r['traditional'], 1) }}</span>
           </div>
@@ -1201,11 +1201,11 @@
       <div class="result-card">
         <div class="result-cat-label">Indigenous</div>
         @php
-          $indigRank = collect($leaderboard)->sortByDesc('indigenous')->take(3)->values();
+          $indigRank = collect($leaderboard)->sortByDesc('indigenous')->take(5)->values();
         @endphp
         @forelse($indigRank as $i => $r)
           <div class="result-item">
-            <span class="result-rank {{ $i === 0 ? 'rank-1' : ($i === 1 ? 'rank-2' : 'rank-3') }}">{{ $i + 1 }}</span>
+            <span class="result-rank {{ $i === 0 ? 'rank-1' : ($i === 1 ? 'rank-2' : ($i === 2 ? 'rank-3' : 'rank-default')) }}">{{ $i + 1 }}</span>
             <span class="result-name">{{ $r['name'] }}</span>
             <span class="result-score">{{ number_format($r['indigenous'], 1) }}</span>
           </div>
@@ -1218,11 +1218,11 @@
       <div class="result-card">
         <div class="result-cat-label">Q&amp;A</div>
         @php
-          $qaRank = collect($leaderboard)->sortByDesc('qa')->take(3)->values();
+          $qaRank = collect($leaderboard)->sortByDesc('qa')->take(5)->values();
         @endphp
         @forelse($qaRank as $i => $r)
           <div class="result-item">
-            <span class="result-rank {{ $i === 0 ? 'rank-1' : ($i === 1 ? 'rank-2' : 'rank-3') }}">{{ $i + 1 }}</span>
+            <span class="result-rank {{ $i === 0 ? 'rank-1' : ($i === 1 ? 'rank-2' : ($i === 2 ? 'rank-3' : 'rank-default')) }}">{{ $i + 1 }}</span>
             <span class="result-name">{{ $r['name'] }}</span>
             <span class="result-score">{{ number_format($r['qa'], 1) }}</span>
           </div>
