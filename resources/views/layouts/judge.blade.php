@@ -31,7 +31,7 @@
 
         {{-- Navigation --}}
         <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-            <div class="sidebar-section">Dashboard</div>
+            <div class="sidebar-section" style="font-size: 12px;">Dashboard</div>
 
             <a href="{{ route('judge.dashboard') }}"
                class="sidebar-link {{ request()->routeIs('judge.dashboard') ? 'active' : '' }}">
@@ -43,7 +43,9 @@
                 Judge Dashboard
             </a>
 
-            <div class="sidebar-section">Scoring</div>
+            <div class="sidebar-section" style="font-size: 12px;">Scoring</div>
+
+            <div class="sidebar-section" style="font-size: 10px;">->Pre-Judging</div>
 
             <a href="{{ route('judge.production.index') }}"
                class="sidebar-link {{ request()->routeIs('judge.production.*') ? 'active' : '' }}">
@@ -85,7 +87,19 @@
                 Indigenous Attire
             </a>
 
-            <div class="sidebar-section">Account</div>
+            <div class="sidebar-section" style="font-size: 10px;">->Final-Judging</div>
+
+            <a href="{{ route('judge.qanda.index') }}"
+               class="sidebar-link {{ request()->routeIs('judge.qanda.*') ? 'active' : '' }}">
+                <span class="icon">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 21v-2.25m-6.364-.386l1.591-1.591M3 12h2.25m.386-6.364l1.591 1.591M12 18.75a6.75 6.75 0 100-13.5 6.75 6.75 0 000 13.5z"/>
+                    </svg>
+                </span>
+                Q&A
+            </a>
+
+            <div class="sidebar-section" style="font-size: 12px;">Account</div>
 
             <a href="{{ route('judge.profile') }}"
                class="sidebar-link {{ request()->routeIs('judge.profile') ? 'active' : '' }}">

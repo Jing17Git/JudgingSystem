@@ -305,15 +305,22 @@
 
 @section('content')
 @php
-    $maleByNum   = $maleCandidates->keyBy('candidate_number');
-    $femaleByNum = $femaleCandidates->keyBy('candidate_number');
-    $allNumbers  = $maleCandidates->pluck('candidate_number')
-                    ->concat($femaleCandidates->pluck('candidate_number'))
-                    ->unique()
-                    ->sort()
-                    ->values();
+    $inQa = in_array($categorySlug, ['qa', 'qanda']);
+    if ($inQa) {
+        $maleList = $maleCandidates->values();
+        $femaleList = $femaleCandidates->values();
+        $totalPairs = max($maleList->count(), $femaleList->count());
+    } else {
+        $maleByNum   = $maleCandidates->keyBy('candidate_number');
+        $femaleByNum = $femaleCandidates->keyBy('candidate_number');
+        $allNumbers  = $maleCandidates->pluck('candidate_number')
+                        ->concat($femaleCandidates->pluck('candidate_number'))
+                        ->unique()
+                        ->sort()
+                        ->values();
+        $totalPairs = $allNumbers->count();
+    }
 
-    $totalPairs = $allNumbers->count();
     $totalSubmitted = count($scores);
 @endphp
 
@@ -337,16 +344,23 @@
     </div>
   </div>
 
-  @if($allNumbers->isEmpty())
+  @if($totalPairs === 0)
       <div class="sc-panel text-center py-16" style="max-width:1180px; margin:0 auto;">
           <p class="font-mono text-sm tracking-widest text-gray-500 uppercase">No candidates found in this category.</p>
       </div>
   @else
       {{-- CARD PAIRS --}}
-      @foreach($allNumbers as $index => $cNum)
+      @for($i = 0; $i < $totalPairs; $i++)
           @php
-              $mCand = $maleByNum->get($cNum);
-              $fCand = $femaleByNum->get($cNum);
+              if ($inQa) {
+                  $mCand = $maleList->get($i);
+                  $fCand = $femaleList->get($i);
+                  $cNum = $i + 1;
+              } else {
+                  $cNum = $allNumbers->get($i);
+                  $mCand = $maleByNum->get($cNum);
+                  $fCand = $femaleByNum->get($cNum);
+              }
           @endphp
 
           <div class="card-pair">
@@ -516,7 +530,7 @@
             </section>
 
           </div>
-      @endforeach
+      @endfor
   @endif
 
   <footer class="sc-footer">

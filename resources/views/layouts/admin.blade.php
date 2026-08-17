@@ -31,7 +31,7 @@
 
         {{-- Navigation --}}
         <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-            <div class="sidebar-section">Main</div>
+            <div class="sidebar-section" style="font-size: 12px;">Main</div>
 
             <a href="{{ route('admin.dashboard') }}"
                class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
@@ -43,7 +43,7 @@
                 Dashboard
             </a>
 
-            <div class="sidebar-section">Management</div>
+            <div class="sidebar-section" style="font-size: 12px;" >Management</div>
 
             <a href="{{ route('admin.admins.index') }}"
                class="sidebar-link {{ request()->routeIs('admin.admins.*') ? 'active' : '' }}">
@@ -76,7 +76,7 @@
                 Candidates
             </a>
 
- <div class="sidebar-section">Categories</div>
+ <div class="sidebar-section" style="font-size: 12px;" >Categories</div>
 
   <div class="sidebar-section" style="font-size: 11px">  ->Pre-Judging </div>
 
@@ -122,8 +122,8 @@
             </a>
              <div class="sidebar-section" style="font-size: 11px">  ->Final-Judging </div>
 
-                         <a href="{{ route('admin.traditional-attire.index') }}"
-               class="sidebar-link {{ request()->routeIs('admin.traditional-attire.*') ? 'active' : '' }}">
+                         <a href="{{ route('admin.qa.index') }}"
+               class="sidebar-link {{ request()->routeIs('admin.qa.*') ? 'active' : '' }}">
                 <span class="icon">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09z"/>
@@ -133,16 +133,79 @@
             </a>
 
 
- <div class="sidebar-section">Results</div>
+            <div class="sidebar-section" style="font-size: 12px;">Results</div>
+
             <a href="{{ route('admin.overall.index') }}"
-               class="sidebar-link {{ request()->routeIs('admin.overall.*') ? 'active' : '' }}">
+               class="sidebar-link {{ request()->routeIs('admin.overall.index') ? 'active' : '' }}">
+                <span class="icon">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </span>
+                Preliminary Overall
+            </a>
+
+            <a href="{{ route('admin.overall.final') }}"
+               class="sidebar-link {{ request()->routeIs('admin.overall.final') ? 'active' : '' }}">
                 <span class="icon">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.504-1.125-1.125-1.125h-6.75c-.621 0-1.125.504-1.125 1.125V18.75m9 0h-9M12 3a6.75 6.75 0 00-6.75 6.75c0 2.235.918 4.255 2.4 5.714.507.5.85 1.164.85 1.911h7c0-.747.343-1.411.85-1.911A6.716 6.716 0 0018.75 9.75 6.75 6.75 0 0012 3z"/>
                     </svg>
                 </span>
-                Overall
+                Final Overall (Q & A)
             </a>
+
+            <div class="sidebar-section" style="font-size: 12px;">System</div>
+
+            <div x-data="{
+                open: localStorage.getItem('sidebar_settings_open') !== null
+                    ? localStorage.getItem('sidebar_settings_open') === 'true'
+                    : {{ request()->routeIs('admin.settings.*') ? 'true' : 'true' }},
+                toggle() {
+                    this.open = !this.open;
+                    localStorage.setItem('sidebar_settings_open', this.open);
+                }
+            }">
+                <button type="button"
+                        @click.prevent.stop="toggle()"
+                        class="sidebar-link w-full text-left justify-between cursor-pointer {{ request()->routeIs('admin.settings.*') ? 'text-[var(--green-700)] bg-[var(--green-50)]' : '' }}">
+                    <div class="flex items-center gap-3">
+                        <span class="icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </span>
+                        Settings
+                    </div>
+                    <svg class="w-4 h-4 text-[var(--text-muted)] transition-transform duration-200"
+                         :class="open ? 'rotate-180' : ''"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+
+                {{-- Dropdown Submenu items --}}
+                <div x-show="open"
+                     x-collapse
+                     class="pl-6 pr-1 pt-1 pb-2 space-y-1">
+                    <a href="{{ route('admin.settings.preliminary') }}"
+                       class="sidebar-link text-xs py-2 px-3 {{ request()->routeIs('admin.settings.preliminary') || (request()->routeIs('admin.settings.index') && !request()->routeIs('admin.settings.final')) ? 'active font-bold' : '' }}">
+                        <span class="w-2 h-2 rounded-full flex-shrink-0 {{ request()->routeIs('admin.settings.preliminary') || (request()->routeIs('admin.settings.index') && !request()->routeIs('admin.settings.final')) ? 'bg-[var(--green-600)]' : 'bg-gray-400' }}"></span>
+                        <span>Preliminary</span>
+                    </a>
+                    <a href="{{ route('admin.settings.final') }}"
+                       class="sidebar-link text-xs py-2 px-3 {{ request()->routeIs('admin.settings.final') ? 'active font-bold' : '' }}">
+                        <span class="w-2 h-2 rounded-full flex-shrink-0 {{ request()->routeIs('admin.settings.final') ? 'bg-[var(--green-600)]' : 'bg-gray-400' }}"></span>
+                        <span>Final</span>
+                    </a>
+                    <a href="{{ route('admin.settings.judge-scores') }}"
+                       class="sidebar-link text-xs py-2 px-3 {{ request()->routeIs('admin.settings.judge-scores') ? 'active font-bold' : '' }}">
+                        <span class="w-2 h-2 rounded-full flex-shrink-0 {{ request()->routeIs('admin.settings.judge-scores') ? 'bg-[var(--green-600)]' : 'bg-gray-400' }}"></span>
+                        <span>Judge Score Sheets</span>
+                    </a>
+                </div>
+            </div>
         </nav>
 
         {{-- User info --}}
@@ -171,12 +234,12 @@
     <div class="main-content flex-1">
         {{-- Top bar for mobile --}}
         <div class="lg:hidden flex items-center justify-between mb-6">
-            <button @click="sidebarOpen = !sidebarOpen" class="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+            <button @click="sidebarOpen = !sidebarOpen" class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-2 rounded-lg hover:bg-gray-100">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
             </button>
-            <span class="text-sm font-semibold text-[var(--green-600)]">JudgingSystem</span>
+            <span class="text-sm font-bold text-[var(--green-700)]">JudgingSystem</span>
         </div>
 
         {{-- Flash messages --}}
@@ -201,4 +264,20 @@
         @yield('content')
     </div>
 </div>
+
+<script>
+    // Preserve sidebar navigation scroll position across page transitions
+    document.addEventListener('DOMContentLoaded', function() {
+        const nav = document.querySelector('.sidebar nav');
+        if (nav) {
+            const savedPos = sessionStorage.getItem('sidebar_scroll_pos');
+            if (savedPos !== null) {
+                nav.scrollTop = parseInt(savedPos, 10);
+            }
+            nav.addEventListener('scroll', function() {
+                sessionStorage.setItem('sidebar_scroll_pos', nav.scrollTop);
+            }, { passive: true });
+        }
+    });
+</script>
 @endsection

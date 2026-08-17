@@ -8,6 +8,7 @@ use App\Models\ProductionScore;
 use App\Models\FitnessScore;
 use App\Models\TraditionalAttireScore;
 use App\Models\IndigenousAttireScore;
+use App\Models\QaScore;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -24,7 +25,7 @@ class JudgeDashboardController extends Controller
         $maleCandidatesCount = Candidate::where('gender', 'Male')->count();
         $femaleCandidatesCount = Candidate::where('gender', 'Female')->count();
 
-        // 4 Categories
+        // Categories
         $categories = [
             [
                 'name' => 'Production',
@@ -53,6 +54,13 @@ class JudgeDashboardController extends Controller
                 'route' => 'judge.indigenous-attire.index',
                 'icon' => 'M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 21v-2.25m-6.364-.386l1.591-1.591M3 12h2.25m.386-6.364l1.591 1.591M12 18.75a6.75 6.75 0 100-13.5 6.75 6.75 0 000 13.5z',
                 'submitted' => IndigenousAttireScore::where('judge_id', $judgeId)->count(),
+            ],
+            [
+                'name' => 'Q & A',
+                'slug' => 'qa',
+                'route' => 'judge.qa.index',
+                'icon' => 'M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09 3.09z',
+                'submitted' => QaScore::where('judge_id', $judgeId)->count(),
             ],
         ];
 

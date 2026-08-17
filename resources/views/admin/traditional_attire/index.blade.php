@@ -2,6 +2,70 @@
 
 @section('title', 'Traditional Attire Scoring')
 
+@push('styles')
+<style>
+    @media print {
+        .sidebar, .topbar, .page-header, .no-print, nav, header, .legend-bar {
+            display: none !important;
+        }
+        body {
+            background: #fff !important;
+            color: #000 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            font-size: 11pt;
+        }
+        .main-content {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+        }
+        .gender-section {
+            display: none !important;
+        }
+        .gender-section.print-visible {
+            display: block !important;
+        }
+        .print-header {
+            display: block !important;
+            text-align: center;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 8px;
+        }
+        .panel {
+            box-shadow: none !important;
+            border: none !important;
+        }
+        .data-table {
+            border-collapse: collapse !important;
+            width: 100% !important;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #000 !important;
+            padding: 6px 8px !important;
+            font-size: 10pt !important;
+            color: #000 !important;
+        }
+        .data-table th {
+            background-color: #f3f4f6 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .print-signatures {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+            gap: 20px 24px;
+            margin-top: 40px;
+            page-break-inside: avoid;
+        }
+    }
+    .print-header, .print-signatures {
+        display: none;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
@@ -9,7 +73,7 @@
             <svg class="w-7 h-7 text-[var(--green-600)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
-            Production — Scoring Table
+            Traditional Attire — Scoring Table
         </h1>
         <p class="page-subtitle">Scores given by each judge per candidate (1–10). Read-only view.</p>
     </div>
@@ -18,6 +82,13 @@
             {{ $judges->count() }} {{ Str::plural('Judge', $judges->count()) }} &nbsp;·&nbsp; {{ $candidates->count() }} {{ Str::plural('Candidate', $candidates->count()) }}
         </span>
     </div>
+</div>
+
+{{-- Print Header (visible only when printing) --}}
+<div class="print-header">
+    <h1 style="font-size: 20pt; font-weight: bold; margin: 0; text-transform: uppercase;">Official Pageant Tabulation Sheet</h1>
+    <p style="font-size: 13pt; margin: 4px 0 0; font-weight: bold;">Traditional Attire — Scoring Table</p>
+    <p style="font-size: 10pt; margin: 4px 0 0; color: #6b7280;">Generated on {{ now()->format('F d, Y — h:i A') }}</p>
 </div>
 
 @if($candidates->isEmpty())
@@ -88,7 +159,7 @@
         });
     @endphp
 
-    <div class="mb-8 animate-fade-in-up">
+    <div class="mb-8 animate-fade-in-up gender-section" id="section-{{ strtolower($gKey) }}">
         {{-- Section Header --}}
         <div class="flex items-center gap-3 mb-3">
             @if($gKey === 'Male')
@@ -109,6 +180,17 @@
                     <span class="bg-white/25 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">{{ $gCandidates->count() }}</span>
                 </div>
                 <div class="h-px flex-1 bg-gray-200 opacity-60"></div>
+            @endif
+
+            {{-- Print Button --}}
+            @if($gKey !== 'Unset')
+                <button onclick="printGenderSection('{{ strtolower($gKey) }}', 'Traditional Attire', '{{ $group['label'] }}')"
+                        class="no-print btn btn-outline btn-sm flex items-center gap-1.5 text-xs font-semibold shadow-sm hover:shadow-md transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                    </svg>
+                    Print {{ $gKey }}
+                </button>
             @endif
         </div>
 
@@ -236,8 +318,19 @@
     </div>
 @endforeach
 
+{{-- Print Signatures (visible only when printing) --}}
+<div class="print-signatures">
+    @foreach($judges as $judge)
+        <div style="text-align: center;">
+            <div style="border-bottom: 1px solid #000; height: 35px; margin-bottom: 6px;"></div>
+            <p style="font-size: 10pt; font-weight: bold; margin: 0; text-transform: uppercase;">{{ $judge->name }}</p>
+            <p style="font-size: 8pt; color: #4b5563; margin: 0;">Judge Signature &amp; Date</p>
+        </div>
+    @endforeach
+</div>
+
 {{-- Legend --}}
-<div class="mt-2 flex flex-wrap items-center gap-4 text-xs text-[var(--text-muted)]">
+<div class="mt-2 flex flex-wrap items-center gap-4 text-xs text-[var(--text-muted)] legend-bar">
     <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span> 1st Place</span>
     <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-300 inline-block"></span> 2nd Place</span>
     <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-orange-400 inline-block"></span> 3rd Place</span>
@@ -245,5 +338,37 @@
 </div>
 
 @endif
-@endsection
 
+@push('scripts')
+<script>
+    function printGenderSection(gender, category, label) {
+        // Mark only the target section as print-visible
+        document.querySelectorAll('.gender-section').forEach(el => {
+            el.classList.remove('print-visible');
+        });
+        const target = document.getElementById('section-' + gender);
+        if (target) {
+            target.classList.add('print-visible');
+        }
+
+        // Update print header
+        const printHeader = document.querySelector('.print-header');
+        if (printHeader) {
+            printHeader.querySelector('p:nth-child(2)').textContent = category + ' — ' + label;
+        }
+
+        window.print();
+
+        const cleanup = () => {
+            document.querySelectorAll('.gender-section').forEach(el => {
+                el.classList.remove('print-visible');
+            });
+            window.removeEventListener('afterprint', cleanup);
+        };
+
+        window.addEventListener('afterprint', cleanup);
+        setTimeout(cleanup, 1000);
+    }
+</script>
+@endpush
+@endsection
