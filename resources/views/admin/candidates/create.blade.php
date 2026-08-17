@@ -33,7 +33,7 @@
                 <div class="form-group">
                     <label for="candidate_number" class="form-label">Candidate Number</label>
                     <input type="number" id="candidate_number" name="candidate_number" class="form-input @error('candidate_number') border-[var(--danger)] @enderror" value="{{ old('candidate_number') }}" required min="1" placeholder="e.g. 1">
-                    <p class="text-xs text-[var(--text-muted)] mt-1">Must be unique across all candidates.</p>
+                    <p class="text-xs text-[var(--text-muted)] mt-1">Unique candidate number per gender division.</p>
                     @error('candidate_number')
                         <p class="form-error">{{ $message }}</p>
                     @enderror
@@ -49,11 +49,10 @@
 
                 <div class="form-group">
                     <label for="gender" class="form-label">Gender</label>
-                    <select id="gender" name="gender" class="form-input @error('gender') border-[var(--danger)] @enderror">
+                    <select id="gender" name="gender" class="form-input @error('gender') border-[var(--danger)] @enderror" required>
                         <option value="" disabled {{ old('gender') ? '' : 'selected' }}>Select gender...</option>
                         <option value="Male"   {{ old('gender') === 'Male'   ? 'selected' : '' }}>Male</option>
                         <option value="Female" {{ old('gender') === 'Female' ? 'selected' : '' }}>Female</option>
-                        <option value="Other"  {{ old('gender') === 'Other'  ? 'selected' : '' }}>Other</option>
                     </select>
                     @error('gender')
                         <p class="form-error">{{ $message }}</p>

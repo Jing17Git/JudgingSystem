@@ -29,7 +29,8 @@ class ProductionController extends Controller
             return $s->candidate_id . '_' . $s->judge_id;
         });
 
-        // Build ranked data: candidate totals
+        // Build ranked data: candidate totals (average = sum ÷ judge count)
+        $judgeCount = $judges->count();
         $candidateTotals = [];
         foreach ($candidates as $candidate) {
             $total = 0;
@@ -37,7 +38,7 @@ class ProductionController extends Controller
                 $key = $candidate->id . '_' . $judge->id;
                 $total += isset($scores[$key]) ? (float) $scores[$key]->score : 0;
             }
-            $candidateTotals[$candidate->id] = $total;
+            $candidateTotals[$candidate->id] = $judgeCount > 0 ? $total / $judgeCount : 0;
         }
 
         // Rank candidates (highest total = rank 1)

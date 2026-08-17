@@ -48,6 +48,14 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-input @error('email') border-[var(--danger)] @enderror" value="{{ old('email', $judge->email) }}" placeholder="e.g. judge01@example.com">
+                    @error('email')
+                        <p class="form-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="form-group">
                     <label for="picture" class="form-label">Picture</label>
                     <div x-data="{ preview: '{{ $judge->photo_url ? asset('storage/' . $judge->photo_url) : '' }}' }" class="space-y-3">
                         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">

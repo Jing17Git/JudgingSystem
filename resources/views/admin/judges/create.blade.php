@@ -48,6 +48,15 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-input @error('email') border-[var(--danger)] @enderror" value="{{ old('email') }}" placeholder="e.g. judge01@example.com">
+                    <p class="text-xs text-[var(--text-muted)] mt-1">Optional contact email address.</p>
+                    @error('email')
+                        <p class="form-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="form-group">
                     <label for="picture" class="form-label">Picture</label>
                     <div x-data="{ preview: null }" class="space-y-3">
                         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
