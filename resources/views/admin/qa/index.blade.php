@@ -11,23 +11,23 @@
             </svg>
             Q & A — Final Judging Table
         </h1>
-        <p class="page-subtitle">Final Round evaluation for the Top 3 Male & Top 3 Female Finalists.</p>
+        <p class="page-subtitle">Final Round evaluation for the Top 5 Male & Top 5 Female Finalists.</p>
     </div>
     <div class="flex items-center gap-2">
         <span class="text-xs font-semibold text-[var(--text-muted)] bg-[var(--bg-card)] border border-[var(--border-default)] px-3.5 py-2 rounded-xl shadow-sm">
-            Top 3 Finalists &nbsp;·&nbsp; {{ $judges->count() }} {{ Str::plural('Judge', $judges->count()) }}
+            Top 5 Finalists &nbsp;·&nbsp; {{ $judges->count() }} {{ Str::plural('Judge', $judges->count()) }}
         </span>
     </div>
 </div>
 
-{{-- Top 3 Finalists Scoring Section --}}
-@if($top3Male->isEmpty() && $top3Female->isEmpty())
+{{-- Top 5 Finalists Scoring Section --}}
+@if(($top5Male ?? $top3Male)->isEmpty() && ($top5Female ?? $top3Female)->isEmpty())
     <div class="panel animate-fade-in-up mb-8">
         <div class="panel-body text-center py-16">
             <svg class="w-12 h-12 mx-auto text-[var(--text-muted)] opacity-40 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
-            <p class="text-[var(--text-muted)] font-medium">No candidates available to compute Top 3 Finalists. Please add candidates and scores first.</p>
+            <p class="text-[var(--text-muted)] font-medium">No candidates available to compute Top 5 Finalists. Please add candidates and scores first.</p>
             <a href="{{ route('admin.candidates.create') }}" class="btn btn-green btn-sm mt-4">Add Candidates</a>
         </div>
     </div>
@@ -35,8 +35,8 @@
 
 @php
     $finalistGroups = [
-        'Male'   => ['label' => '🏆 Top 3 Male Finalists',   'key' => 'Male',   'candidates' => $top3Male],
-        'Female' => ['label' => '👑 Top 3 Female Finalists', 'key' => 'Female', 'candidates' => $top3Female],
+        'Male'   => ['label' => '🏆 Top 5 Male Finalists',   'key' => 'Male',   'candidates' => $top5Male ?? $top3Male],
+        'Female' => ['label' => '👑 Top 5 Female Finalists', 'key' => 'Female', 'candidates' => $top5Female ?? $top3Female],
     ];
 @endphp
 

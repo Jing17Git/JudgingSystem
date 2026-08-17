@@ -72,21 +72,13 @@
     </div>
 
     {{-- Information Alert --}}
-    <div class="mb-6 p-4 rounded-xl border border-emerald-100 bg-emerald-50/70 text-emerald-950 text-sm flex items-start gap-3 shadow-sm">
+    <div class="mb-6 p-4 rounded-xl border border-emerald-100 bg-emerald-50/70 text-emerald-950 text-sm flex items-start gap-3 shadow-sm"  style="width: 135%;">
         <svg class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
-        <div>
-            <span class="font-bold">Final Overall Calculation Formula:</span>
-            For each of the Top 5 finalists, their Preliminary Grand Total score is multiplied by the configured Preliminary percentage, and their judges' Q&amp;A average is multiplied by the Q&amp;A percentage:
-            <div class="mt-1.5 p-2 bg-white/80 rounded-lg text-xs font-mono font-bold text-emerald-900 border border-emerald-200">
-                Final Grand Total = (Prelim Total × Prelim %) + (Q&amp;A Average × Q&amp;A %)
-            </div>
-            Example: (Prelim Score × 30%) + (Q&amp;A Score × 70%) = Final Grand Total (100%).
-        </div>
-    </div>
+       
 
-    <form action="{{ route('admin.settings.update') }}" method="POST">
+    <form action="{{ route('admin.settings.update') }}" method="POST" >
         @csrf
         @method('PUT')
         <input type="hidden" name="stage" value="final">

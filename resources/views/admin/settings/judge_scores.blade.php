@@ -38,6 +38,14 @@
             break-after: auto;
         }
 
+        #category-print-container {
+            display: none !important;
+        }
+
+        #category-print-container.print-visible {
+            display: block !important;
+        }
+
         .print-doc-header {
             display: block !important;
             text-align: center;
@@ -77,7 +85,7 @@
         }
     }
 
-    .print-doc-header {
+    .print-doc-header, #category-print-container {
         display: none;
     }
 </style>
@@ -97,17 +105,20 @@
             </svg>
             Judge Score Sheets &amp; Signatures
         </h1>
-        <p class="page-subtitle">View and print scores given by each judge for all categories and candidates with their official signature line.</p>
+        <p class="page-subtitle">View and print scores given by each judge for all categories or individually per category with official signatures.</p>
     </div>
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 flex-wrap">
         <button onclick="printAllJudgeSheets()" class="btn btn-green flex items-center gap-2 shadow-sm text-xs font-semibold">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
             </svg>
-            Print All Judges ({{ $judges->count() }})
+            Print All Judges (Full Sheets)
         </button>
     </div>
 </div>
+
+{{-- Category Print Container (Only active during Category Print) --}}
+<div id="category-print-container"></div>
 
 <div x-data="{
     selectedJudge: 'all',
@@ -165,7 +176,7 @@
             </div>
 
             <div class="text-xs text-[var(--text-muted)]">
-                Showing scores across: <strong>Production, Fitness, Indigenous, Traditional, Q &amp; A</strong>
+                Categories: <strong>Production, Fitness, Indigenous, Traditional, Q &amp; A</strong>
             </div>
         </div>
     </div>
@@ -186,6 +197,49 @@
         </div>
     @else
 
+        @php
+            // Prepare structured score data for category printing
+            $judgePrintData = [];
+            foreach ($judges as $j) {
+                $judgePrintData[$j->id] = [
+                    'id'     => $j->id,
+                    'name'   => $j->name,
+                    'male'   => [],
+                    'female' => [],
+                ];
+                foreach ($maleCandidates as $cand) {
+                    $k = $j->id . '_' . $cand->id;
+                    $judgePrintData[$j->id]['male'][] = [
+                        'number' => $cand->candidate_number,
+                        'name'   => $cand->display_name,
+                        'origin' => $cand->origin,
+                        'scores' => [
+                            'production'  => isset($prodScores[$k])  ? (float)$prodScores[$k]->score  : null,
+                            'fitness'     => isset($fitScores[$k])   ? (float)$fitScores[$k]->score   : null,
+                            'indigenous'  => isset($indigScores[$k]) ? (float)$indigScores[$k]->score : null,
+                            'traditional' => isset($tradScores[$k])  ? (float)$tradScores[$k]->score  : null,
+                            'qa'          => isset($qaScores[$k])    ? (float)$qaScores[$k]->score    : null,
+                        ],
+                    ];
+                }
+                foreach ($femaleCandidates as $cand) {
+                    $k = $j->id . '_' . $cand->id;
+                    $judgePrintData[$j->id]['female'][] = [
+                        'number' => $cand->candidate_number,
+                        'name'   => $cand->display_name,
+                        'origin' => $cand->origin,
+                        'scores' => [
+                            'production'  => isset($prodScores[$k])  ? (float)$prodScores[$k]->score  : null,
+                            'fitness'     => isset($fitScores[$k])   ? (float)$fitScores[$k]->score   : null,
+                            'indigenous'  => isset($indigScores[$k]) ? (float)$indigScores[$k]->score : null,
+                            'traditional' => isset($tradScores[$k])  ? (float)$tradScores[$k]->score  : null,
+                            'qa'          => isset($qaScores[$k])    ? (float)$qaScores[$k]->score    : null,
+                        ],
+                    ];
+                }
+            }
+        @endphp
+
         {{-- Loop for Each Judge --}}
         @foreach($judges as $judge)
             <div class="judge-score-sheet mb-10"
@@ -196,7 +250,7 @@
                 <div class="print-doc-header">
                     <h1 style="font-size: 18pt; font-weight: bold; margin: 0; text-transform: uppercase;">Official Judge Score Sheet</h1>
                     <p style="font-size: 13pt; margin: 4px 0 0; font-weight: bold; color: #166534;">Judge: {{ strtoupper($judge->name) }}</p>
-                    <p style="font-size: 9pt; margin: 3px 0 0; color: #6b7280;">Summary of all scores submitted — Printed on {{ now()->format('F d, Y — h:i A') }}</p>
+                    <p style="font-size: 9pt; margin: 3px 0 0; color: #6b7280;">Summary of all scores submitted across all categories — Printed on {{ now()->format('F d, Y — h:i A') }}</p>
                 </div>
 
                 {{-- Screen Card Header --}}
@@ -215,14 +269,77 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            {{-- Print Specific Category Dropdown --}}
+                            <div class="relative inline-block text-left" x-data="{ openCat: false }">
+                                <button @click="openCat = !openCat"
+                                        type="button"
+                                        class="btn btn-outline btn-sm flex items-center gap-1.5 text-xs font-semibold text-emerald-700 border-emerald-300 hover:bg-emerald-50 shadow-sm">
+                                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                    </svg>
+                                    Print by Category
+                                    <svg class="w-3.5 h-3.5 text-gray-500 transition-transform" :class="{ 'rotate-180': openCat }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                </button>
+
+                                <div x-show="openCat"
+                                     @click.outside="openCat = false"
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="transform opacity-0 scale-95"
+                                     x-transition:enter-end="transform opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="transform opacity-100 scale-100"
+                                     x-transition:leave-end="transform opacity-0 scale-95"
+                                     class="absolute right-0 mt-2 w-52 rounded-xl shadow-xl bg-white border border-gray-200 z-30 py-1.5 divide-y divide-gray-100"
+                                     style="display: none;">
+                                    <div class="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                        Select Category to Print
+                                    </div>
+                                    <div class="py-1">
+                                        <button type="button"
+                                                @click="printJudgeCategory('{{ $judge->id }}', 'production', 'Production'); openCat = false"
+                                                class="w-full text-left px-3.5 py-2 text-xs text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-2.5 font-medium transition-colors">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                                            Production
+                                        </button>
+                                        <button type="button"
+                                                @click="printJudgeCategory('{{ $judge->id }}', 'fitness', 'Fitness'); openCat = false"
+                                                class="w-full text-left px-3.5 py-2 text-xs text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-2.5 font-medium transition-colors">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                            Fitness
+                                        </button>
+                                        <button type="button"
+                                                @click="printJudgeCategory('{{ $judge->id }}', 'indigenous', 'Indigenous Attire'); openCat = false"
+                                                class="w-full text-left px-3.5 py-2 text-xs text-gray-700 hover:bg-purple-50 hover:text-purple-700 flex items-center gap-2.5 font-medium transition-colors">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                                            Indigenous Attire
+                                        </button>
+                                        <button type="button"
+                                                @click="printJudgeCategory('{{ $judge->id }}', 'traditional', 'Traditional Attire'); openCat = false"
+                                                class="w-full text-left px-3.5 py-2 text-xs text-gray-700 hover:bg-amber-50 hover:text-amber-700 flex items-center gap-2.5 font-medium transition-colors">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                                            Traditional Attire
+                                        </button>
+                                        <button type="button"
+                                                @click="printJudgeCategory('{{ $judge->id }}', 'qa', 'Final Q & A'); openCat = false"
+                                                class="w-full text-left px-3.5 py-2 text-xs text-gray-700 hover:bg-rose-50 hover:text-rose-700 flex items-center gap-2.5 font-medium transition-colors">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                                            Final Q &amp; A
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Print Full Score Sheet Button --}}
                             <button type="button"
                                     onclick="printSingleJudgeSheet('{{ $judge->id }}', '{{ addslashes($judge->name) }}')"
                                     class="btn btn-outline btn-sm flex items-center gap-2 shadow-sm text-xs font-semibold hover:border-emerald-500 hover:text-emerald-700">
                                 <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                                 </svg>
-                                Print {{ $judge->name }}'s Score Sheet
+                                Print Full Sheet
                             </button>
                         </div>
                     </div>
@@ -333,7 +450,147 @@
 
 @push('scripts')
 <script>
+    const judgePrintData = @json($judgePrintData ?? []);
+
+    function printJudgeCategory(judgeId, categoryKey, categoryLabel) {
+        const jData = judgePrintData[judgeId];
+        if (!jData) return;
+
+        const container = document.getElementById('category-print-container');
+        if (!container) return;
+
+        // Date string
+        const dateStr = new Date().toLocaleString('en-US', {
+            month: 'long', day: 'numeric', year: 'numeric',
+            hour: 'numeric', minute: 'numeric', hour12: true
+        });
+
+        // Build HTML for Category Print Sheet
+        let html = `
+            <div class="print-doc-header" style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px;">
+                <h1 style="font-size: 18pt; font-weight: bold; margin: 0; text-transform: uppercase;">Official Judge Score Sheet</h1>
+                <p style="font-size: 13pt; margin: 4px 0 0; font-weight: bold; color: #166534;">Category: ${categoryLabel}</p>
+                <p style="font-size: 11pt; margin: 2px 0 0; font-weight: bold; color: #111827;">Judge: ${jData.name.toUpperCase()}</p>
+                <p style="font-size: 9pt; margin: 3px 0 0; color: #6b7280;">Generated on ${dateStr}</p>
+            </div>
+        `;
+
+        // Male Candidates Table
+        if (jData.male && jData.male.length > 0) {
+            html += `
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 11pt; font-weight: bold; margin-bottom: 6px; color: #1e40af;">
+                        ♂ Male Candidates (${jData.male.length})
+                    </div>
+                    <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background-color: #f3f4f6;">
+                                <th style="width: 80px; text-align: center; padding: 6px 8px; border: 1px solid #000;">Cand. #</th>
+                                <th style="text-align: left; padding: 6px 8px; border: 1px solid #000;">Candidate Name</th>
+                                <th style="width: 140px; text-align: center; padding: 6px 8px; border: 1px solid #000; font-weight: bold;">${categoryLabel} Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            jData.male.forEach(c => {
+                const s = c.scores[categoryKey];
+                const scoreText = (s !== null && s !== undefined) ? Number(s).toFixed(1) : '—';
+                html += `
+                    <tr>
+                        <td style="text-align: center; font-weight: bold; padding: 6px 8px; border: 1px solid #000;">${c.number}</td>
+                        <td style="padding: 6px 8px; border: 1px solid #000;">
+                            <strong>${c.name}</strong>
+                            ${c.origin ? `<span style="font-size: 8pt; color: #6b7280; display: block;">${c.origin}</span>` : ''}
+                        </td>
+                        <td style="text-align: center; font-weight: bold; font-family: monospace; font-size: 11pt; padding: 6px 8px; border: 1px solid #000;">${scoreText}</td>
+                    </tr>
+                `;
+            });
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Female Candidates Table
+        if (jData.female && jData.female.length > 0) {
+            html += `
+                <div style="margin-bottom: 24px;">
+                    <div style="font-size: 11pt; font-weight: bold; margin-bottom: 6px; color: #9d174d;">
+                        ♀ Female Candidates (${jData.female.length})
+                    </div>
+                    <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background-color: #f3f4f6;">
+                                <th style="width: 80px; text-align: center; padding: 6px 8px; border: 1px solid #000;">Cand. #</th>
+                                <th style="text-align: left; padding: 6px 8px; border: 1px solid #000;">Candidate Name</th>
+                                <th style="width: 140px; text-align: center; padding: 6px 8px; border: 1px solid #000; font-weight: bold;">${categoryLabel} Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            jData.female.forEach(c => {
+                const s = c.scores[categoryKey];
+                const scoreText = (s !== null && s !== undefined) ? Number(s).toFixed(1) : '—';
+                html += `
+                    <tr>
+                        <td style="text-align: center; font-weight: bold; padding: 6px 8px; border: 1px solid #000;">${c.number}</td>
+                        <td style="padding: 6px 8px; border: 1px solid #000;">
+                            <strong>${c.name}</strong>
+                            ${c.origin ? `<span style="font-size: 8pt; color: #6b7280; display: block;">${c.origin}</span>` : ''}
+                        </td>
+                        <td style="text-align: center; font-weight: bold; font-family: monospace; font-size: 11pt; padding: 6px 8px; border: 1px solid #000;">${scoreText}</td>
+                    </tr>
+                `;
+            });
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Judge Signature Block
+        html += `
+            <div class="print-judge-signature" style="margin-top: 40px; page-break-inside: avoid;">
+                <div style="width: 280px; margin-left: auto; text-align: center;">
+                    <div style="border-bottom: 2px solid #000; height: 45px; margin-bottom: 8px;"></div>
+                    <p style="font-size: 11pt; font-weight: bold; margin: 0; text-transform: uppercase;">
+                        ${jData.name}
+                    </p>
+                    <p style="font-size: 9pt; color: #4b5563; margin: 0;">
+                        Official Judge Signature &amp; Date
+                    </p>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = html;
+
+        // Hide full sheets and show only category print container
+        document.querySelectorAll('.judge-score-sheet').forEach(el => el.classList.remove('print-visible'));
+        container.classList.add('print-visible');
+
+        window.print();
+
+        const cleanup = () => {
+            container.classList.remove('print-visible');
+            container.innerHTML = '';
+            window.removeEventListener('afterprint', cleanup);
+        };
+
+        window.addEventListener('afterprint', cleanup);
+        setTimeout(cleanup, 1000);
+    }
+
     function printSingleJudgeSheet(judgeId, judgeName) {
+        const catContainer = document.getElementById('category-print-container');
+        if (catContainer) {
+            catContainer.classList.remove('print-visible');
+            catContainer.innerHTML = '';
+        }
+
         document.querySelectorAll('.judge-score-sheet').forEach(el => {
             el.classList.remove('print-visible');
         });
@@ -356,6 +613,12 @@
     }
 
     function printAllJudgeSheets() {
+        const catContainer = document.getElementById('category-print-container');
+        if (catContainer) {
+            catContainer.classList.remove('print-visible');
+            catContainer.innerHTML = '';
+        }
+
         document.querySelectorAll('.judge-score-sheet').forEach(el => {
             el.classList.add('print-visible');
         });
@@ -375,3 +638,4 @@
 </script>
 @endpush
 @endsection
+

@@ -70,20 +70,9 @@
         </a>
     </div>
 
-    {{-- Information Alert --}}
-    <div class="mb-6 p-4 rounded-xl border border-blue-100 bg-blue-50/70 text-blue-900 text-sm flex items-start gap-3 shadow-sm">
-        <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <div>
-            <span class="font-bold">Preliminary Calculation Formula:</span>
-            For each candidate, the judges' average score in a category (Sum of judges ÷ Total judges) is multiplied by its percentage weight:
-            <code class="px-2 py-0.5 bg-blue-100 rounded text-xs font-mono font-bold text-blue-800">Category Result = Average Score × (Percentage ÷ 100)</code>.
-            The Preliminary Grand Total determines qualification for the Top 5 Finalists.
-        </div>
-    </div>
+    
 
-    <form action="{{ route('admin.settings.update') }}" method="POST">
+    <form action="{{ route('admin.settings.update') }}" method="POST" style="width: 135%;">
         @csrf
         @method('PUT')
         <input type="hidden" name="stage" value="preliminary">

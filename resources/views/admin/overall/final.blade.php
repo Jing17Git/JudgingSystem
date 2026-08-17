@@ -209,43 +209,24 @@
                 <thead>
                     <tr class="bg-gray-50 border-b border-gray-200">
                         <th class="sticky left-0 z-10 bg-gray-50 min-w-[90px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">Cand. #</th>
-                        <th class="sticky left-[90px] z-10 bg-gray-50 min-w-[190px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">Finalist</th>
-                        <th class="text-center min-w-[110px] text-xs font-bold text-gray-500 uppercase tracking-wider py-3 px-4">Prelim Rank</th>
-                        
-                        {{-- Preliminary Contribution Column --}}
-                        <th class="text-center min-w-[130px] text-xs font-bold text-blue-800 bg-blue-50/50 uppercase tracking-wider py-3 px-4">
+                        <th class="sticky left-[90px] z-10 bg-gray-50 min-w-[180px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">Name</th>
+                        <th class="text-center min-w-[140px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">
                             Prelim Total
                             <span class="block text-[11px] font-bold text-blue-600 lowercase tracking-normal">({{ (int)$prelimWeight }}% weight)</span>
                         </th>
-
-                        {{-- Judge Columns for Q&A --}}
-                        @foreach($judges as $j)
-                            <th class="text-center min-w-[90px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-3">
-                                {{ $j->name }}
-                            </th>
-                        @endforeach
-
-                        {{-- Q&A Weighted Contribution Column --}}
-                        <th class="text-center min-w-[130px] text-xs font-bold text-emerald-800 bg-emerald-50/50 uppercase tracking-wider py-3 px-4">
-                            Q &amp; A Avg
+                        <th class="text-center min-w-[140px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">
+                            Q & A Avg
                             <span class="block text-[11px] font-bold text-emerald-600 lowercase tracking-normal">({{ (int)$qaWeight }}% weight)</span>
                         </th>
 
-                        {{-- Final Grand Total Column --}}
                         @if($gKey === 'Male')
-                            <th class="text-center min-w-[130px] text-xs font-bold text-blue-700 uppercase tracking-wider py-3 px-4" style="background-color: #eff6ff;">
-                                Final Total
-                                <span class="block text-[11px] font-bold text-blue-600 lowercase tracking-normal">(100%)</span>
-                            </th>
+                            <th class="text-center min-w-[100px] text-xs font-bold text-blue-700 uppercase tracking-wider py-3 px-4" style="background-color: #eff6ff;">Grand Total</th>
                         @else
-                            <th class="text-center min-w-[130px] text-xs font-bold text-pink-700 uppercase tracking-wider py-3 px-4" style="background-color: #fdf2f8;">
-                                Final Total
-                                <span class="block text-[11px] font-bold text-pink-600 lowercase tracking-normal">(100%)</span>
-                            </th>
+                            <th class="text-center min-w-[100px] text-xs font-bold text-pink-700 uppercase tracking-wider py-3 px-4" style="background-color: #fdf2f8;">Grand Total</th>
                         @endif
 
-                        <th class="text-center min-w-[150px] text-xs font-bold text-amber-800 uppercase tracking-wider py-3 px-4" style="background-color: #fffbeb;">Final Result</th>
-                        <th class="text-center min-w-[100px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4 no-print">Judge Votes</th>
+                        <th class="text-center min-w-[85px] text-xs font-bold text-amber-800 uppercase tracking-wider py-3 px-4" style="background-color: #fffbeb;">Rank</th>
+                        <th class="text-center min-w-[120px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4 no-print">Judge Votes</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
@@ -286,100 +267,45 @@
                                             </div>
                                         @endif
                                     @endif
-                                    <div>
-                                        <span class="block truncate max-w-[140px] text-sm text-gray-900 font-semibold">{{ $candidate->display_name }}</span>
-                                        @if($candidate->origin)
-                                            <span class="block text-[11px] text-gray-500 font-normal">{{ $candidate->origin }}</span>
-                                        @endif
-                                    </div>
+                                    <span class="truncate max-w-[140px] text-sm text-gray-900 font-semibold">{{ $candidate->display_name }}</span>
                                 </div>
                             </td>
 
-                            {{-- Prelim Rank --}}
-                            <td class="text-center py-3 px-4 text-xs font-semibold text-gray-500">
-                                @if(!empty($b['prelim_rank']))
-                                    <span class="px-2 py-0.5 bg-gray-100 rounded text-gray-700 font-mono">Rank #{{ $b['prelim_rank'] }}</span>
-                                @else
-                                    <span>—</span>
-                                @endif
-                            </td>
-
-                            {{-- Prelim Score & Weighted Contribution --}}
-                            <td class="text-center py-3 px-4 bg-blue-50/30">
-                                <div class="font-bold text-sm text-blue-900 font-mono">
+                            {{-- Prelim Score (Weighted) --}}
+                            <td class="text-center py-3 px-4">
+                                <span class="inline-flex items-center justify-center w-14 h-7 rounded-md bg-blue-50 text-sm font-bold text-blue-900 font-mono">
                                     {{ $b['prelim_weighted'] > 0 ? number_format($b['prelim_weighted'], 2) : '—' }}
-                                </div>
-                                <div class="text-[10px] text-gray-400 font-mono">
-                                    (raw: {{ number_format($b['prelim_score'], 2) }})
-                                </div>
+                                </span>
                             </td>
 
-                            {{-- Judge Given Scores for Q&A --}}
-                            @foreach($judges as $j)
-                                @php
-                                    $key = $candidate->id . '_' . $j->id;
-                                    $jScore = isset($rawQa[$key]) ? (float)$rawQa[$key]->score : null;
-                                @endphp
-                                <td class="text-center py-3 px-3 text-sm font-mono font-semibold text-gray-700">
-                                    {{ $jScore !== null ? number_format($jScore, 1) : '—' }}
-                                </td>
-                            @endforeach
-
-                            {{-- Q&A Score & Weighted Contribution --}}
-                            <td class="text-center py-3 px-4 bg-emerald-50/30">
-                                <div class="font-bold text-sm text-emerald-900 font-mono">
+                            {{-- Q&A Avg (Weighted) --}}
+                            <td class="text-center py-3 px-4">
+                                <span class="inline-flex items-center justify-center w-14 h-7 rounded-md bg-emerald-50 text-sm font-bold text-emerald-900 font-mono">
                                     {{ $b['qa_weighted'] > 0 ? number_format($b['qa_weighted'], 2) : '—' }}
-                                </div>
-                                <div class="text-[10px] text-gray-400 font-mono">
-                                    (avg: {{ number_format($b['qa_avg'], 2) }})
-                                </div>
+                                </span>
                             </td>
 
                             {{-- Final Grand Total --}}
                             @if($gKey === 'Male')
                                 <td class="text-center py-3 px-4" style="background-color: #eff6ff;">
-                                    <span class="font-extrabold text-lg text-blue-700">
-                                        {{ $total > 0 ? number_format($total, 2) : '—' }}
-                                    </span>
+                                    <span class="font-extrabold text-lg text-blue-700">{{ $total > 0 ? number_format($total, 2) : '—' }}</span>
                                 </td>
                             @else
                                 <td class="text-center py-3 px-4" style="background-color: #fdf2f8;">
-                                    <span class="font-extrabold text-lg text-pink-700">
-                                        {{ $total > 0 ? number_format($total, 2) : '—' }}
-                                    </span>
+                                    <span class="font-extrabold text-lg text-pink-700">{{ $total > 0 ? number_format($total, 2) : '—' }}</span>
                                 </td>
                             @endif
 
-                            {{-- Final Rank & Title --}}
+                            {{-- Rank --}}
                             <td class="text-center py-3 px-4" style="background-color: #fffbeb;">
                                 @if(empty($rank))
                                     <span class="text-gray-400 font-medium">—</span>
                                 @elseif($rank === 1)
-                                    <div class="inline-flex flex-col items-center">
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black text-amber-900 bg-amber-200 border border-amber-300 shadow-sm">
-                                            👑 Winner
-                                        </span>
-                                    </div>
+                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-black shadow-md" style="background-color: #f59e0b;" title="1st Place">🥇</span>
                                 @elseif($rank === 2)
-                                    <div class="inline-flex flex-col items-center">
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-gray-800 bg-gray-200 border border-gray-300 shadow-sm">
-                                            🥈 1st Runner-Up
-                                        </span>
-                                    </div>
+                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-gray-700 text-sm font-black shadow-md" style="background-color: #d1d5db;" title="2nd Place">🥈</span>
                                 @elseif($rank === 3)
-                                    <div class="inline-flex flex-col items-center">
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-amber-900 bg-amber-100 border border-amber-300 shadow-sm">
-                                            🥉 2nd Runner-Up
-                                        </span>
-                                    </div>
-                                @elseif($rank === 4)
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold text-gray-700 bg-gray-100 border border-gray-300">
-                                        3rd Runner-Up
-                                    </span>
-                                @elseif($rank === 5)
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold text-gray-700 bg-gray-100 border border-gray-300">
-                                        4th Runner-Up
-                                    </span>
+                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-black shadow-md" style="background-color: #fb923c;" title="3rd Place">🥉</span>
                                 @else
                                     <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 border border-gray-300 text-gray-600 text-xs font-bold">{{ $rank }}</span>
                                 @endif
@@ -393,7 +319,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                     </svg>
-                                    Votes
+                                    View Votes
                                 </button>
                             </td>
                         </tr>
