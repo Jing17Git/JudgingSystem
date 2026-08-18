@@ -8,6 +8,8 @@
 
     <title>@yield('title', 'Dashboard') — {{ config('app.name', 'JudgingSystem') }}</title>
 
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

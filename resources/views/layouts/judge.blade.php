@@ -18,13 +18,9 @@
     <aside :class="sidebarOpen ? 'open' : ''" class="sidebar flex flex-col lg:translate-x-0">
         {{-- Logo area --}}
         <div class="flex items-center gap-3 px-5 py-5 border-b border-[var(--border-default)]">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-md">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l3.5 7L12 6l3.5 4L19 3M5 21h14M5 17h14M8 13h8"/>
-                </svg>
-            </div>
+            <img src="{{ asset('images/logo.png') }}" alt="CPSU Logo" class="w-10 h-10 object-contain drop-shadow-sm flex-shrink-0">
             <div>
-                <h1 class="text-sm font-bold text-[var(--text-primary)]">JudgingSystem</h1>
+                <h1 class="text-sm font-bold text-[var(--text-primary)] leading-tight">JudgingSystem</h1>
                 <p class="text-xs font-semibold text-[var(--green-600)]">Judge Panel</p>
             </div>
         </div>

@@ -18,13 +18,9 @@
     <aside :class="sidebarOpen ? 'open' : ''" class="sidebar flex flex-col lg:translate-x-0">
         {{-- Logo area --}}
         <div class="flex items-center gap-3 px-5 py-5 border-b border-[var(--border-default)]">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l3.5 7L12 6l3.5 4L19 3M5 21h14M5 17h14M8 13h8"/>
-                </svg>
-            </div>
+            <img src="{{ asset('images/logo.png') }}" alt="CPSU Logo" class="w-10 h-10 object-contain drop-shadow-sm flex-shrink-0">
             <div>
-                <h1 class="text-sm font-bold text-[var(--text-primary)]">JudgingSystem</h1>
+                <h1 class="text-sm font-bold text-[var(--text-primary)] leading-tight">JudgingSystem</h1>
                 <p class="text-xs text-[var(--text-muted)]">Admin Panel</p>
             </div>
         </div>
@@ -136,7 +132,7 @@
             <div class="sidebar-section" style="font-size: 12px;">Results</div>
 
             <a href="{{ route('admin.overall.index') }}"
-               class="sidebar-link {{ request()->routeIs('admin.overall.index') ? 'active' : '' }}">
+               class="sidebar-link {{ request()->routeIs('admin.overall.index') || (request()->routeIs('admin.overall.candidate-votes') && request('from', 'overall') !== 'final') ? 'active' : '' }}">
                 <span class="icon">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -146,7 +142,7 @@
             </a>
 
             <a href="{{ route('admin.overall.final') }}"
-               class="sidebar-link {{ request()->routeIs('admin.overall.final') ? 'active' : '' }}">
+               class="sidebar-link {{ request()->routeIs('admin.overall.final') || (request()->routeIs('admin.overall.candidate-votes') && request('from') === 'final') ? 'active' : '' }}">
                 <span class="icon">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.504-1.125-1.125-1.125h-6.75c-.621 0-1.125.504-1.125 1.125V18.75m9 0h-9M12 3a6.75 6.75 0 00-6.75 6.75c0 2.235.918 4.255 2.4 5.714.507.5.85 1.164.85 1.911h7c0-.747.343-1.411.85-1.911A6.716 6.716 0 0018.75 9.75 6.75 6.75 0 0012 3z"/>
@@ -168,7 +164,7 @@
             }">
                 <button type="button"
                         @click.prevent.stop="toggle()"
-                        class="sidebar-link w-full text-left justify-between cursor-pointer {{ request()->routeIs('admin.settings.*') ? 'text-[var(--green-700)] bg-[var(--green-50)]' : '' }}">
+                        class="sidebar-link w-full text-left justify-between cursor-pointer {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.cache.*') ? 'text-[var(--green-700)] bg-[var(--green-50)]' : '' }}">
                     <div class="flex items-center gap-3">
                         <span class="icon">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -203,6 +199,12 @@
                        class="sidebar-link text-xs py-2 px-3 {{ request()->routeIs('admin.settings.judge-scores') ? 'active font-bold' : '' }}">
                         <span class="w-2 h-2 rounded-full flex-shrink-0 {{ request()->routeIs('admin.settings.judge-scores') ? 'bg-[var(--green-600)]' : 'bg-gray-400' }}"></span>
                         <span>Judge Score Sheets</span>
+                    </a>
+
+                    <a href="{{ route('admin.cache.index') }}"
+                       class="sidebar-link text-xs py-2 px-3 {{ request()->routeIs('admin.cache.*') || request()->routeIs('admin.settings.cache') ? 'active font-bold' : '' }}">
+                        <span class="w-2 h-2 rounded-full flex-shrink-0 {{ request()->routeIs('admin.cache.*') || request()->routeIs('admin.settings.cache') ? 'bg-[var(--green-600)]' : 'bg-gray-400' }}"></span>
+                        <span>Cache Management</span>
                     </a>
                 </div>
             </div>

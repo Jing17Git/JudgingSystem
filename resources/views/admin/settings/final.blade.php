@@ -69,6 +69,11 @@
             <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
             Judge Score Sheets
         </a>
+        <a href="{{ route('admin.cache.index') }}"
+           class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
+            Cache Management
+        </a>
     </div>
 
     {{-- Information Alert --}}

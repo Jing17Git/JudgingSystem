@@ -16,12 +16,7 @@
             <p class="page-subtitle">Real-time tabulation overview, judging progress, and category rankings</p>
         </div>
         <div class="flex items-center gap-3">
-            <button @click="fetchLiveData()" class="btn btn-outline btn-sm flex items-center gap-1.5 text-xs font-semibold text-[var(--text-muted)] hover:text-emerald-700">
-                <svg class="w-3.5 h-3.5" :class="{ 'animate-spin': isRefreshing }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                </svg>
-                Refresh
-            </button>
+    
             <div class="flex items-center gap-2 text-xs text-[var(--text-muted)] bg-[var(--bg-card)] border border-[var(--border-default)] px-3 py-1.5 rounded-xl shadow-sm">
                 <div class="live-dot"></div>
                 <span class="font-medium">Live Feed</span>
@@ -271,7 +266,8 @@
 
             <div class="space-y-3">
                 <template x-for="leader in categoryLeaders" :key="leader.category_key">
-                    <div class="p-3 rounded-xl border transition-all hover:shadow-sm" :class="leader.bg">
+                    <div class="p-3 rounded-xl  transition-all hover:shadow-sm" :class="leader.bg" style="padding: 16px;"
+>
                         <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider mb-1" :class="leader.color">
                             <span x-text="leader.category_name"></span>
                             <span class="font-mono text-xs" x-text="'Avg: ' + Number(leader.score).toFixed(1)"></span>
