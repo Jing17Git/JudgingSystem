@@ -5,62 +5,219 @@
 @push('styles')
 <style>
     @media print {
-        /* Hide UI components during printing */
-        .sidebar, .topbar, .page-header, .no-print, nav, header, button {
+        /* Force landscape orientation and tight margins for bond paper */
+        @page {
+            size: landscape;
+            margin: 0.4in 0.3in;
+        }
+
+        /* Hide all UI chrome */
+        .sidebar, .topbar, .page-header, .no-print, nav, header, button,
+        .lg\:hidden, [x-data], .alert, .legend-bar {
             display: none !important;
         }
 
+        /* Reset body */
         body {
             background: #ffffff !important;
             color: #000000 !important;
             padding: 0 !important;
             margin: 0 !important;
-            font-size: 12pt;
+            font-size: 9pt !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
 
+        /* Reset main content area — remove sidebar offset */
         .main-content {
             margin: 0 !important;
             padding: 0 !important;
             width: 100% !important;
+            max-width: 100% !important;
         }
 
+        /* Print header */
         .print-header {
             display: block !important;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
             border-bottom: 2px solid #000000;
-            padding-bottom: 10px;
+            padding-bottom: 8px;
         }
 
+        .print-header h1 {
+            font-size: 14pt !important;
+            margin: 0 !important;
+        }
+
+        .print-header p {
+            font-size: 9pt !important;
+            margin: 2px 0 0 !important;
+        }
+
+        /* Print signatures */
         .print-signatures {
             display: grid !important;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
-            gap: 20px 24px;
-            margin-top: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+            gap: 14px 18px;
+            margin-top: 24px;
             page-break-inside: avoid;
         }
 
-        .data-table {
-            border-collapse: collapse !important;
-            width: 100% !important;
-        }
-
-        .data-table th, .data-table td {
-            border: 1px solid #000000 !important;
-            padding: 8px !important;
-            font-size: 10pt !important;
-            color: #000000 !important;
-        }
-
-        .data-table th {
-            background-color: #f3f4f6 !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-
+        /* Panel resets */
         .panel {
             box-shadow: none !important;
             border: none !important;
+            border-radius: 0 !important;
+            overflow: visible !important;
+        }
+
+        /* Remove overflow-x-auto clipping */
+        .overflow-x-auto {
+            overflow: visible !important;
+        }
+
+        /* Gender section headers — compact for print */
+        .mb-8 {
+            margin-bottom: 10px !important;
+        }
+        .mb-3 {
+            margin-bottom: 4px !important;
+        }
+
+        /* ===== TABLE PRINT STYLES ===== */
+        .data-table {
+            border-collapse: collapse !important;
+            width: 100% !important;
+            table-layout: fixed !important;
+        }
+
+        /* Remove all min-width constraints */
+        .data-table th,
+        .data-table td {
+            border: 1px solid #000000 !important;
+            padding: 3px 4px !important;
+            font-size: 8pt !important;
+            color: #000000 !important;
+            min-width: 0 !important;
+            max-width: none !important;
+            position: static !important;
+            left: auto !important;
+            z-index: auto !important;
+            background: #ffffff !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
+        }
+
+        .data-table th {
+            background-color: #e5e7eb !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            font-size: 7pt !important;
+            padding: 4px 3px !important;
+            text-align: center !important;
+        }
+
+        /* Column widths — fixed proportions to fit on paper */
+        .data-table th:nth-child(1),
+        .data-table td:nth-child(1) { width: 7% !important; }   /* Cand # */
+        .data-table th:nth-child(2),
+        .data-table td:nth-child(2) { width: 20% !important; }  /* Name */
+        .data-table th:nth-child(3),
+        .data-table td:nth-child(3) { width: 13% !important; }  /* Production */
+        .data-table th:nth-child(4),
+        .data-table td:nth-child(4) { width: 13% !important; }  /* Fitness */
+        .data-table th:nth-child(5),
+        .data-table td:nth-child(5) { width: 14% !important; }  /* Traditional */
+        .data-table th:nth-child(6),
+        .data-table td:nth-child(6) { width: 14% !important; }  /* Indigenous */
+        .data-table th:nth-child(7),
+        .data-table td:nth-child(7) { width: 12% !important; }  /* Grand Total */
+        .data-table th:nth-child(8),
+        .data-table td:nth-child(8) { width: 7% !important; }   /* Rank */
+
+        /* Grand Total column — keep subtle highlight */
+        .data-table td:nth-child(7) {
+            background-color: #f3f4f6 !important;
+            font-weight: 800 !important;
+        }
+
+        /* Rank column */
+        .data-table td:nth-child(8) {
+            background-color: #fefce8 !important;
+            text-align: center !important;
+        }
+
+        /* Hide avatars/photos in print — show only text */
+        .data-table td img,
+        .data-table td .w-9,
+        .data-table td .w-10 {
+            display: none !important;
+        }
+
+        /* Candidate number — plain text, no styled badge */
+        .data-table td:nth-child(1) span {
+            display: inline !important;
+            width: auto !important;
+            height: auto !important;
+            background: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            color: #000000 !important;
+            font-size: 9pt !important;
+            font-weight: 700 !important;
+            padding: 0 !important;
+        }
+
+        /* Name cell — remove flex gap from hidden avatar */
+        .data-table td:nth-child(2) .flex {
+            gap: 0 !important;
+        }
+        .data-table td:nth-child(2) .truncate {
+            max-width: none !important;
+            white-space: normal !important;
+            font-size: 8pt !important;
+        }
+
+        /* Score cells text */
+        .data-table td .font-semibold,
+        .data-table td .font-extrabold {
+            font-size: 9pt !important;
+            color: #000000 !important;
+        }
+
+        /* Rank badges — plain text in print */
+        .data-table td:nth-child(8) span {
+            display: inline !important;
+            width: auto !important;
+            height: auto !important;
+            background: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            color: #000000 !important;
+            font-size: 9pt !important;
+            font-weight: 700 !important;
+            padding: 0 !important;
+        }
+
+        /* Page break — each gender group starts on a new page if needed */
+        .mb-8.animate-fade-in-up {
+            page-break-inside: avoid;
+        }
+
+        /* Gender header badges — simplify for print */
+        .rounded-xl.shadow-md {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            padding: 2px 6px !important;
+            font-size: 9pt !important;
+        }
+
+        .h-px {
+            display: none !important;
         }
     }
 
@@ -123,8 +280,6 @@
         </div>
     </div>
 @else
-
-<div x-data="{ showModal: false, activeCand: null, activeName: '', activeNum: '', activePhoto: '', activeScores: [] }">
 
 @php
     $groups = [
@@ -326,18 +481,16 @@
                                 @else
                                     <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 border border-gray-300 text-gray-600 text-xs font-bold">{{ $rank }}</span>
                                 @endif
-                            </td>
-
-                            {{-- Judge Votes Action Button --}}
+                                  {{-- Judge Votes Action Button --}}
                             <td class="text-center py-3 px-4 no-print">
-                                <button @click="showModal = true; activeName = '{{ addslashes($candidate->display_name) }}'; activeNum = '{{ $candidate->candidate_number }}'; activePhoto = '{{ $candidate->photo_url ? asset('storage/' . $candidate->photo_url) : '' }}'; activeScores = {{ $jBreakdown }}"
-                                        class="btn btn-outline btn-sm font-semibold flex items-center justify-center gap-1.5 mx-auto">
+                                <a href="{{ route('admin.overall.candidate-votes', ['candidate' => $candidate->id, 'from' => 'overall']) }}"
+                                   class="btn btn-outline btn-sm font-semibold flex items-center justify-center gap-1.5 mx-auto hover:border-emerald-500 hover:text-emerald-700 transition-colors">
                                     <svg class="w-4 h-4 text-[var(--green-600)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                     </svg>
                                     View Votes
-                                </button>
+                                </a>
                             </td>
                         </tr>
                     @endforeach
@@ -346,74 +499,6 @@
         </div>
     </div>
 @endforeach
-
-{{-- Judge Breakdown Modal --}}
-<div x-show="showModal" class="fixed inset-0 z-50 overflow-y-auto no-print" style="display: none;">
-    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div x-show="showModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-gray-900 bg-opacity-60" @click="showModal = false"></div>
-
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-        <div x-show="showModal" x-transition.scale class="inline-block px-6 pt-5 pb-6 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-2xl shadow-2xl sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full border border-gray-100">
-            <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
-                <div class="flex items-center gap-3">
-                    <template x-if="activePhoto">
-                        <img :src="activePhoto" class="w-12 h-12 rounded-full object-cover border-2 border-[var(--green-600)] shadow-sm">
-                    </template>
-                    <template x-if="!activePhoto">
-                        <div class="w-12 h-12 rounded-full bg-[var(--green-600)] flex items-center justify-center text-white text-lg font-bold shadow-sm" x-text="activeName.charAt(0)"></div>
-                    </template>
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                            <span class="px-2 py-0.5 bg-gray-100 text-gray-800 rounded-md text-xs font-mono" x-text="'Candidate #' + activeNum"></span>
-                            <span x-text="activeName"></span>
-                        </h3>
-                        <p class="text-xs text-[var(--text-muted)]">Individual Judge Votes Breakdown Across Categories</p>
-                    </div>
-                </div>
-
-                <button type="button" @click="showModal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-
-            <div class="overflow-x-auto rounded-xl border border-gray-200 mb-4">
-                <table class="data-table min-w-full text-xs">
-                    <thead>
-                        <tr class="bg-gray-50 border-b border-gray-200">
-                            <th class="py-2.5 px-3 text-left font-bold text-gray-600">Judge Name</th>
-                            <th class="py-2.5 px-3 text-center font-bold text-gray-600">Production</th>
-                            <th class="py-2.5 px-3 text-center font-bold text-gray-600">Fitness</th>
-                            <th class="py-2.5 px-3 text-center font-bold text-gray-600">Traditional</th>
-                            <th class="py-2.5 px-3 text-center font-bold text-gray-600">Indigenous</th>
-                            <th class="py-2.5 px-3 text-center font-bold text-emerald-700 bg-emerald-50">Q &amp; A</th>
-                            <th class="py-2.5 px-3 text-center font-bold text-gray-900 bg-gray-100">Total Score</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        <template x-for="j in activeScores" :key="j.judge_id">
-                            <tr class="hover:bg-gray-50">
-                                <td class="py-2.5 px-3 font-semibold text-gray-900" x-text="j.judge_name"></td>
-                                <td class="py-2.5 px-3 text-center text-gray-700 font-mono" x-text="j.production !== null ? Number(j.production).toFixed(1) : '—'"></td>
-                                <td class="py-2.5 px-3 text-center text-gray-700 font-mono" x-text="j.fitness !== null ? Number(j.fitness).toFixed(1) : '—'"></td>
-                                <td class="py-2.5 px-3 text-center text-gray-700 font-mono" x-text="j.traditional !== null ? Number(j.traditional).toFixed(1) : '—'"></td>
-                                <td class="py-2.5 px-3 text-center text-gray-700 font-mono" x-text="j.indigenous !== null ? Number(j.indigenous).toFixed(1) : '—'"></td>
-                                <td class="py-2.5 px-3 text-center text-emerald-800 font-bold font-mono bg-emerald-50/50" x-text="j.qa !== null ? Number(j.qa).toFixed(1) : '—'"></td>
-                                <td class="py-2.5 px-3 text-center font-bold text-gray-900 font-mono bg-gray-50" x-text="Number(j.total).toFixed(2)"></td>
-                            </tr>
-                        </template>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="flex justify-end">
-                <button type="button" @click="showModal = false" class="btn btn-outline">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-</div>
 
 {{-- Printable Signatures Block --}}
 <div class="print-signatures">

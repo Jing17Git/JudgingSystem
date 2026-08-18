@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CrownScore — Pageant Judging System</title>
+<link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,600;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -740,14 +741,7 @@
 <header>
   <nav class="wrap">
     <div class="brand">
-      <div class="crown-logo">
-        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 8l3.5 3L12 5l5.5 6L21 8l-1.6 9.5a1 1 0 01-1 .8H5.6a1 1 0 01-1-.8L3 8z"/>
-          <circle cx="3" cy="8" r="1.3" fill="currentColor" stroke="none"/>
-          <circle cx="12" cy="5" r="1.3" fill="currentColor" stroke="none"/>
-          <circle cx="21" cy="8" r="1.3" fill="currentColor" stroke="none"/>
-        </svg>
-      </div>
+      <img src="{{ asset('images/logo.png') }}" alt="CPSU Logo" style="width: 44px; height: 44px; object-fit: contain;">
       <div class="brand-text">
         <div class="brand-title">CrownScore</div>
         <div class="brand-subtitle">Pageant Judging System</div>
@@ -1292,10 +1286,8 @@
 {{-- Footer --}}
 <footer>
   <div class="wrap">
-    <div class="footer-brand">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--green-deep);">
-        <path d="M3 8l3.5 3L12 5l5.5 6L21 8l-1.6 9.5a1 1 0 01-1 .8H5.6a1 1 0 01-1-.8L3 8z"/>
-      </svg>
+    <div class="footer-brand" style="display: flex; align-items: center; gap: 8px;">
+      <img src="{{ asset('images/logo.png') }}" alt="CPSU Logo" style="width: 28px; height: 28px; object-fit: contain;">
       CrownScore
     </div>
     <p>Empowering pageant judging with precision, speed, and real-time transparency.</p>

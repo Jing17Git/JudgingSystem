@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class JudgeProfileController extends Controller
 {
@@ -28,12 +29,16 @@ class JudgeProfileController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|min:3|max:100',
+            'email' => ['nullable', 'email', 'max:100', Rule::unique('users', 'email')->ignore($judge->id)],
             'picture' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
             'current_password' => 'nullable|required_with:password|string',
             'password' => 'nullable|string|min:8|confirmed',
         ]);
 
         $judge->name = $validated['name'];
+        if (array_key_exists('email', $validated)) {
+            $judge->email = $validated['email'] ?? $judge->email;
+        }
 
         // Handle profile photo upload
         if ($request->hasFile('picture')) {

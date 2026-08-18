@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\QaController;
 use App\Http\Controllers\Admin\OverallController;
 use App\Http\Controllers\Admin\FinalOverallController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\CacheController;
 use App\Http\Controllers\Judge\JudgeDashboardController;
 use App\Http\Controllers\Judge\JudgeScoringController;
 use App\Http\Controllers\Judge\JudgeProfileController;
@@ -75,13 +76,25 @@ Route::prefix('admin')->middleware('admin')->name('admin.')->group(function () {
     // Overall Tabulations
     Route::get('/overall', [OverallController::class, 'index'])->name('overall.index');
     Route::get('/overall-final', [FinalOverallController::class, 'index'])->name('overall.final');
+    Route::get('/overall/candidate/{candidate}', [OverallController::class, 'candidateVotes'])->name('overall.candidate-votes');
 
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::get('/settings/preliminary', [SettingsController::class, 'preliminary'])->name('settings.preliminary');
     Route::get('/settings/final', [SettingsController::class, 'final'])->name('settings.final');
     Route::get('/settings/judge-scores', [SettingsController::class, 'judgeScores'])->name('settings.judge-scores');
+    Route::get('/settings/cache', [CacheController::class, 'index'])->name('settings.cache');
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
+
+    // Cache Management
+    Route::get('/cache', [CacheController::class, 'index'])->name('cache.index');
+    Route::post('/cache/clear-all', [CacheController::class, 'clearAll'])->name('cache.clear-all');
+    Route::post('/cache/clear-app', [CacheController::class, 'clearApp'])->name('cache.clear-app');
+    Route::post('/cache/clear-route', [CacheController::class, 'clearRoute'])->name('cache.clear-route');
+    Route::post('/cache/clear-config', [CacheController::class, 'clearConfig'])->name('cache.clear-config');
+    Route::post('/cache/clear-view', [CacheController::class, 'clearView'])->name('cache.clear-view');
+    Route::post('/cache/clear-logs', [CacheController::class, 'clearLogs'])->name('cache.clear-logs');
+    Route::post('/cache/optimize', [CacheController::class, 'optimize'])->name('cache.optimize');
 });
 
 // Judge routes

@@ -13,10 +13,8 @@
     <div class="login-card glass rounded-2xl animate-fade-in-up relative z-10">
         {{-- Logo --}}
         <div class="text-center mb-8">
-            <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center mb-4 shadow-lg shadow-green-500/20">
-                <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l3.5 7L12 6l3.5 4L19 3M5 21h14M5 17h14M8 13h8"/>
-                </svg>
+            <div class="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                <img src="{{ asset('images/logo.png') }}" alt="CPSU Logo" class="w-20 h-20 object-contain drop-shadow-md">
             </div>
             <h1 class="text-xl font-bold text-[var(--text-primary)]">JudgingSystem</h1>
             <p class="text-sm text-[var(--text-secondary)] mt-1">Sign in to your account</p>

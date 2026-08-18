@@ -38,18 +38,40 @@
                     @endif
                     <div>
                         <h2 class="text-xl font-bold text-gray-900">{{ $judge->name }}</h2>
-                        <p class="text-xs text-[var(--text-muted)] font-mono">Username: {{ $judge->username }}</p>
-                        <span class="inline-block mt-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700">Official Judge Account</span>
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-[var(--text-muted)]">
+                            <span class="font-mono">Username: {{ $judge->username }}</span>
+                            <span class="hidden sm:inline text-gray-300">•</span>
+                            <span class="flex items-center gap-1.5 font-medium text-gray-700">
+                                <svg class="w-4 h-4 text-red-500 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                                </svg>
+                                {{ $judge->email ?? 'No Gmail account linked' }}
+                            </span>
+                        </div>
+                        <span class="inline-block mt-2 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700">Official Judge Account</span>
                     </div>
                 </div>
 
-                {{-- Full Name --}}
-                <div class="form-group">
-                    <label for="name" class="form-label">Full Name</label>
-                    <input type="text" id="name" name="name" class="form-input @error('name') border-[var(--danger)] @enderror" value="{{ old('name', $judge->name) }}" required minlength="3" maxlength="100">
-                    @error('name')
-                        <p class="form-error">{{ $message }}</p>
-                    @enderror
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {{-- Full Name --}}
+                    <div class="form-group mb-0">
+                        <label for="name" class="form-label">Full Name</label>
+                        <input type="text" id="name" name="name" class="form-input @error('name') border-[var(--danger)] @enderror" value="{{ old('name', $judge->name) }}" required minlength="3" maxlength="100">
+                        @error('name')
+                            <p class="form-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Gmail / Email Account --}}
+                    <div class="form-group mb-0">
+                        <label for="email" class="form-label flex items-center justify-between">
+                            <span>Gmail / Email</span>
+                        </label>
+                        <input type="email" id="email" name="email" class="form-input @error('email') border-[var(--danger)] @enderror" value="{{ old('email', $judge->email) }}" placeholder="e.g. judge@gmail.com" maxlength="100">
+                        @error('email')
+                            <p class="form-error">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
                 {{-- Profile Picture --}}

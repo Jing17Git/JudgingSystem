@@ -147,6 +147,11 @@
             <span class="w-2.5 h-2.5 rounded-full bg-[var(--green-600)]"></span>
             Judge Score Sheets
         </a>
+        <a href="{{ route('admin.cache.index') }}"
+           class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
+            Cache Management
+        </a>
     </div>
 
     {{-- Filters and Quick Controls --}}
@@ -257,9 +262,13 @@
                 <div class="panel border border-[var(--border-default)] shadow-sm rounded-xl overflow-hidden mb-6">
                     <div class="panel-header px-6 py-4 border-b border-[var(--border-default)] bg-[var(--bg-card)] flex flex-wrap items-center justify-between gap-3 no-print">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white font-black text-base shadow-sm">
-                                {{ strtoupper(substr($judge->name, 0, 1)) }}
-                            </div>
+                            @if($judge->photo_url)
+                                <img src="{{ asset('storage/' . $judge->photo_url) }}" alt="{{ $judge->name }}" class="w-10 h-10 rounded-xl object-cover border border-[var(--border-default)] shadow-sm flex-shrink-0">
+                            @else
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white font-black text-base shadow-sm flex-shrink-0">
+                                    {{ strtoupper(substr($judge->name, 0, 1)) }}
+                                </div>
+                            @endif
                             <div>
                                 <h2 class="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
                                     {{ $judge->name }}
@@ -428,8 +437,8 @@
 
                         {{-- Official Judge Signature Block at Bottom of Sheet --}}
                         <div class="print-judge-signature pt-6 mt-4">
-                            <div class="w-80 ml-auto mr-4 text-center">
-                                <div style="border-bottom: 2px solid #000; height: 45px; margin-bottom: 8px;"></div>
+                            <div class="w-64 ml-auto mr-4 text-center">
+                                <div style="border-bottom: 2px solid #000; height: 45px; width: 240px; margin: 0 auto 8px auto;"></div>
                                 <p style="font-size: 11pt; font-weight: bold; margin: 0; text-transform: uppercase; color: #000;">
                                     {{ $judge->name }}
                                 </p>
@@ -554,8 +563,8 @@
         // Judge Signature Block
         html += `
             <div class="print-judge-signature" style="margin-top: 40px; page-break-inside: avoid;">
-                <div style="width: 280px; margin-left: auto; text-align: center;">
-                    <div style="border-bottom: 2px solid #000; height: 45px; margin-bottom: 8px;"></div>
+                <div style="width: 256px; margin-left: auto; text-align: center;">
+                    <div style="border-bottom: 2px solid #000; height: 45px; width: 240px; margin: 0 auto 8px auto;"></div>
                     <p style="font-size: 11pt; font-weight: bold; margin: 0; text-transform: uppercase;">
                         ${jData.name}
                     </p>

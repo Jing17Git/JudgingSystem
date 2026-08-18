@@ -128,8 +128,6 @@
     </div>
 @else
 
-<div x-data="{ showModal: false, activeCand: null, activeName: '', activeNum: '', activePhoto: '', activeScores: [], activeTotal: '' }">
-
 @php
     $groups = [
         'Male'   => ['label' => '♂ Male Finalists (Top 5)',   'key' => 'Male',   'candidates' => $top5Male],
@@ -309,18 +307,16 @@
                                 @else
                                     <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 border border-gray-300 text-gray-600 text-xs font-bold">{{ $rank }}</span>
                                 @endif
-                            </td>
-
-                            {{-- Judge Votes Action Button --}}
+                              {{-- Judge Votes Action Button --}}
                             <td class="text-center py-3 px-4 no-print">
-                                <button @click="showModal = true; activeName = '{{ addslashes($candidate->display_name) }}'; activeNum = '{{ $candidate->candidate_number }}'; activePhoto = '{{ $candidate->photo_url ? asset('storage/' . $candidate->photo_url) : '' }}'; activeScores = {{ $jBreakdown }}; activeTotal = '{{ $b['qa_avg'] > 0 ? number_format($b['qa_avg'], 2) : '—' }}'"
-                                        class="btn btn-outline btn-sm font-semibold flex items-center justify-center gap-1.5 mx-auto text-xs">
+                                <a href="{{ route('admin.overall.candidate-votes', ['candidate' => $candidate->id, 'from' => 'final']) }}"
+                                   class="btn btn-outline btn-sm font-semibold flex items-center justify-center gap-1.5 mx-auto text-xs hover:border-emerald-500 hover:text-emerald-700 transition-colors">
                                     <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                     </svg>
                                     View Votes
-                                </button>
+                                </a>
                             </td>
                         </tr>
                     @endforeach
@@ -329,70 +325,6 @@
         </div>
     </div>
 @endforeach
-
-{{-- Judge Breakdown Modal --}}
-<div x-show="showModal" class="fixed inset-0 z-50 overflow-y-auto no-print" style="display: none;">
-    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div x-show="showModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-gray-900 bg-opacity-60" @click="showModal = false"></div>
-
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-        <div x-show="showModal" x-transition.scale class="inline-block px-6 pt-5 pb-6 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-2xl shadow-2xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-gray-100">
-            <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
-                <div class="flex items-center gap-3">
-                    <template x-if="activePhoto">
-                        <img :src="activePhoto" class="w-12 h-12 rounded-full object-cover border-2 border-emerald-500 shadow-sm">
-                    </template>
-                    <template x-if="!activePhoto">
-                        <div class="w-12 h-12 rounded-full bg-emerald-600 flex items-center justify-center text-white text-lg font-bold shadow-sm" x-text="activeName.charAt(0)"></div>
-                    </template>
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                            <span class="px-2 py-0.5 bg-gray-100 text-gray-800 rounded-md text-xs font-mono" x-text="'Candidate #' + activeNum"></span>
-                            <span x-text="activeName"></span>
-                        </h3>
-                        <p class="text-xs text-[var(--text-muted)]">Individual Judge Scores for Q &amp; A</p>
-                    </div>
-                </div>
-
-                <button type="button" @click="showModal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-
-            <div class="overflow-x-auto rounded-xl border border-gray-200 mb-4">
-                <table class="data-table min-w-full text-xs">
-                    <thead>
-                        <tr class="bg-gray-50 border-b border-gray-200">
-                            <th class="py-2.5 px-4 text-left font-bold text-gray-600">Judge Name</th>
-                            <th class="py-2.5 px-4 text-center font-bold text-emerald-800 bg-emerald-50">Q &amp; A Score</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        <template x-for="j in activeScores" :key="j.judge_id">
-                            <tr class="hover:bg-gray-50">
-                                <td class="py-2.5 px-4 font-semibold text-gray-900" x-text="j.judge_name"></td>
-                                <td class="py-2.5 px-4 text-center text-emerald-800 font-bold font-mono bg-emerald-50/50" x-text="j.qa_score !== null ? Number(j.qa_score).toFixed(1) : '—'"></td>
-                            </tr>
-                        </template>
-                    </tbody>
-                    <tfoot>
-                        <tr class="bg-gray-50 font-bold border-t border-gray-200">
-                            <td class="py-2.5 px-4 text-gray-900">Q &amp; A Average</td>
-                            <td class="py-2.5 px-4 text-center text-emerald-900 font-mono text-sm" x-text="activeTotal"></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-
-            <div class="flex justify-end">
-                <button type="button" @click="showModal = false" class="btn btn-outline">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-</div>
 
 {{-- Printable Signatures Block --}}
 <div class="print-signatures">
