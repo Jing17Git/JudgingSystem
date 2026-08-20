@@ -29,7 +29,7 @@
     </div>
 </div>
 
-<div class="max-w-4xl" x-data="{
+<div class="w-full max-w-5xl" x-data="{
     values: {
         @foreach($settings as $setting)
             '{{ $setting->key }}': {{ (int)$setting->percentage }},
@@ -53,37 +53,43 @@
 }">
 
     {{-- Navigation Tabs between Settings Sections --}}
-    <div class="flex flex-wrap items-center gap-2 mb-6 border-b border-[var(--border-default)] pb-3">
+    <div class="flex flex-nowrap overflow-x-auto items-center gap-2 mb-6 border-b border-[var(--border-default)] pb-3 hide-scrollbar">
         <a href="{{ route('admin.settings.preliminary') }}"
-           class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2">
+           class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2 whitespace-nowrap">
             <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
             Preliminary Criteria
         </a>
         <a href="{{ route('admin.settings.final') }}"
-           class="px-4 py-2 rounded-xl text-sm font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-2 shadow-sm">
+           class="px-4 py-2 rounded-xl text-sm font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-2 shadow-sm whitespace-nowrap">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
             Final Criteria (Prelim % vs Q&amp;A %)
         </a>
         <a href="{{ route('admin.settings.judge-scores') }}"
-           class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2">
+           class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2 whitespace-nowrap">
             <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
             Judge Score Sheets
         </a>
         <a href="{{ route('admin.cache.index') }}"
-           class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2">
+           class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2 whitespace-nowrap">
             <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
             Cache Management
+        </a>
+        <a href="{{ route('admin.logs.index') }}"
+           class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2 whitespace-nowrap">
+            <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
+            Logs Management
         </a>
     </div>
 
     {{-- Information Alert --}}
-    <div class="mb-6 p-4 rounded-xl border border-emerald-100 bg-emerald-50/70 text-emerald-950 text-sm flex items-start gap-3 shadow-sm"  style="width: 135%;">
+    <div class="mb-6 p-4 rounded-xl border border-emerald-100 bg-emerald-50/70 text-emerald-950 text-sm flex items-start gap-3 shadow-sm w-full">
         <svg class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
-       
+        <span>Configure how the Final Overall Score is calculated by assigning percentage weights to Preliminary Grand Total vs Final Q&amp;A score.</span>
+    </div>
 
-    <form action="{{ route('admin.settings.update') }}" method="POST" >
+    <form action="{{ route('admin.settings.update') }}" method="POST" class="w-full">
         @csrf
         @method('PUT')
         <input type="hidden" name="stage" value="final">

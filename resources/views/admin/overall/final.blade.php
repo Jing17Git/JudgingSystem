@@ -307,10 +307,12 @@
                                 @else
                                     <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 border border-gray-300 text-gray-600 text-xs font-bold">{{ $rank }}</span>
                                 @endif
-                              {{-- Judge Votes Action Button --}}
+                            </td>
+
+                            {{-- Judge Votes Action Button --}}
                             <td class="text-center py-3 px-4 no-print">
                                 <a href="{{ route('admin.overall.candidate-votes', ['candidate' => $candidate->id, 'from' => 'final']) }}"
-                                   class="btn btn-outline btn-sm font-semibold flex items-center justify-center gap-1.5 mx-auto text-xs hover:border-emerald-500 hover:text-emerald-700 transition-colors">
+                                   class="btn btn-outline btn-sm font-semibold flex items-center justify-center gap-1.5 mx-auto text-xs hover:border-emerald-500 hover:text-emerald-700 transition-colors whitespace-nowrap">
                                     <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>

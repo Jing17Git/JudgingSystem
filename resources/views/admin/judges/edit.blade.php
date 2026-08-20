@@ -33,7 +33,7 @@
             <div class="space-y-6">
                 <div class="form-group">
                     <label for="name" class="form-label">Full Name</label>
-                    <input type="text" id="name" name="name" class="form-input @error('name') border-[var(--danger)] @enderror" value="{{ old('name', $judge->name) }}" required minlength="3" maxlength="100">
+                    <input type="text" id="name" name="name" class="form-input @error('name') border-[var(--danger)] @enderror" value="{{ old('name', $judge->name) }}" required minlength="3" maxlength="100" style="text-transform: capitalize;">
                     @error('name')
                         <p class="form-error">{{ $message }}</p>
                     @enderror

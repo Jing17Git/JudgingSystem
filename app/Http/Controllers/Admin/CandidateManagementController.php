@@ -58,7 +58,21 @@ class CandidateManagementController extends Controller
         ]);
 
         $photoPath = null;
-        if ($request->hasFile('picture')) {
+        if ($request->filled('cropped_picture_data')) {
+            $dataUrl = $request->input('cropped_picture_data');
+            if (preg_match('/^data:image\/(\w+);base64,/', $dataUrl, $type)) {
+                $data = substr($dataUrl, strpos($dataUrl, ',') + 1);
+                $ext = strtolower($type[1]);
+                if (in_array($ext, ['jpeg', 'jpg', 'png', 'webp'])) {
+                    $decoded = base64_decode($data);
+                    if ($decoded !== false) {
+                        $fileName = 'candidates/' . \Illuminate\Support\Str::random(40) . '.' . ($ext === 'jpeg' ? 'jpg' : $ext);
+                        Storage::disk('public')->put($fileName, $decoded);
+                        $photoPath = $fileName;
+                    }
+                }
+            }
+        } elseif ($request->hasFile('picture')) {
             $photoPath = $request->file('picture')->store('candidates', 'public');
         }
 
@@ -115,7 +129,26 @@ class CandidateManagementController extends Controller
         $candidate->gender = $validated['gender'] ?? null;
         $candidate->first_name = $validated['full_name'];
 
-        if ($request->hasFile('picture')) {
+        if ($request->filled('cropped_picture_data')) {
+            // Delete old photo if exists
+            if ($candidate->photo_url && Storage::disk('public')->exists($candidate->photo_url)) {
+                Storage::disk('public')->delete($candidate->photo_url);
+            }
+
+            $dataUrl = $request->input('cropped_picture_data');
+            if (preg_match('/^data:image\/(\w+);base64,/', $dataUrl, $type)) {
+                $data = substr($dataUrl, strpos($dataUrl, ',') + 1);
+                $ext = strtolower($type[1]);
+                if (in_array($ext, ['jpeg', 'jpg', 'png', 'webp'])) {
+                    $decoded = base64_decode($data);
+                    if ($decoded !== false) {
+                        $fileName = 'candidates/' . \Illuminate\Support\Str::random(40) . '.' . ($ext === 'jpeg' ? 'jpg' : $ext);
+                        Storage::disk('public')->put($fileName, $decoded);
+                        $candidate->photo_url = $fileName;
+                    }
+                }
+            }
+        } elseif ($request->hasFile('picture')) {
             // Delete old photo if exists
             if ($candidate->photo_url && Storage::disk('public')->exists($candidate->photo_url)) {
                 Storage::disk('public')->delete($candidate->photo_url);

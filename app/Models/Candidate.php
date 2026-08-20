@@ -22,6 +22,15 @@ class Candidate extends Model
     ];
 
     /**
+     * Mutator to automatically capitalize candidate names (Title Case).
+     */
+    public function setFullNameAttribute($value): void
+    {
+        $this->attributes['full_name'] = !empty($value) ? mb_convert_case(trim($value), MB_CASE_TITLE, 'UTF-8') : $value;
+        $this->attributes['first_name'] = $this->attributes['full_name'];
+    }
+
+    /**
      * Get the display name — prefers full_name, falls back to first+last.
      */
     public function getDisplayNameAttribute(): string
