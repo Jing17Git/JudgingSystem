@@ -15,6 +15,8 @@ use App\Http\Controllers\Admin\OverallController;
 use App\Http\Controllers\Admin\FinalOverallController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\CacheController;
+use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Judge\JudgeDashboardController;
 use App\Http\Controllers\Judge\JudgeScoringController;
 use App\Http\Controllers\Judge\JudgeProfileController;
@@ -33,6 +35,13 @@ Route::get('/', [WelcomeController::class, 'index'])->name('home');
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Password Reset
+Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
+Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
+Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+
 
 // Admin routes
 Route::prefix('admin')->middleware('admin')->name('admin.')->group(function () {
@@ -95,6 +104,16 @@ Route::prefix('admin')->middleware('admin')->name('admin.')->group(function () {
     Route::post('/cache/clear-view', [CacheController::class, 'clearView'])->name('cache.clear-view');
     Route::post('/cache/clear-logs', [CacheController::class, 'clearLogs'])->name('cache.clear-logs');
     Route::post('/cache/optimize', [CacheController::class, 'optimize'])->name('cache.optimize');
+
+    // Logs Management
+    Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
+    Route::post('/logs/clear', [LogController::class, 'clear'])->name('logs.clear');
+    Route::get('/logs/download', [LogController::class, 'download'])->name('logs.download');
+
+    // Account Settings
+    Route::get('/account', [AccountController::class, 'index'])->name('account.index');
+    Route::put('/account', [AccountController::class, 'update'])->name('account.update');
+    Route::put('/account/change-password', [AccountController::class, 'changePassword'])->name('account.change-password');
 });
 
 // Judge routes

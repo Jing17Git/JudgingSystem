@@ -145,7 +145,7 @@
                class="sidebar-link {{ request()->routeIs('admin.overall.final') || (request()->routeIs('admin.overall.candidate-votes') && request('from') === 'final') ? 'active' : '' }}">
                 <span class="icon">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.504-1.125-1.125-1.125h-6.75c-.621 0-1.125.504-1.125 1.125V18.75m9 0h-9M12 3a6.75 6.75 0 00-6.75 6.75c0 2.235.918 4.255 2.4 5.714.507.5.85 1.164.85 1.911h7c0-.747.343-1.411.85-1.911A6.716 6.716 0 0018.75 9.75 6.75 6.75 0 0012 3z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/>
                     </svg>
                 </span>
                 Final Overall (Q & A)
@@ -206,8 +206,23 @@
                         <span class="w-2 h-2 rounded-full flex-shrink-0 {{ request()->routeIs('admin.cache.*') || request()->routeIs('admin.settings.cache') ? 'bg-[var(--green-600)]' : 'bg-gray-400' }}"></span>
                         <span>Cache Management</span>
                     </a>
+                    <a href="{{ route('admin.logs.index') }}"
+                       class="sidebar-link text-xs py-2 px-3 {{ request()->routeIs('admin.logs.*') || request()->routeIs('admin.settings.logs') ? 'active font-bold' : '' }}">
+                        <span class="w-2 h-2 rounded-full flex-shrink-0 {{ request()->routeIs('admin.logs.*') || request()->routeIs('admin.settings.logs') ? 'bg-[var(--green-600)]' : 'bg-gray-400' }}"></span>
+                        <span>Logs Management</span>
+                    </a>
                 </div>
             </div>
+                        <div class="sidebar-section" style="font-size: 12px;">Account Settings</div>
+                                    <a href="{{ route('admin.account.index') }}"
+               class="sidebar-link {{ request()->routeIs('admin.account.index') ? 'active' : '' }}">
+                <span class="icon">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+                    </svg>
+                </span>
+                Account Settings
+            </a>
         </nav>
 
         {{-- User info --}}
@@ -233,7 +248,7 @@
     </aside>
 
     {{-- Main content --}}
-    <div class="main-content flex-1">
+    <div class="main-content flex-1" style="width: 60%">
         {{-- Top bar for mobile --}}
         <div class="lg:hidden flex items-center justify-between mb-6">
             <button @click="sidebarOpen = !sidebarOpen" class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-2 rounded-lg hover:bg-gray-100">

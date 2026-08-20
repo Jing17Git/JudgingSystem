@@ -26,6 +26,21 @@
 <body class="antialiased">
     @yield('body')
 
+    <script>
+        // Global handler to auto-capitalize name inputs smoothly without quote collisions
+        document.addEventListener('input', function(e) {
+            if (e.target && (e.target.matches('input[name="name"], input[name="full_name"], input[name="first_name"], input[name="last_name"]') || e.target.classList.contains('auto-capitalize'))) {
+                const input = e.target;
+                const start = input.selectionStart;
+                const end = input.selectionEnd;
+                input.value = input.value.replace(/(^|[\s\-\.'])[a-z]/g, function(letter) {
+                    return letter.toUpperCase();
+                });
+                input.setSelectionRange(start, end);
+            }
+        });
+    </script>
+
     @stack('scripts')
 </body>
 </html>

@@ -42,26 +42,31 @@
 </div>
 
 {{-- Navigation Tabs between Settings Sections --}}
-<div class="flex flex-wrap items-center gap-2 mb-6 border-b border-[var(--border-default)] pb-3">
+<div class="flex flex-nowrap overflow-x-auto items-center gap-2 mb-6 border-b border-[var(--border-default)] pb-3 hide-scrollbar">
     <a href="{{ route('admin.settings.preliminary') }}"
-       class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2">
+       class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2 whitespace-nowrap">
         <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
         Preliminary Criteria
     </a>
     <a href="{{ route('admin.settings.final') }}"
-       class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2">
+       class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2 whitespace-nowrap">
         <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
         Final Criteria
     </a>
     <a href="{{ route('admin.settings.judge-scores') }}"
-       class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2">
+       class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2 whitespace-nowrap">
         <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
         Judge Score Sheets
     </a>
     <a href="{{ route('admin.cache.index') }}"
-       class="px-4 py-2 rounded-xl text-sm font-bold bg-[var(--green-100)] text-[var(--green-800)] border border-[var(--green-300)] flex items-center gap-2 shadow-sm">
+       class="px-4 py-2 rounded-xl text-sm font-bold bg-[var(--green-100)] text-[var(--green-800)] border border-[var(--green-300)] flex items-center gap-2 shadow-sm whitespace-nowrap">
         <span class="w-2.5 h-2.5 rounded-full bg-[var(--green-600)]"></span>
         Cache Management
+    </a>
+    <a href="{{ route('admin.logs.index') }}"
+       class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2 whitespace-nowrap">
+        <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
+        Logs Management
     </a>
 </div>
 

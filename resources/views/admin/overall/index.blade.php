@@ -236,32 +236,21 @@
     <p style="font-size: 10pt; margin: 4px 0 0; color: #6b7280;">Generated on {{ now()->format('F d, Y — h:i A') }}</p>
 </div>
 
-<div class="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 no-print">
+<div class="page-header flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 no-print">
     <div>
-        <h1 class="page-title flex items-center gap-3">
-            <svg class="w-7 h-7 text-[var(--green-600)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <h1 class="page-title flex items-center gap-3 text-xl sm:text-2xl font-bold">
+            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-[var(--green-600)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
             </svg>
             Overall Tabulation &amp; Judge Votes
         </h1>
-        <p class="page-subtitle">Weighted score breakdown across Production, Fitness, Traditional Attire, and Indigenous Attire based on configured criteria percentages.</p>
+        <p class="page-subtitle text-xs sm:text-sm mt-1">Weighted score breakdown across Production, Fitness, Traditional Attire, and Indigenous Attire based on configured criteria percentages.</p>
     </div>
-    <div class="flex items-center gap-3">
-        <a href="{{ route('admin.overall.final') }}" class="btn btn-outline flex items-center gap-2 shadow-sm text-xs font-semibold text-emerald-700 border-emerald-300 hover:bg-emerald-50">
-            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.504-1.125-1.125-1.125h-6.75c-.621 0-1.125.504-1.125 1.125V18.75m9 0h-9M12 3a6.75 6.75 0 00-6.75 6.75c0 2.235.918 4.255 2.4 5.714.507.5.85 1.164.85 1.911h7c0-.747.343-1.411.85-1.911A6.716 6.716 0 0018.75 9.75 6.75 6.75 0 0012 3z"/>
-            </svg>
-            Final Overall (Q &amp; A)
-        </a>
-        <a href="{{ route('admin.settings.index') }}" class="btn btn-outline flex items-center gap-2 shadow-sm text-xs font-semibold">
-            <svg class="w-4 h-4 text-[var(--green-600)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            Criteria Settings
-        </a>
-        <button onclick="window.print()" class="btn btn-green flex items-center gap-2 shadow-sm">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+
+
+        <button onclick="window.print()" class="btn btn-green flex items-center gap-1.5 sm:gap-2 shadow-sm text-xs font-semibold whitespace-nowrap">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
             </svg>
             Print Results Sheet
@@ -398,37 +387,37 @@
                             $rank       = $groupRanks[$candidate->id] ?? null;
                             $jBreakdown = json_encode($judgeBreakdown[$candidate->id] ?? []);
                         @endphp
-                        <tr class="hover:bg-gray-50/80 transition-colors">
+                        <tr class="group hover:bg-gray-50/80 transition-colors">
                             {{-- Candidate Number --}}
-                            <td class="sticky left-0 bg-white py-3 px-4">
+                            <td class="sticky left-0 bg-white group-hover:bg-gray-50 py-3 px-4 z-[5]">
                                 @if($gKey === 'Male')
-                                    <span class="inline-flex items-center justify-center w-10 h-10 rounded-full text-white text-base font-black shadow-md" style="background-color: #2563eb; border: 2px solid #60a5fa;">
+                                    <span class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full text-white text-sm sm:text-base font-black shadow-md" style="background-color: #2563eb; border: 2px solid #60a5fa;">
                                         {{ $candidate->candidate_number }}
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center justify-center w-10 h-10 rounded-full text-white text-base font-black shadow-md" style="background-color: #db2777; border: 2px solid #f472b6;">
+                                    <span class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full text-white text-sm sm:text-base font-black shadow-md" style="background-color: #db2777; border: 2px solid #f472b6;">
                                         {{ $candidate->candidate_number }}
                                     </span>
                                 @endif
                             </td>
 
                             {{-- Candidate Name --}}
-                            <td class="sticky left-[90px] bg-white py-3 px-4 font-semibold text-gray-900">
-                                <div class="flex items-center gap-3">
+                            <td class="sticky left-[90px] bg-white group-hover:bg-gray-50 py-3 px-4 font-semibold text-gray-900 z-[5]">
+                                <div class="flex items-center gap-2.5 sm:gap-3">
                                     @if($candidate->photo_url)
-                                        <img src="{{ asset('storage/' . $candidate->photo_url) }}" class="w-9 h-9 rounded-full object-cover border-2 border-gray-200 shadow-sm flex-shrink-0">
+                                        <img src="{{ asset('storage/' . $candidate->photo_url) }}" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-gray-200 shadow-sm flex-shrink-0">
                                     @else
                                         @if($gKey === 'Male')
-                                            <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm" style="background-color: #2563eb;">
+                                            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm" style="background-color: #2563eb;">
                                                 {{ strtoupper(substr($candidate->display_name, 0, 1)) }}
                                             </div>
                                         @else
-                                            <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm" style="background-color: #db2777;">
+                                            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm" style="background-color: #db2777;">
                                                 {{ strtoupper(substr($candidate->display_name, 0, 1)) }}
                                             </div>
                                         @endif
                                     @endif
-                                    <span class="truncate max-w-[140px] text-sm text-gray-900 font-semibold">{{ $candidate->display_name }}</span>
+                                    <span class="truncate max-w-[120px] sm:max-w-[180px] md:max-w-none text-xs sm:text-sm text-gray-900 font-semibold">{{ $candidate->display_name }}</span>
                                 </div>
                             </td>
 
@@ -481,10 +470,12 @@
                                 @else
                                     <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 border border-gray-300 text-gray-600 text-xs font-bold">{{ $rank }}</span>
                                 @endif
-                                  {{-- Judge Votes Action Button --}}
+                            </td>
+
+                            {{-- Judge Votes Action Button --}}
                             <td class="text-center py-3 px-4 no-print">
                                 <a href="{{ route('admin.overall.candidate-votes', ['candidate' => $candidate->id, 'from' => 'overall']) }}"
-                                   class="btn btn-outline btn-sm font-semibold flex items-center justify-center gap-1.5 mx-auto hover:border-emerald-500 hover:text-emerald-700 transition-colors">
+                                   class="btn btn-outline btn-sm font-semibold flex items-center justify-center gap-1.5 mx-auto hover:border-emerald-500 hover:text-emerald-700 transition-colors whitespace-nowrap">
                                     <svg class="w-4 h-4 text-[var(--green-600)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>

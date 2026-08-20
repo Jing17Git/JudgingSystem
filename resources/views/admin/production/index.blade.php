@@ -73,9 +73,9 @@
             <svg class="w-7 h-7 text-[var(--green-600)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
-            Production — Scoring Table
+            Production — Top 5 Finalists
         </h1>
-        <p class="page-subtitle">Scores given by each judge per candidate (1–10). Read-only view.</p>
+        <p class="page-subtitle">Top 5 candidates per gender, fully scored across all categories. Read-only view.</p>
     </div>
     <div class="flex items-center gap-2">
         <span class="text-xs text-[var(--text-muted)] bg-[var(--bg-card)] border border-[var(--border-default)] px-3 py-1.5 rounded-lg">
@@ -115,28 +115,10 @@
 
 @php
     $groups = [
-        'Male'   => ['label' => '♂ Male Candidates',   'key' => 'Male',   'candidates' => $candidates->filter(fn($c) => $c->gender === 'Male')],
-        'Female' => ['label' => '♀ Female Candidates', 'key' => 'Female', 'candidates' => $candidates->filter(fn($c) => $c->gender === 'Female')],
-        'Unset'  => ['label' => '— Unspecified',        'key' => 'Unset',  'candidates' => $candidates->filter(fn($c) => !in_array($c->gender, ['Male','Female']))],
+        'Male'   => ['label' => '🏆 Top 5 Male Finalists',   'key' => 'Male',   'candidates' => $candidates->filter(fn($c) => $c->gender === 'Male')],
+        'Female' => ['label' => '👑 Top 5 Female Finalists', 'key' => 'Female', 'candidates' => $candidates->filter(fn($c) => $c->gender === 'Female')],
+        'Unset'  => ['label' => '— Unspecified',              'key' => 'Unset',  'candidates' => $candidates->filter(fn($c) => !in_array($c->gender, ['Male','Female']))],
     ];
-
-    $groupRanks = [];
-    foreach ($groups as $gKey => $group) {
-        $gCandidates = $group['candidates'];
-        if ($gCandidates->isEmpty()) continue;
-        $gTotals = [];
-        foreach ($gCandidates as $c) {
-            $gTotals[$c->id] = $candidateTotals[$c->id] ?? 0;
-        }
-        arsort($gTotals);
-        $r = 1; $prev = null; $same = 1;
-        foreach ($gTotals as $cid => $tot) {
-            if ($tot <= 0) { $groupRanks[$cid] = null; continue; }
-            if ($prev !== null && $tot === $prev) { $groupRanks[$cid] = $r - $same; $same++; }
-            else { $groupRanks[$cid] = $r; $same = 1; }
-            $prev = $tot; $r++;
-        }
-    }
 @endphp
 
 @foreach($groups as $gKey => $group)
@@ -220,7 +202,7 @@
                     @foreach($sortedGroup as $candidate)
                         @php
                             $total = $candidateTotals[$candidate->id] ?? 0;
-                            $rank  = $groupRanks[$candidate->id] ?? null;
+                            $rank  = $ranks[$candidate->id] ?? null;
                         @endphp
                         <tr class="hover:bg-gray-50/80 transition-colors">
                             {{-- Candidate Number --}}

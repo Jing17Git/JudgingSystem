@@ -421,7 +421,7 @@
   <div class="sc-header">
     <div>
       <div class="sc-eyebrow">{{ strtoupper($categoryName) }} · LIVE SCORING</div>
-      <h1 class="sc-title"><span class="icon">&lt;/&gt;</span> {{ $categoryName }} — Scoring Pad1</h1>
+      <h1 class="sc-title"><span class="icon">&lt;/&gt;</span> {{ $categoryName }} — Scoring Pad</h1>
     </div>
     <div class="status-pill">
       PAIRS <span id="pairIndexText">{{ str_pad($totalPairs > 0 ? 1 : 0, 2, '0', STR_PAD_LEFT) }}</span> / {{ str_pad($totalPairs, 2, '0', STR_PAD_LEFT) }} &nbsp;·&nbsp; SCORED <span id="scoredCount">{{ str_pad($totalSubmitted, 2, '0', STR_PAD_LEFT) }}</span>

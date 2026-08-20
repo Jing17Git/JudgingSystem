@@ -53,6 +53,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Mutator to automatically capitalize user names (Title Case).
+     */
+    public function setNameAttribute($value): void
+    {
+        $this->attributes['name'] = !empty($value) ? mb_convert_case(trim($value), MB_CASE_TITLE, 'UTF-8') : $value;
+    }
+
+    /**
      * Check if the user is an administrator.
      */
     public function isAdmin(): bool

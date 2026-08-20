@@ -42,7 +42,8 @@
         --accent: var(--green-600);
         --accent-hover: var(--green-700);
         --accent-dim: var(--green-500);
-        --bg-primary: #f4fbf6; /* Very light green background */
+        --bg-primary: #f4fbf6;
+        /* Very light green background */
         --bg-secondary: #ffffff;
         --bg-card: #ffffff;
         --bg-card-hover: #f9fafb;
@@ -72,13 +73,16 @@
         width: 6px;
         height: 6px;
     }
+
     ::-webkit-scrollbar-track {
         background: var(--surface-100);
     }
+
     ::-webkit-scrollbar-thumb {
         background: var(--surface-700);
         border-radius: 3px;
     }
+
     ::-webkit-scrollbar-thumb:hover {
         background: var(--green-500);
     }
@@ -92,6 +96,7 @@
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -99,8 +104,13 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes slideInLeft {
@@ -108,6 +118,7 @@
         opacity: 0;
         transform: translateX(-20px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -115,9 +126,12 @@
 }
 
 @keyframes pulseGlow {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
     }
+
     50% {
         box-shadow: 0 0 25px rgba(34, 197, 94, 0.4);
     }
@@ -127,6 +141,7 @@
     0% {
         background-position: -200% 0;
     }
+
     100% {
         background-position: 200% 0;
     }
@@ -137,6 +152,7 @@
         opacity: 0;
         transform: scale(0.5);
     }
+
     to {
         opacity: 1;
         transform: scale(1);
@@ -144,7 +160,9 @@
 }
 
 @keyframes progressFill {
-    from { width: 0; }
+    from {
+        width: 0;
+    }
 }
 
 .animate-fade-in-up {
@@ -168,12 +186,29 @@
 }
 
 /* Staggered animation delays */
-.delay-100 { animation-delay: 0.1s; }
-.delay-200 { animation-delay: 0.2s; }
-.delay-300 { animation-delay: 0.3s; }
-.delay-400 { animation-delay: 0.4s; }
-.delay-500 { animation-delay: 0.5s; }
-.delay-600 { animation-delay: 0.6s; }
+.delay-100 {
+    animation-delay: 0.1s;
+}
+
+.delay-200 {
+    animation-delay: 0.2s;
+}
+
+.delay-300 {
+    animation-delay: 0.3s;
+}
+
+.delay-400 {
+    animation-delay: 0.4s;
+}
+
+.delay-500 {
+    animation-delay: 0.5s;
+}
+
+.delay-600 {
+    animation-delay: 0.6s;
+}
 
 /* ============================================
    GLASSMORPHISM
@@ -661,9 +696,11 @@
     .sidebar {
         transform: translateX(-100%);
     }
+
     .sidebar.open {
         transform: translateX(0);
     }
+
     .main-content {
         margin-left: 0;
     }
@@ -707,10 +744,9 @@
    ============================================ */
 .skeleton {
     background: linear-gradient(90deg,
-        var(--surface-100) 25%,
-        var(--surface-200) 50%,
-        var(--surface-100) 75%
-    );
+            var(--surface-100) 25%,
+            var(--surface-200) 50%,
+            var(--surface-100) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     border-radius: 8px;
