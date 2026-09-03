@@ -44,7 +44,8 @@
             <div>
                 <h2 class="text-xl font-bold text-[var(--text-primary)]">{{ $judge->name }}</h2>
                 <div class="flex items-center gap-3 mt-1">
-                    <span class="text-xs font-mono font-semibold text-[var(--green-600)] bg-green-50 px-2 py-1 rounded-md">J{{ str_pad($judge->id, 3, '0', STR_PAD_LEFT) }}</span>
+                    <span class="text-xs font-semibold text-[var(--green-700)] bg-green-100 px-2.5 py-1 rounded-md border border-green-200">Judge {{ $judge->judge_number ?? $judge->id }}</span>
+                    <span class="text-xs font-mono text-[var(--text-muted)] bg-gray-100 px-2 py-1 rounded-md">ID: J{{ str_pad($judge->id, 3, '0', STR_PAD_LEFT) }}</span>
                     @if($judge->is_active)
                         <span class="badge badge-success">Active</span>
                     @else
@@ -57,6 +58,10 @@
         {{-- Details Grid --}}
         <div class="space-y-5">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">Judge Number</p>
+                    <p class="text-sm font-bold text-[var(--green-700)]">Judge {{ $judge->judge_number ?? $judge->id }}</p>
+                </div>
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">Judge ID</p>
                     <p class="text-sm font-medium text-[var(--text-primary)]">J{{ str_pad($judge->id, 3, '0', STR_PAD_LEFT) }}</p>

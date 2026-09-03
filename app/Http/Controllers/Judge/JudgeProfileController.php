@@ -17,6 +17,7 @@ class JudgeProfileController extends Controller
     public function show()
     {
         $judge = Auth::user();
+
         return view('judge.profile', compact('judge'));
     }
 
@@ -49,8 +50,8 @@ class JudgeProfileController extends Controller
         }
 
         // Handle password change
-        if (!empty($validated['password'])) {
-            if (!Hash::check($validated['current_password'], $judge->password)) {
+        if (! empty($validated['password'])) {
+            if (! Hash::check($validated['current_password'], $judge->password)) {
                 return back()->withErrors(['current_password' => 'Your current password does not match our records.']);
             }
             $judge->password = $validated['password'];

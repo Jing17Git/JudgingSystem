@@ -4,12 +4,11 @@ namespace App\Http\Controllers\Judge;
 
 use App\Http\Controllers\Controller;
 use App\Models\Candidate;
-use App\Models\ProductionScore;
 use App\Models\FitnessScore;
-use App\Models\TraditionalAttireScore;
 use App\Models\IndigenousAttireScore;
+use App\Models\ProductionScore;
 use App\Models\QaScore;
-use Illuminate\Http\Request;
+use App\Models\TraditionalAttireScore;
 use Illuminate\Support\Facades\Auth;
 
 class JudgeDashboardController extends Controller

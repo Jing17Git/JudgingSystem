@@ -147,6 +147,11 @@
             <span class="w-2.5 h-2.5 rounded-full bg-[var(--green-600)]"></span>
             Judge Score Sheets
         </a>
+        <a href="{{ route('admin.settings.audit_record') }}"
+           class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2 whitespace-nowrap">
+            <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
+            Audit Record
+        </a>
         <a href="{{ route('admin.cache.index') }}"
            class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2 whitespace-nowrap">
             <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
@@ -259,7 +264,7 @@
                 {{-- Printable Document Header for this Judge --}}
                 <div class="print-doc-header">
                     <h1 style="font-size: 18pt; font-weight: bold; margin: 0; text-transform: uppercase;">Official Judge Score Sheet</h1>
-                    <p style="font-size: 13pt; margin: 4px 0 0; font-weight: bold; color: #166534;">Judge: {{ strtoupper($judge->name) }}</p>
+                    <p style="font-size: 13pt; margin: 4px 0 0; font-weight: bold; color: #166534;">Judge: {{ strtoupper($judge->name) }} &nbsp;·&nbsp; Judge {{ $judge->judge_number ?? $judge->id }}</p>
                     <p style="font-size: 9pt; margin: 3px 0 0; color: #6b7280;">Summary of all scores submitted across all categories — Printed on {{ now()->format('F d, Y — h:i A') }}</p>
                 </div>
 
@@ -277,7 +282,7 @@
                             <div>
                                 <h2 class="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
                                     {{ $judge->name }}
-                                    <span class="badge badge-green text-[10px]">Official Judge</span>
+                                    <span class="badge badge-green text-[10px]">Judge {{ $judge->judge_number ?? $judge->id }}</span>
                                 </h2>
                                 <p class="text-xs text-[var(--text-muted)]">Judge ID: #{{ $judge->id }} &nbsp;·&nbsp; {{ $judge->email }}</p>
                             </div>

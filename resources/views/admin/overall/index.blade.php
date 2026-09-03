@@ -5,19 +5,16 @@
 @push('styles')
 <style>
     @media print {
-        /* Force landscape orientation and tight margins for bond paper */
         @page {
             size: landscape;
             margin: 0.4in 0.3in;
         }
 
-        /* Hide all UI chrome */
         .sidebar, .topbar, .page-header, .no-print, nav, header, button,
         .lg\:hidden, [x-data], .alert, .legend-bar {
             display: none !important;
         }
 
-        /* Reset body */
         body {
             background: #ffffff !important;
             color: #000000 !important;
@@ -28,7 +25,6 @@
             print-color-adjust: exact !important;
         }
 
-        /* Reset main content area — remove sidebar offset */
         .main-content {
             margin: 0 !important;
             padding: 0 !important;
@@ -36,7 +32,6 @@
             max-width: 100% !important;
         }
 
-        /* Print header */
         .print-header {
             display: block !important;
             text-align: center;
@@ -55,7 +50,6 @@
             margin: 2px 0 0 !important;
         }
 
-        /* Print signatures */
         .print-signatures {
             display: grid !important;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
@@ -64,7 +58,6 @@
             page-break-inside: avoid;
         }
 
-        /* Panel resets */
         .panel {
             box-shadow: none !important;
             border: none !important;
@@ -72,12 +65,10 @@
             overflow: visible !important;
         }
 
-        /* Remove overflow-x-auto clipping */
         .overflow-x-auto {
             overflow: visible !important;
         }
 
-        /* Gender section headers — compact for print */
         .mb-8 {
             margin-bottom: 10px !important;
         }
@@ -85,130 +76,92 @@
             margin-bottom: 4px !important;
         }
 
-        /* ===== TABLE PRINT STYLES ===== */
         .data-table {
             border-collapse: collapse !important;
             width: 100% !important;
             table-layout: fixed !important;
         }
 
-        /* Remove all min-width constraints */
         .data-table th,
         .data-table td {
             border: 1px solid #000000 !important;
             padding: 3px 4px !important;
             font-size: 8pt !important;
             color: #000000 !important;
-            min-width: 0 !important;
-            max-width: none !important;
-            position: static !important;
-            left: auto !important;
-            z-index: auto !important;
-            background: #ffffff !important;
-            word-wrap: break-word !important;
-            overflow-wrap: break-word !important;
-            white-space: normal !important;
         }
 
         .data-table th {
-            background-color: #e5e7eb !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            font-size: 7pt !important;
-            padding: 4px 3px !important;
-            text-align: center !important;
-        }
-
-        /* Column widths — fixed proportions to fit on paper */
-        .data-table th:nth-child(1),
-        .data-table td:nth-child(1) { width: 7% !important; }   /* Cand # */
-        .data-table th:nth-child(2),
-        .data-table td:nth-child(2) { width: 20% !important; }  /* Name */
-        .data-table th:nth-child(3),
-        .data-table td:nth-child(3) { width: 13% !important; }  /* Production */
-        .data-table th:nth-child(4),
-        .data-table td:nth-child(4) { width: 13% !important; }  /* Fitness */
-        .data-table th:nth-child(5),
-        .data-table td:nth-child(5) { width: 14% !important; }  /* Traditional */
-        .data-table th:nth-child(6),
-        .data-table td:nth-child(6) { width: 14% !important; }  /* Indigenous */
-        .data-table th:nth-child(7),
-        .data-table td:nth-child(7) { width: 12% !important; }  /* Grand Total */
-        .data-table th:nth-child(8),
-        .data-table td:nth-child(8) { width: 7% !important; }   /* Rank */
-
-        /* Grand Total column — keep subtle highlight */
-        .data-table td:nth-child(7) {
             background-color: #f3f4f6 !important;
-            font-weight: 800 !important;
         }
 
-        /* Rank column */
-        .data-table td:nth-child(8) {
-            background-color: #fefce8 !important;
+        .data-table td.sticky,
+        .data-table th.sticky {
+            position: static !important;
+            left: auto !important;
+            background: #ffffff !important;
+        }
+
+        .data-table th:nth-child(1),
+        .data-table td:nth-child(1) {
+            width: 48px !important;
             text-align: center !important;
         }
 
-        /* Hide avatars/photos in print — show only text */
-        .data-table td img,
-        .data-table td .w-9,
-        .data-table td .w-10 {
+        .data-table th:nth-child(2),
+        .data-table td:nth-child(2) {
+            width: 180px !important;
+            text-align: left !important;
+        }
+
+        .data-table th:nth-child(3),
+        .data-table td:nth-child(3),
+        .data-table th:nth-child(4),
+        .data-table td:nth-child(4),
+        .data-table th:nth-child(5),
+        .data-table td:nth-child(5),
+        .data-table th:nth-child(6),
+        .data-table td:nth-child(6) {
+            width: 110px !important;
+            text-align: center !important;
+        }
+
+        .data-table th:nth-child(7),
+        .data-table td:nth-child(7) {
+            width: 90px !important;
+            text-align: center !important;
+            font-weight: bold !important;
+            background-color: #f9fafb !important;
+        }
+
+        .data-table th:nth-child(8),
+        .data-table td:nth-child(8) {
+            width: 55px !important;
+            text-align: center !important;
+            font-weight: bold !important;
+        }
+
+        .data-table th:nth-child(9),
+        .data-table td:nth-child(9) {
             display: none !important;
         }
 
-        /* Candidate number — plain text, no styled badge */
-        .data-table td:nth-child(1) span {
-            display: inline !important;
-            width: auto !important;
-            height: auto !important;
-            background: none !important;
+        .data-table img {
+            display: none !important;
+        }
+
+        .data-table span.rounded-full {
+            background: transparent !important;
             border: none !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
             color: #000000 !important;
             font-size: 9pt !important;
             font-weight: 700 !important;
             padding: 0 !important;
         }
 
-        /* Name cell — remove flex gap from hidden avatar */
-        .data-table td:nth-child(2) .flex {
-            gap: 0 !important;
-        }
-        .data-table td:nth-child(2) .truncate {
-            max-width: none !important;
-            white-space: normal !important;
-            font-size: 8pt !important;
-        }
-
-        /* Score cells text */
-        .data-table td .font-semibold,
-        .data-table td .font-extrabold {
-            font-size: 9pt !important;
-            color: #000000 !important;
-        }
-
-        /* Rank badges — plain text in print */
-        .data-table td:nth-child(8) span {
-            display: inline !important;
-            width: auto !important;
-            height: auto !important;
-            background: none !important;
-            border: none !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            color: #000000 !important;
-            font-size: 9pt !important;
-            font-weight: 700 !important;
-            padding: 0 !important;
-        }
-
-        /* Page break — each gender group starts on a new page if needed */
         .mb-8.animate-fade-in-up {
             page-break-inside: avoid;
         }
 
-        /* Gender header badges — simplify for print */
         .rounded-xl.shadow-md {
             box-shadow: none !important;
             border-radius: 0 !important;
@@ -223,6 +176,33 @@
 
     .print-header, .print-signatures {
         display: none;
+    }
+
+    @keyframes cellScoreFlash {
+        0% { background-color: #fde047; transform: scale(1.18); box-shadow: 0 0 14px rgba(234, 179, 8, 0.5); }
+        45% { background-color: #86efac; transform: scale(1.06); }
+        100% { background-color: transparent; transform: scale(1); box-shadow: none; }
+    }
+    .cell-flash {
+        animation: cellScoreFlash 1.6s ease-out;
+    }
+
+    @keyframes cellResetFlash {
+        0% { background-color: #fecdd3; transform: scale(1.15); box-shadow: 0 0 14px rgba(244, 63, 94, 0.4); }
+        45% { background-color: #fef08a; transform: scale(1.05); }
+        100% { background-color: transparent; transform: scale(1); box-shadow: none; }
+    }
+    .cell-reset-flash {
+        animation: cellResetFlash 1.6s ease-out;
+    }
+
+    @keyframes rankBadgePop {
+        0% { transform: scale(0.4); opacity: 0.3; }
+        55% { transform: scale(1.35); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .rank-pop {
+        animation: rankBadgePop 0.85s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 </style>
 @endpush
@@ -244,11 +224,13 @@
             </svg>
             Overall Tabulation &amp; Judge Votes
         </h1>
-        <p class="page-subtitle text-xs sm:text-sm mt-1">Weighted score breakdown across Production, Fitness, Traditional Attire, and Indigenous Attire based on configured criteria percentages.</p>
+        <p class="page-subtitle text-xs sm:text-sm mt-1">Weighted score breakdown across all pre-judging categories with real-time updates.</p>
     </div>
     <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-
-
+        <div id="realtime-status-badge" class="flex items-center gap-2 text-xs bg-[var(--bg-card)] border border-[var(--border-default)] px-3.5 py-1.5 rounded-xl shadow-sm transition-all">
+            <span id="realtime-status-dot" class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="realtime-status-text" class="font-semibold text-xs text-emerald-700">⚡ Real-Time Active</span>
+        </div>
         <button onclick="window.print()" class="btn btn-green flex items-center gap-1.5 sm:gap-2 shadow-sm text-xs font-semibold whitespace-nowrap">
             <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
@@ -326,19 +308,19 @@
     @endphp
 
     {{-- Group Section --}}
-    <div class="mb-8 animate-fade-in-up">
+    <div class="mb-8 animate-fade-in-up" id="section-{{ strtolower($gKey) }}">
         {{-- Section Header --}}
         <div class="flex items-center gap-3 mb-3">
             @if($gKey === 'Male')
                 <div class="flex items-center gap-2 text-white text-sm font-bold px-4 py-2 rounded-xl shadow-md" style="background-color: #2563eb;">
                     {{ $group['label'] }}
-                    <span class="bg-white/25 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">{{ $gCandidates->count() }}</span>
+                    <span id="badge-count-male" class="bg-white/25 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">{{ $gCandidates->count() }}</span>
                 </div>
                 <div class="h-px flex-1 bg-blue-200 opacity-60"></div>
             @else
                 <div class="flex items-center gap-2 text-white text-sm font-bold px-4 py-2 rounded-xl shadow-md" style="background-color: #db2777;">
                     {{ $group['label'] }}
-                    <span class="bg-white/25 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">{{ $gCandidates->count() }}</span>
+                    <span id="badge-count-female" class="bg-white/25 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">{{ $gCandidates->count() }}</span>
                 </div>
                 <div class="h-px flex-1 bg-pink-200 opacity-60"></div>
             @endif
@@ -367,7 +349,16 @@
                             Indigenous Attire
                             <span class="block text-[11px] font-bold text-[var(--green-700)] lowercase tracking-normal">({{ (int)($weights['indigenous_attire'] ?? 25) }}%)</span>
                         </th>
-                       
+
+                        {{-- Dynamic custom category columns --}}
+                        @if(isset($customCategories))
+                            @foreach($customCategories as $customCat)
+                                <th class="text-center min-w-[130px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">
+                                    {{ $customCat->name }}
+                                    <span class="block text-[11px] font-bold text-[var(--green-700)] lowercase tracking-normal">({{ (int)$customCat->percentage }}%)</span>
+                                </th>
+                            @endforeach
+                        @endif
 
                         @if($gKey === 'Male')
                             <th class="text-center min-w-[100px] text-xs font-bold text-blue-700 uppercase tracking-wider py-3 px-4" style="background-color: #eff6ff;">Grand Total</th>
@@ -379,15 +370,18 @@
                         <th class="text-center min-w-[120px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4 no-print">Judge Votes</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
+                <tbody id="tbody-{{ strtolower($gKey) }}" class="divide-y divide-gray-100">
                     @foreach($sortedGroup as $candidate)
                         @php
-                            $b          = $breakdown[$candidate->id];
-                            $total      = $b['total'];
-                            $rank       = $groupRanks[$candidate->id] ?? null;
-                            $jBreakdown = json_encode($judgeBreakdown[$candidate->id] ?? []);
+                            $b     = $breakdown[$candidate->id];
+                            $total = $b['total'];
+                            $rank  = $groupRanks[$candidate->id] ?? null;
                         @endphp
-                        <tr class="group hover:bg-gray-50/80 transition-colors">
+                        <tr id="row-cand-{{ $candidate->id }}"
+                            data-cand-id="{{ $candidate->id }}"
+                            data-cand-num="{{ $candidate->candidate_number }}"
+                            data-gender="{{ $candidate->gender }}"
+                            class="group hover:bg-gray-50/80 transition-colors">
                             {{-- Candidate Number --}}
                             <td class="sticky left-0 bg-white group-hover:bg-gray-50 py-3 px-4 z-[5]">
                                 @if($gKey === 'Male')
@@ -423,53 +417,68 @@
 
                             {{-- Production Score --}}
                             <td class="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
-                                {{ $b['production'] > 0 ? number_format($b['production'], 2) : '—' }}
+                                <span id="prod-val-{{ $candidate->id }}" class="transition-all">{{ $b['production'] > 0 ? number_format($b['production'], 2) : '—' }}</span>
                             </td>
 
                             {{-- Fitness Score --}}
                             <td class="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
-                                {{ $b['fitness'] > 0 ? number_format($b['fitness'], 2) : '—' }}
+                                <span id="fit-val-{{ $candidate->id }}" class="transition-all">{{ $b['fitness'] > 0 ? number_format($b['fitness'], 2) : '—' }}</span>
                             </td>
 
                             {{-- Traditional Attire Score --}}
                             <td class="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
-                                {{ $b['traditional'] > 0 ? number_format($b['traditional'], 2) : '—' }}
+                                <span id="trad-val-{{ $candidate->id }}" class="transition-all">{{ $b['traditional'] > 0 ? number_format($b['traditional'], 2) : '—' }}</span>
                             </td>
 
                             {{-- Indigenous Attire Score --}}
                             <td class="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
-                                {{ $b['indigenous'] > 0 ? number_format($b['indigenous'], 2) : '—' }}
+                                <span id="indig-val-{{ $candidate->id }}" class="transition-all">{{ $b['indigenous'] > 0 ? number_format($b['indigenous'], 2) : '—' }}</span>
                             </td>
 
-                        
+                            {{-- Dynamic custom category scores --}}
+                            @if(isset($customCategories))
+                                @foreach($customCategories as $customCat)
+                                    @php $customVal = $b['custom'][$customCat->key]['weighted'] ?? 0; @endphp
+                                    <td class="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
+                                        <span id="custom-{{ $customCat->key }}-val-{{ $candidate->id }}" class="transition-all">{{ $customVal > 0 ? number_format($customVal, 2) : '—' }}</span>
+                                    </td>
+                                @endforeach
+                            @endif
+
                             {{-- Grand Total --}}
                             @if($gKey === 'Male')
                                 <td class="text-center py-3 px-4" style="background-color: #eff6ff;">
-                                    <span class="font-extrabold text-lg text-blue-700">
+                                    <span id="total-val-{{ $candidate->id }}" class="font-extrabold text-lg text-blue-700 transition-all">
                                         {{ $total > 0 ? number_format($total, 2) : '—' }}
                                     </span>
                                 </td>
                             @else
                                 <td class="text-center py-3 px-4" style="background-color: #fdf2f8;">
-                                    <span class="font-extrabold text-lg text-pink-700">
+                                    <span id="total-val-{{ $candidate->id }}" class="font-extrabold text-lg text-pink-700 transition-all">
                                         {{ $total > 0 ? number_format($total, 2) : '—' }}
                                     </span>
                                 </td>
                             @endif
 
                             {{-- Rank --}}
-                            <td class="text-center py-3 px-4" style="background-color: #fffbeb;">
-                                @if(empty($rank))
-                                    <span class="text-gray-400 font-medium">—</span>
-                                @elseif($rank === 1)
-                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-black shadow-md" style="background-color: #f59e0b;" title="1st Place">🥇</span>
-                                @elseif($rank === 2)
-                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-gray-700 text-sm font-black shadow-md" style="background-color: #d1d5db;" title="2nd Place">🥈</span>
-                                @elseif($rank === 3)
-                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-black shadow-md" style="background-color: #fb923c;" title="3rd Place">🥉</span>
-                                @else
-                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 border border-gray-300 text-gray-600 text-xs font-bold">{{ $rank }}</span>
-                                @endif
+                            <td id="rank-cell-{{ $candidate->id }}" class="text-center py-3 px-4" style="background-color: #fffbeb;">
+                                <div id="rank-val-{{ $candidate->id }}" class="inline-flex items-center justify-center transition-all">
+                                    @if(empty($rank))
+                                        <span class="text-gray-400 font-medium">—</span>
+                                    @elseif($rank === 1)
+                                        <span class="inline-flex items-center justify-center w-11 h-11 rounded-full text-2xl shadow-lg ring-4 ring-amber-300/70 bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-300 text-white" title="1st Place (Champion)">🥇</span>
+                                    @elseif($rank === 2)
+                                        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full text-xl shadow-md ring-2 ring-slate-300 bg-gradient-to-tr from-slate-400 via-gray-300 to-slate-200 text-slate-800" title="2nd Place">🥈</span>
+                                    @elseif($rank === 3)
+                                        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full text-xl shadow-md ring-2 ring-orange-300 bg-gradient-to-tr from-amber-700 via-orange-500 to-amber-400 text-white" title="3rd Place">🥉</span>
+                                    @elseif($rank === 4)
+                                        <span class="inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-black shadow-md ring-2 ring-blue-300 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white" title="4th Place">4</span>
+                                    @elseif($rank === 5)
+                                        <span class="inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-black shadow-md ring-2 ring-purple-300 bg-gradient-to-tr from-purple-600 to-pink-600 text-white" title="5th Place">5</span>
+                                    @else
+                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 border-2 border-gray-300 text-gray-700 text-xs font-extrabold shadow-sm">{{ $rank }}</span>
+                                    @endif
+                                </div>
                             </td>
 
                             {{-- Judge Votes Action Button --}}
@@ -497,6 +506,7 @@
         <div style="text-align: center;">
             <div style="border-bottom: 1px solid #000; height: 35px; margin-bottom: 6px;"></div>
             <p style="font-size: 10pt; font-weight: bold; margin: 0; text-transform: uppercase;">{{ $judge->name }}</p>
+            <p style="font-size: 8pt; color: #16a34a; margin: 0; font-weight: bold;">Judge {{ $judge->judge_number ?? $judge->id }}</p>
             <p style="font-size: 8pt; color: #4b5563; margin: 0;">Judge Signature &amp; Date</p>
         </div>
     @endforeach
@@ -511,4 +521,378 @@
 </div>
 
 @endif
+
+@push('scripts')
+<script>
+    // Initial Datasets
+    const CANDIDATES_DATA = {!! json_encode($candidatesJson ?? []) !!};
+    const JUDGES_DATA     = {!! json_encode($judgesJson ?? []) !!};
+    const WEIGHTS         = {
+        production:         {{ (float)($weights['production'] ?? 25.0) }},
+        fitness:            {{ (float)($weights['fitness'] ?? 25.0) }},
+        traditional_attire: {{ (float)($weights['traditional_attire'] ?? 25.0) }},
+        indigenous_attire:  {{ (float)($weights['indigenous_attire'] ?? 25.0) }}
+    };
+
+    // 'category_candidateId_judgeId' -> numeric score
+    let RAW_SCORES = {!! json_encode($rawScoresMap ?? (object)[]) !!};
+    const JUDGE_COUNT = JUDGES_DATA.length;
+    let fallbackPollTimer = null;
+    let isSocketConnected = false;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setupOverallEcho();
+    });
+
+    function updateStatusIndicator(status) {
+        const badge = document.getElementById('realtime-status-badge');
+        const dot = document.getElementById('realtime-status-dot');
+        const text = document.getElementById('realtime-status-text');
+
+        if (!badge || !dot || !text) return;
+
+        if (status === 'connected') {
+            dot.className = 'inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
+            text.className = 'font-semibold text-xs text-emerald-700';
+            text.textContent = '⚡ Real-Time Connected';
+            stopFallbackPolling();
+        } else if (status === 'connecting') {
+            dot.className = 'inline-block w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping';
+            text.className = 'font-semibold text-xs text-amber-700';
+            text.textContent = '🟡 Connecting... (Live Sync Active)';
+            startFallbackPolling();
+        } else {
+            dot.className = 'inline-block w-2.5 h-2.5 rounded-full bg-slate-400';
+            text.className = 'font-semibold text-xs text-slate-600';
+            text.textContent = '⚪ Live Polling Active';
+            startFallbackPolling();
+        }
+    }
+
+    function setupOverallEcho() {
+        if (!window.Echo) {
+            updateStatusIndicator('connecting');
+            setTimeout(setupOverallEcho, 400);
+            return;
+        }
+
+        try {
+            window.Echo.private('admin.scores')
+                .subscribed(() => {
+                    isSocketConnected = true;
+                    updateStatusIndicator('connected');
+                    console.log('⚡ Connected to admin.scores channel on Overall Tabulation table');
+                })
+                .error((err) => {
+                    console.warn('Echo subscription warning, using live fallback:', err);
+                    isSocketConnected = false;
+                    updateStatusIndicator('connecting');
+                })
+                .listen('.score.submitted', (e) => {
+                    const validCategories = ['production', 'fitness', 'traditional-attire', 'traditional_attire', 'indigenous-attire', 'indigenous_attire'];
+                    const normalizedCat = (e.category || '').replace('_', '-');
+
+                    if (validCategories.includes(e.category) || validCategories.includes(normalizedCat)) {
+                        const isResetAction = (e.action === 'reset' || e.score === null || e.score === '' || e.score === undefined);
+                        handleOverallScoreChange(
+                            normalizedCat,
+                            parseInt(e.candidate_id),
+                            parseInt(e.judge_id),
+                            isResetAction ? null : parseFloat(e.score),
+                            e.judge_name,
+                            e.candidate_name,
+                            e.candidate_number,
+                            isResetAction ? 'reset' : 'saved'
+                        );
+                    }
+                });
+
+            // Bind pusher connection state events
+            if (window.Echo.connector && window.Echo.connector.pusher) {
+                const pusher = window.Echo.connector.pusher;
+                pusher.connection.bind('connected', () => {
+                    isSocketConnected = true;
+                    updateStatusIndicator('connected');
+                });
+                pusher.connection.bind('disconnected', () => {
+                    isSocketConnected = false;
+                    updateStatusIndicator('disconnected');
+                });
+                pusher.connection.bind('unavailable', () => {
+                    isSocketConnected = false;
+                    updateStatusIndicator('disconnected');
+                });
+                pusher.connection.bind('failed', () => {
+                    isSocketConnected = false;
+                    updateStatusIndicator('disconnected');
+                });
+            }
+        } catch (err) {
+            console.warn('Echo setup error, fallback activated:', err);
+            updateStatusIndicator('disconnected');
+        }
+    }
+
+    function startFallbackPolling() {
+        if (fallbackPollTimer || isSocketConnected) return;
+        fallbackPollTimer = setInterval(pollScoresFallback, 3500);
+    }
+
+    function stopFallbackPolling() {
+        if (fallbackPollTimer) {
+            clearInterval(fallbackPollTimer);
+            fallbackPollTimer = null;
+        }
+    }
+
+    async function pollScoresFallback() {
+        try {
+            const res = await fetch('{{ route("admin.overall.index") }}', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+
+            if (data.success && data.rawScores) {
+                const serverScores = data.rawScores;
+
+                // 1. Check for updated scores
+                for (const key in serverScores) {
+                    const newScore = parseFloat(serverScores[key]);
+                    const currentScore = RAW_SCORES[key];
+
+                    if (currentScore === undefined || currentScore !== newScore) {
+                        const parts = key.split('_');
+                        const cat = parts[0];
+                        const candId = parseInt(parts[1]);
+                        const judgeId = parseInt(parts[2]);
+                        const cand = CANDIDATES_DATA.find(c => c.id === candId);
+                        const judge = JUDGES_DATA.find(j => j.id === judgeId);
+
+                        handleOverallScoreChange(
+                            cat,
+                            candId,
+                            judgeId,
+                            newScore,
+                            judge ? judge.name : 'Judge',
+                            cand ? cand.display_name : 'Candidate',
+                            cand ? cand.candidate_number : candId,
+                            'saved',
+                            false
+                        );
+                    }
+                }
+
+                // 2. Check for RESET / DELETED scores
+                for (const key in RAW_SCORES) {
+                    if (!(key in serverScores)) {
+                        const parts = key.split('_');
+                        const cat = parts[0];
+                        const candId = parseInt(parts[1]);
+                        const judgeId = parseInt(parts[2]);
+                        const cand = CANDIDATES_DATA.find(c => c.id === candId);
+                        const judge = JUDGES_DATA.find(j => j.id === judgeId);
+
+                        handleOverallScoreChange(
+                            cat,
+                            candId,
+                            judgeId,
+                            null,
+                            judge ? judge.name : 'Judge',
+                            cand ? cand.display_name : 'Candidate',
+                            cand ? cand.candidate_number : candId,
+                            'reset',
+                            false
+                        );
+                    }
+                }
+            }
+        } catch (e) {
+            // silent retry
+        }
+    }
+
+    function handleOverallScoreChange(category, candId, judgeId, newScore, judgeName, candName, candNum, action = 'saved', triggerToast = true) {
+        const catKey = category.replace('_', '-');
+        const key = `${catKey}_${candId}_${judgeId}`;
+        const isReset = (action === 'reset' || newScore === null || isNaN(newScore) || newScore === '');
+
+        if (!isReset) {
+            RAW_SCORES[key] = parseFloat(newScore);
+        } else {
+            delete RAW_SCORES[key];
+        }
+
+        // 1. Calculate new weighted score for this specific category
+        let sum = 0;
+        JUDGES_DATA.forEach(j => {
+            const s = RAW_SCORES[`${catKey}_${candId}_${j.id}`];
+            if (s !== undefined && s !== null && !isNaN(s)) sum += parseFloat(s);
+        });
+        const catAvg = JUDGE_COUNT > 0 ? (sum / JUDGE_COUNT) : 0;
+
+        let weightKey = 'production';
+        let cellPrefix = 'prod';
+        if (catKey === 'fitness') { weightKey = 'fitness'; cellPrefix = 'fit'; }
+        else if (catKey === 'traditional-attire') { weightKey = 'traditional_attire'; cellPrefix = 'trad'; }
+        else if (catKey === 'indigenous-attire') { weightKey = 'indigenous_attire'; cellPrefix = 'indig'; }
+
+        const catWeighted = catAvg * (WEIGHTS[weightKey] / 100.0);
+
+        // Update category cell
+        const catValEl = document.getElementById(`${cellPrefix}-val-${candId}`);
+        if (catValEl) {
+            catValEl.textContent = catWeighted > 0 ? catWeighted.toFixed(2) : '—';
+            catValEl.classList.remove('cell-flash', 'cell-reset-flash');
+            void catValEl.offsetWidth;
+            catValEl.classList.add(isReset ? 'cell-reset-flash' : 'cell-flash');
+            setTimeout(() => catValEl.classList.remove('cell-flash', 'cell-reset-flash'), 1800);
+        }
+
+        // 2. Recalculate Grand Total across all 4 categories for this candidate
+        const candTotal = computeCandidateGrandTotal(candId);
+        const totalValEl = document.getElementById(`total-val-${candId}`);
+        if (totalValEl) {
+            totalValEl.textContent = candTotal > 0 ? candTotal.toFixed(2) : '—';
+            totalValEl.classList.remove('cell-flash', 'cell-reset-flash');
+            void totalValEl.offsetWidth;
+            totalValEl.classList.add(isReset ? 'cell-reset-flash' : 'cell-flash');
+            setTimeout(() => totalValEl.classList.remove('cell-flash', 'cell-reset-flash'), 1800);
+        }
+
+        // 3. Recalculate Rankings for gender division
+        const candidateObj = CANDIDATES_DATA.find(c => c.id === candId);
+        if (candidateObj) {
+            recalculateOverallGenderRanks(candidateObj.gender);
+        }
+
+        // 4. Toast Notification
+        if (triggerToast && window.showToast) {
+            const formattedCandNum = String(candNum || '').padStart(2, '0');
+            const prettyCat = catKey.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+            if (isReset) {
+                window.showToast(
+                    'Score Reset',
+                    `${judgeName} reset ${prettyCat} score for Candidate #${formattedCandNum} (${candName})`,
+                    'warning',
+                    4000
+                );
+            } else {
+                window.showToast(
+                    `${prettyCat} Score Recorded`,
+                    `${judgeName} scored ${parseFloat(newScore).toFixed(1)} for Candidate #${formattedCandNum} (${candName})`,
+                    'success',
+                    4000
+                );
+            }
+        }
+    }
+
+    function computeCandidateGrandTotal(candId) {
+        const categories = [
+            { key: 'production', weight: WEIGHTS.production },
+            { key: 'fitness', weight: WEIGHTS.fitness },
+            { key: 'traditional-attire', weight: WEIGHTS.traditional_attire },
+            { key: 'indigenous-attire', weight: WEIGHTS.indigenous_attire },
+        ];
+
+        let grandTotal = 0;
+        categories.forEach(cat => {
+            let sum = 0;
+            JUDGES_DATA.forEach(j => {
+                const s = RAW_SCORES[`${cat.key}_${candId}_${j.id}`];
+                if (s !== undefined && s !== null && !isNaN(s)) sum += parseFloat(s);
+            });
+            const avg = JUDGE_COUNT > 0 ? (sum / JUDGE_COUNT) : 0;
+            grandTotal += avg * (cat.weight / 100.0);
+        });
+
+        return grandTotal;
+    }
+
+    function recalculateOverallGenderRanks(gender) {
+        const groupCandidates = CANDIDATES_DATA.filter(c => c.gender === gender);
+        if (!groupCandidates.length) return;
+
+        const totals = [];
+        groupCandidates.forEach(c => {
+            const tot = computeCandidateGrandTotal(c.id);
+            totals.push({
+                id: c.id,
+                candidate_number: c.candidate_number,
+                total: tot
+            });
+        });
+
+        totals.sort((a, b) => {
+            if (a.total > 0 && b.total > 0) {
+                if (Math.abs(a.total - b.total) < 0.0001) return a.candidate_number - b.candidate_number;
+                return b.total - a.total;
+            }
+            if (a.total > 0) return -1;
+            if (b.total > 0) return 1;
+            return a.candidate_number - b.candidate_number;
+        });
+
+        let r = 1;
+        let prev = null;
+        let same = 1;
+        const ranks = {};
+
+        totals.forEach(item => {
+            if (item.total <= 0) {
+                ranks[item.id] = null;
+            } else if (prev !== null && Math.abs(item.total - prev) < 0.0001) {
+                ranks[item.id] = r - same;
+                same++;
+            } else {
+                ranks[item.id] = r;
+                same = 1;
+            }
+            prev = item.total;
+            r++;
+        });
+
+        totals.forEach(item => {
+            const rankValEl = document.getElementById(`rank-val-${item.id}`);
+            if (rankValEl) {
+                const rank = ranks[item.id];
+                let rankHtml = '';
+                if (!rank) {
+                    rankHtml = `<span class="text-gray-400 font-medium">—</span>`;
+                } else if (rank === 1) {
+                    rankHtml = `<span class="inline-flex items-center justify-center w-11 h-11 rounded-full text-2xl shadow-lg ring-4 ring-amber-300/70 bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-300 text-white rank-pop" title="1st Place (Champion)">🥇</span>`;
+                } else if (rank === 2) {
+                    rankHtml = `<span class="inline-flex items-center justify-center w-10 h-10 rounded-full text-xl shadow-md ring-2 ring-slate-300 bg-gradient-to-tr from-slate-400 via-gray-300 to-slate-200 text-slate-800 rank-pop" title="2nd Place">🥈</span>`;
+                } else if (rank === 3) {
+                    rankHtml = `<span class="inline-flex items-center justify-center w-10 h-10 rounded-full text-xl shadow-md ring-2 ring-orange-300 bg-gradient-to-tr from-amber-700 via-orange-500 to-amber-400 text-white rank-pop" title="3rd Place">🥉</span>`;
+                } else if (rank === 4) {
+                    rankHtml = `<span class="inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-black shadow-md ring-2 ring-blue-300 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rank-pop" title="4th Place">4</span>`;
+                } else if (rank === 5) {
+                    rankHtml = `<span class="inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-black shadow-md ring-2 ring-purple-300 bg-gradient-to-tr from-purple-600 to-pink-600 text-white rank-pop" title="5th Place">5</span>`;
+                } else {
+                    rankHtml = `<span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 border-2 border-gray-300 text-gray-700 text-xs font-extrabold shadow-sm rank-pop">${rank}</span>`;
+                }
+
+                if (rankValEl.innerHTML.trim() !== rankHtml.trim()) {
+                    rankValEl.innerHTML = rankHtml;
+                }
+            }
+        });
+
+        const tbody = document.getElementById(`tbody-${gender.toLowerCase()}`);
+        if (tbody) {
+            totals.forEach(item => {
+                const row = document.getElementById(`row-cand-${item.id}`);
+                if (row) {
+                    tbody.appendChild(row);
+                }
+            });
+        }
+    }
+</script>
+@endpush
 @endsection

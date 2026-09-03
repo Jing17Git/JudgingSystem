@@ -6,7 +6,7 @@ use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\Pageant;
 use App\Models\Score;
-use Illuminate\Support\Facades\DB;
+use App\Models\User;
 
 class TabulationService
 {
@@ -41,7 +41,7 @@ class TabulationService
         // Global stats
         return [
             'total_candidates' => Candidate::count(),
-            'total_judges' => \App\Models\User::where('role', 'judge')->count(),
+            'total_judges' => User::where('role', 'judge')->count(),
             'total_scores' => Score::count(),
             'total_pageants' => Pageant::count(),
             'active_pageants' => Pageant::where('status', 'active')->count(),
@@ -60,6 +60,7 @@ class TabulationService
         }
 
         $leader = $rankings[0];
+
         return [
             'id' => $leader['candidate_id'],
             'name' => $leader['candidate_name'],
@@ -116,7 +117,7 @@ class TabulationService
         }
 
         // Sort by score descending
-        usort($rankings, fn($a, $b) => $b['category_score'] <=> $a['category_score']);
+        usort($rankings, fn ($a, $b) => $b['category_score'] <=> $a['category_score']);
 
         // Add rank
         foreach ($rankings as $i => &$ranking) {
@@ -164,7 +165,7 @@ class TabulationService
         }
 
         // Sort by score descending
-        usort($rankings, fn($a, $b) => $b['total_score'] <=> $a['total_score']);
+        usort($rankings, fn ($a, $b) => $b['total_score'] <=> $a['total_score']);
 
         // Add rank
         foreach ($rankings as $i => &$ranking) {

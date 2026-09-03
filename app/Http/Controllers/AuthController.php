@@ -31,7 +31,7 @@ class AuthController extends Controller
         ]);
 
         $loginField = filter_var($request->input('username'), FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
-        
+
         $credentials = [
             $loginField => $request->input('username'),
             'password' => $request->input('password'),
@@ -40,12 +40,13 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
+
             return $this->redirectByRole(Auth::user());
         }
 
         // Check if the account exists but is deactivated
         $user = User::where($loginField, $request->input('username'))->first();
-        if ($user && !$user->is_active) {
+        if ($user && ! $user->is_active) {
             return back()->withErrors([
                 'username' => 'Your account has been deactivated. Please contact the administrator.',
             ])->withInput($request->only('username'));
@@ -64,6 +65,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect()->route('home')->with('success', 'You have been logged out.');
     }
 
@@ -93,13 +95,13 @@ class AuthController extends Controller
             ->orWhere('username', $input)
             ->first();
 
-        if (!$user) {
+        if (! $user) {
             return back()->withErrors([
                 'username_or_email' => 'We could not find an account with that username or email address.',
             ])->withInput();
         }
 
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             return back()->withErrors([
                 'username_or_email' => 'This account is deactivated. Please contact your system administrator.',
             ])->withInput();
@@ -159,7 +161,7 @@ class AuthController extends Controller
             ->where('email', $request->email)
             ->first();
 
-        if (!$record) {
+        if (! $record) {
             return back()->withErrors([
                 'email' => 'Invalid password reset request. Please request a new link.',
             ])->withInput();
@@ -169,13 +171,14 @@ class AuthController extends Controller
         $createdAt = Carbon::parse($record->created_at);
         if ($createdAt->addMinutes(60)->isPast()) {
             DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
             return back()->withErrors([
                 'email' => 'This password reset link has expired. Please request a new one.',
             ])->withInput();
         }
 
         // Check if token matches
-        if (!Hash::check($request->token, $record->token)) {
+        if (! Hash::check($request->token, $record->token)) {
             return back()->withErrors([
                 'email' => 'This password reset token is invalid.',
             ])->withInput();
@@ -183,7 +186,7 @@ class AuthController extends Controller
 
         // Update the user's password
         $user = User::where('email', $request->email)->first();
-        if (!$user) {
+        if (! $user) {
             return back()->withErrors([
                 'email' => 'User account not found.',
             ]);
@@ -203,9 +206,14 @@ class AuthController extends Controller
      */
     protected function redirectByRole($user)
     {
+        if ($user->isSuperAdmin()) {
+            return redirect()->route('super-admin.dashboard');
+        }
+
         if ($user->isAdmin()) {
             return redirect()->route('admin.dashboard');
         }
+
         return redirect()->route('judge.dashboard');
     }
 }

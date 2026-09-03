@@ -15,6 +15,7 @@ class AccountController extends Controller
     public function index()
     {
         $user = Auth::user();
+
         return view('admin.account.index', compact('user'));
     }
 
@@ -26,12 +27,12 @@ class AccountController extends Controller
         $user = Auth::user();
 
         $request->validate([
-            'name'  => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,'.$user->id,
         ]);
 
         $user->update([
-            'name'  => $request->name,
+            'name' => $request->name,
             'email' => $request->email,
         ]);
 
@@ -46,12 +47,12 @@ class AccountController extends Controller
     {
         $request->validate([
             'current_password' => 'required',
-            'password'         => 'required|min:8|confirmed',
+            'password' => 'required|min:8|confirmed',
         ]);
 
         $user = Auth::user();
 
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (! Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['current_password' => 'Current password is incorrect.']);
         }
 

@@ -13,10 +13,11 @@ class JudgeMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || !auth()->user()->isJudge()) {
+        if (! auth()->check() || ! auth()->user()->isJudge()) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
+
             return redirect()->route('login')->with('error', 'Access denied. Judge privileges required.');
         }
 

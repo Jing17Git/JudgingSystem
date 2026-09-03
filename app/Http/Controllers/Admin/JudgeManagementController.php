@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -22,12 +21,15 @@ class JudgeManagementController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('username', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('username', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
-        $judges = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
+        $judges = $query->orderByRaw('judge_number IS NULL, judge_number ASC')
+            ->orderBy('id', 'asc')
+            ->paginate(15)
+            ->withQueryString();
 
         return view('admin.judges.index', compact('judges'));
     }
@@ -47,6 +49,7 @@ class JudgeManagementController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|min:3|max:100',
+            'judge_number' => 'nullable|integer|min:1|max:999',
             'username' => 'required|string|min:4|max:50|unique:users,username',
             'email' => 'nullable|email|max:100|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
@@ -59,10 +62,18 @@ class JudgeManagementController extends Controller
             $photoPath = $request->file('picture')->store('judges', 'public');
         }
 
+        // If judge_number not provided, auto-assign next number
+        $judgeNumber = $validated['judge_number'] ?? null;
+        if (! $judgeNumber) {
+            $maxNumber = User::where('role', 'judge')->max('judge_number');
+            $judgeNumber = $maxNumber ? ($maxNumber + 1) : 1;
+        }
+
         User::create([
             'name' => $validated['name'],
+            'judge_number' => $judgeNumber,
             'username' => $validated['username'],
-            'email' => !empty($validated['email']) ? $validated['email'] : ($validated['username'] . '@judge.local'),
+            'email' => ! empty($validated['email']) ? $validated['email'] : ($validated['username'].'@judge.local'),
             'password' => $validated['password'],
             'role' => 'judge',
             'photo_url' => $photoPath,
@@ -78,7 +89,7 @@ class JudgeManagementController extends Controller
      */
     public function show(User $judge)
     {
-        if (!$judge->isJudge()) {
+        if (! $judge->isJudge()) {
             abort(404);
         }
 
@@ -90,7 +101,7 @@ class JudgeManagementController extends Controller
      */
     public function edit(User $judge)
     {
-        if (!$judge->isJudge()) {
+        if (! $judge->isJudge()) {
             abort(404);
         }
 
@@ -102,12 +113,13 @@ class JudgeManagementController extends Controller
      */
     public function update(Request $request, User $judge)
     {
-        if (!$judge->isJudge()) {
+        if (! $judge->isJudge()) {
             abort(404);
         }
 
         $validated = $request->validate([
             'name' => 'required|string|min:3|max:100',
+            'judge_number' => 'nullable|integer|min:1|max:999',
             'username' => ['required', 'string', 'min:4', 'max:50', Rule::unique('users', 'username')->ignore($judge->id)],
             'email' => ['nullable', 'email', 'max:100', Rule::unique('users', 'email')->ignore($judge->id)],
             'password' => 'nullable|string|min:8|confirmed',
@@ -116,8 +128,11 @@ class JudgeManagementController extends Controller
         ]);
 
         $judge->name = $validated['name'];
+        if (array_key_exists('judge_number', $validated)) {
+            $judge->judge_number = $validated['judge_number'];
+        }
         $judge->username = $validated['username'];
-        $judge->email = !empty($validated['email']) ? $validated['email'] : ($validated['username'] . '@judge.local');
+        $judge->email = ! empty($validated['email']) ? $validated['email'] : ($validated['username'].'@judge.local');
         $judge->is_active = $validated['is_active'];
 
         if ($request->hasFile('picture')) {
@@ -127,7 +142,7 @@ class JudgeManagementController extends Controller
             $judge->photo_url = $request->file('picture')->store('judges', 'public');
         }
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $judge->password = $validated['password'];
         }
 
@@ -142,7 +157,7 @@ class JudgeManagementController extends Controller
      */
     public function destroy(User $judge)
     {
-        if (!$judge->isJudge()) {
+        if (! $judge->isJudge()) {
             abort(404);
         }
 
@@ -157,11 +172,11 @@ class JudgeManagementController extends Controller
      */
     public function toggleStatus(User $judge)
     {
-        if (!$judge->isJudge()) {
+        if (! $judge->isJudge()) {
             abort(404);
         }
 
-        $judge->is_active = !$judge->is_active;
+        $judge->is_active = ! $judge->is_active;
         $judge->save();
 
         $status = $judge->is_active ? 'activated' : 'deactivated';

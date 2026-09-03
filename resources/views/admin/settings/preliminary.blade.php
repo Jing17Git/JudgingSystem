@@ -53,6 +53,11 @@
 
     {{-- Navigation Tabs between Settings Sections --}}
     <div class="flex flex-nowrap overflow-x-auto items-center gap-2 mb-6 border-b border-[var(--border-default)] pb-3 hide-scrollbar">
+        <a href="{{ route('admin.settings.categories') }}"
+           class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2 whitespace-nowrap">
+            <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
+            Manage Categories
+        </a>
         <a href="{{ route('admin.settings.preliminary') }}"
            class="px-4 py-2 rounded-xl text-sm font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-2 shadow-sm whitespace-nowrap">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
@@ -67,6 +72,11 @@
            class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2 whitespace-nowrap">
             <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
             Judge Score Sheets
+        </a>
+        <a href="{{ route('admin.settings.audit_record') }}"
+           class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2 whitespace-nowrap">
+            <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
+            Audit Record
         </a>
         <a href="{{ route('admin.cache.index') }}"
            class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2 whitespace-nowrap">

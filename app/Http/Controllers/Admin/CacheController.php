@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -62,7 +61,7 @@ class CacheController extends Controller
                     'enabled' => true,
                     'memory_used' => isset($status['memory_usage']['used_memory']) ? $this->formatBytes($status['memory_usage']['used_memory']) : 'N/A',
                     'memory_free' => isset($status['memory_usage']['free_memory']) ? $this->formatBytes($status['memory_usage']['free_memory']) : 'N/A',
-                    'hit_rate' => isset($status['opcache_statistics']['opcache_hit_rate']) ? round($status['opcache_statistics']['opcache_hit_rate'], 1) . '%' : 'N/A',
+                    'hit_rate' => isset($status['opcache_statistics']['opcache_hit_rate']) ? round($status['opcache_statistics']['opcache_hit_rate'], 1).'%' : 'N/A',
                     'cached_scripts' => $status['opcache_statistics']['num_cached_scripts'] ?? 0,
                 ];
             }
@@ -73,7 +72,7 @@ class CacheController extends Controller
             'laravel_version' => app()->version(),
             'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? php_uname('s'),
             'memory_limit' => ini_get('memory_limit'),
-            'max_execution_time' => ini_get('max_execution_time') . 's',
+            'max_execution_time' => ini_get('max_execution_time').'s',
             'upload_max_filesize' => ini_get('upload_max_filesize'),
         ];
 
@@ -115,7 +114,7 @@ class CacheController extends Controller
                 ->with('success', 'All system caches (Application Cache, Configuration, Routes, Views, and Compiled classes) have been cleared successfully.');
         } catch (\Throwable $e) {
             return redirect()->back()
-                ->with('error', 'Failed to clear all caches: ' . $e->getMessage());
+                ->with('error', 'Failed to clear all caches: '.$e->getMessage());
         }
     }
 
@@ -136,7 +135,7 @@ class CacheController extends Controller
                 ->with('success', 'Application data cache cleared successfully.');
         } catch (\Throwable $e) {
             return redirect()->back()
-                ->with('error', 'Failed to clear application cache: ' . $e->getMessage());
+                ->with('error', 'Failed to clear application cache: '.$e->getMessage());
         }
     }
 
@@ -152,7 +151,7 @@ class CacheController extends Controller
                 ->with('success', 'Route cache cleared successfully.');
         } catch (\Throwable $e) {
             return redirect()->back()
-                ->with('error', 'Failed to clear route cache: ' . $e->getMessage());
+                ->with('error', 'Failed to clear route cache: '.$e->getMessage());
         }
     }
 
@@ -168,7 +167,7 @@ class CacheController extends Controller
                 ->with('success', 'Configuration cache cleared successfully.');
         } catch (\Throwable $e) {
             return redirect()->back()
-                ->with('error', 'Failed to clear configuration cache: ' . $e->getMessage());
+                ->with('error', 'Failed to clear configuration cache: '.$e->getMessage());
         }
     }
 
@@ -184,7 +183,7 @@ class CacheController extends Controller
                 ->with('success', 'Compiled Blade view cache cleared successfully.');
         } catch (\Throwable $e) {
             return redirect()->back()
-                ->with('error', 'Failed to clear compiled views: ' . $e->getMessage());
+                ->with('error', 'Failed to clear compiled views: '.$e->getMessage());
         }
     }
 
@@ -200,7 +199,7 @@ class CacheController extends Controller
                 ->with('success', 'Application successfully cached and optimized (Configuration, Routes, Events, and Blade views).');
         } catch (\Throwable $e) {
             return redirect()->back()
-                ->with('error', 'Failed to optimize application: ' . $e->getMessage());
+                ->with('error', 'Failed to optimize application: '.$e->getMessage());
         }
     }
 
@@ -226,7 +225,7 @@ class CacheController extends Controller
                 ->with('success', 'Application log files cleared successfully.');
         } catch (\Throwable $e) {
             return redirect()->back()
-                ->with('error', 'Failed to clear log files: ' . $e->getMessage());
+                ->with('error', 'Failed to clear log files: '.$e->getMessage());
         }
     }
 
@@ -274,6 +273,6 @@ class CacheController extends Controller
         $pow = min($pow, count($units) - 1);
         $bytes /= pow(1024, $pow);
 
-        return round($bytes, $precision) . ' ' . $units[$pow];
+        return round($bytes, $precision).' '.$units[$pow];
     }
 }

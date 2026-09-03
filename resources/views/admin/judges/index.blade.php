@@ -28,9 +28,7 @@
     <div class="panel-body py-3">
         <form action="{{ route('admin.judges.index') }}" method="GET" class="flex items-center gap-3">
             <div class="relative flex-1">
-                <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
+            
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by judge name or username..." class="form-input pl-10">
             </div>
             <button type="submit" class="btn btn-outline">Search</button>
@@ -53,7 +51,7 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>Judge #</th>
                     <th>Judge Details</th>
                     <th>Username</th>
                     <th>Status</th>
@@ -65,7 +63,7 @@
                 @forelse($judges as $judge)
                     <tr>
                         <td>
-                            <span class="text-xs font-mono font-semibold text-[var(--green-600)] bg-green-50 px-2.5 py-1 rounded-md">{{ $judges->firstItem() + $loop->index }}</span>
+                            <span class="text-xs font-semibold text-[var(--green-700)] bg-green-50 px-2.5 py-1 rounded-md border border-green-200 whitespace-nowrap">Judge {{ $judge->judge_number ?? $judge->id }}</span>
                         </td>
                         <td>
                             <div class="flex items-center gap-3">
@@ -86,7 +84,7 @@
                         <td>
                             @if($judge->is_active)
                                 <span class="badge badge-success">Active</span>
-                            @else
+               ------------------             @else
                                 <span class="badge badge-error">Inactive</span>
                             @endif
                         </td>

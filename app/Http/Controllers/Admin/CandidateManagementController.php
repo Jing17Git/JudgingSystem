@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Candidate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class CandidateManagementController extends Controller
 {
@@ -19,9 +21,9 @@ class CandidateManagementController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('full_name', 'like', "%{$search}%")
-                  ->orWhere('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('candidate_number', 'like', "%{$search}%");
+                    ->orWhere('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('candidate_number', 'like', "%{$search}%");
             });
         }
 
@@ -48,7 +50,7 @@ class CandidateManagementController extends Controller
                 'required',
                 'integer',
                 'min:1',
-                \Illuminate\Validation\Rule::unique('candidates', 'candidate_number')->where(function ($query) use ($request) {
+                Rule::unique('candidates', 'candidate_number')->where(function ($query) use ($request) {
                     return $query->where('gender', $request->gender);
                 }),
             ],
@@ -66,7 +68,7 @@ class CandidateManagementController extends Controller
                 if (in_array($ext, ['jpeg', 'jpg', 'png', 'webp'])) {
                     $decoded = base64_decode($data);
                     if ($decoded !== false) {
-                        $fileName = 'candidates/' . \Illuminate\Support\Str::random(40) . '.' . ($ext === 'jpeg' ? 'jpg' : $ext);
+                        $fileName = 'candidates/'.Str::random(40).'.'.($ext === 'jpeg' ? 'jpg' : $ext);
                         Storage::disk('public')->put($fileName, $decoded);
                         $photoPath = $fileName;
                     }
@@ -115,7 +117,7 @@ class CandidateManagementController extends Controller
                 'required',
                 'integer',
                 'min:1',
-                \Illuminate\Validation\Rule::unique('candidates', 'candidate_number')->where(function ($query) use ($request) {
+                Rule::unique('candidates', 'candidate_number')->where(function ($query) use ($request) {
                     return $query->where('gender', $request->gender);
                 })->ignore($candidate->id),
             ],
@@ -142,7 +144,7 @@ class CandidateManagementController extends Controller
                 if (in_array($ext, ['jpeg', 'jpg', 'png', 'webp'])) {
                     $decoded = base64_decode($data);
                     if ($decoded !== false) {
-                        $fileName = 'candidates/' . \Illuminate\Support\Str::random(40) . '.' . ($ext === 'jpeg' ? 'jpg' : $ext);
+                        $fileName = 'candidates/'.Str::random(40).'.'.($ext === 'jpeg' ? 'jpg' : $ext);
                         Storage::disk('public')->put($fileName, $decoded);
                         $candidate->photo_url = $fileName;
                     }

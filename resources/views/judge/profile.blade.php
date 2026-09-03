@@ -39,7 +39,7 @@
                     <div>
                         <h2 class="text-xl font-bold text-gray-900">{{ $judge->name }}</h2>
                         <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-[var(--text-muted)]">
-                            <span class="font-mono">Username: {{ $judge->username }}</span>
+                            <span class="font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">Judge {{ $judge->judge_number ?? $judge->id }}</span>
                             <span class="hidden sm:inline text-gray-300">•</span>
                             <span class="flex items-center gap-1.5 font-medium text-gray-700">
                                 <svg class="w-4 h-4 text-red-500 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">

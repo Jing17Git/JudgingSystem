@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -21,7 +22,7 @@ return new class extends Migration
         });
 
         // Insert default 4 criteria settings with equal 25% weights
-        \Illuminate\Support\Facades\DB::table('criteria_settings')->insert([
+        DB::table('criteria_settings')->insert([
             [
                 'key' => 'production',
                 'name' => 'Production',

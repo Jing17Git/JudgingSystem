@@ -18,35 +18,35 @@ class FinalOverallController extends Controller
     /**
      * Display Final Overall Tabulation Table for Top 5 Finalists based on Q&A Scores.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $judges = User::where('role', 'judge')->where('is_active', true)->orderBy('name')->get();
+        $judges = User::where('role', 'judge')->where('is_active', true)->orderByRaw('judge_number IS NULL, judge_number ASC')->orderBy('name')->get();
         $judgeCount = $judges->count();
 
         $candidates = Candidate::all();
 
         // 1. Calculate Preliminary weighted totals to determine Top 5 Finalists
         $prelimWeights = CriteriaSetting::getPreliminaryMap();
-        $prodWeight  = (float) ($prelimWeights['production'] ?? 25.0);
-        $fitWeight   = (float) ($prelimWeights['fitness'] ?? 25.0);
-        $tradWeight  = (float) ($prelimWeights['traditional_attire'] ?? 25.0);
+        $prodWeight = (float) ($prelimWeights['production'] ?? 25.0);
+        $fitWeight = (float) ($prelimWeights['fitness'] ?? 25.0);
+        $tradWeight = (float) ($prelimWeights['traditional_attire'] ?? 25.0);
         $indigWeight = (float) ($prelimWeights['indigenous_attire'] ?? 25.0);
 
         // Fetch Final Criteria Split Weights (e.g. 30% Prelim / 70% Q&A)
         $finalWeights = CriteriaSetting::getFinalMap();
         $prelimWeight = (float) ($finalWeights['preliminary_score'] ?? 30.0);
-        $qaWeight     = (float) ($finalWeights['qa_score'] ?? 70.0);
+        $qaWeight = (float) ($finalWeights['qa_score'] ?? 70.0);
 
-        $prodScores  = ProductionScore::all()->groupBy('candidate_id');
-        $fitScores   = FitnessScore::all()->groupBy('candidate_id');
-        $tradScores  = TraditionalAttireScore::all()->groupBy('candidate_id');
+        $prodScores = ProductionScore::all()->groupBy('candidate_id');
+        $fitScores = FitnessScore::all()->groupBy('candidate_id');
+        $tradScores = TraditionalAttireScore::all()->groupBy('candidate_id');
         $indigScores = IndigenousAttireScore::all()->groupBy('candidate_id');
 
         $prelimTotals = [];
         foreach ($candidates as $c) {
-            $pSum = isset($prodScores[$c->id])  ? (float) $prodScores[$c->id]->sum('score')  : 0;
-            $fSum = isset($fitScores[$c->id])   ? (float) $fitScores[$c->id]->sum('score')   : 0;
-            $tSum = isset($tradScores[$c->id])  ? (float) $tradScores[$c->id]->sum('score')  : 0;
+            $pSum = isset($prodScores[$c->id]) ? (float) $prodScores[$c->id]->sum('score') : 0;
+            $fSum = isset($fitScores[$c->id]) ? (float) $fitScores[$c->id]->sum('score') : 0;
+            $tSum = isset($tradScores[$c->id]) ? (float) $tradScores[$c->id]->sum('score') : 0;
             $iSum = isset($indigScores[$c->id]) ? (float) $indigScores[$c->id]->sum('score') : 0;
 
             $pAvg = $judgeCount > 0 ? ($pSum / $judgeCount) : 0;
@@ -63,7 +63,7 @@ class FinalOverallController extends Controller
         // Rank all candidates in Preliminary to display their prelim rank
         $prelimRanks = [];
         foreach (['Male', 'Female'] as $gender) {
-            $gCands = $candidates->filter(fn($c) => $c->gender === $gender);
+            $gCands = $candidates->filter(fn ($c) => $c->gender === $gender);
             $gTotals = [];
             foreach ($gCands as $c) {
                 $gTotals[$c->id] = $prelimTotals[$c->id] ?? 0;
@@ -77,21 +77,27 @@ class FinalOverallController extends Controller
         }
 
         // Select Top 5 Finalists per division based on preliminary results
-        $top5Male = $candidates->filter(fn($c) => $c->gender === 'Male')
-            ->sort(function($a, $b) use ($prelimTotals) {
+        $top5Male = $candidates->filter(fn ($c) => $c->gender === 'Male')
+            ->sort(function ($a, $b) use ($prelimTotals) {
                 $totA = $prelimTotals[$a->id] ?? 0;
                 $totB = $prelimTotals[$b->id] ?? 0;
-                if ($totA == $totB) return $a->candidate_number <=> $b->candidate_number;
+                if ($totA == $totB) {
+                    return $a->candidate_number <=> $b->candidate_number;
+                }
+
                 return $totB <=> $totA;
             })
             ->take(5)
             ->values();
 
-        $top5Female = $candidates->filter(fn($c) => $c->gender === 'Female')
-            ->sort(function($a, $b) use ($prelimTotals) {
+        $top5Female = $candidates->filter(fn ($c) => $c->gender === 'Female')
+            ->sort(function ($a, $b) use ($prelimTotals) {
                 $totA = $prelimTotals[$a->id] ?? 0;
                 $totB = $prelimTotals[$b->id] ?? 0;
-                if ($totA == $totB) return $a->candidate_number <=> $b->candidate_number;
+                if ($totA == $totB) {
+                    return $a->candidate_number <=> $b->candidate_number;
+                }
+
                 return $totB <=> $totA;
             })
             ->take(5)
@@ -101,7 +107,7 @@ class FinalOverallController extends Controller
 
         // 2. Fetch Q&A scores
         $qaScores = QaScore::all()->groupBy('candidate_id');
-        $rawQa    = QaScore::all()->keyBy(fn($s) => $s->candidate_id . '_' . $s->judge_id);
+        $rawQa = QaScore::all()->keyBy(fn ($s) => $s->candidate_id.'_'.$s->judge_id);
 
         $finalBreakdown = [];
         $judgeBreakdown = [];
@@ -117,29 +123,57 @@ class FinalOverallController extends Controller
             $finalGrandTotal = $pWeighted + $qWeighted;
 
             $finalBreakdown[$c->id] = [
-                'prelim_score'    => $pScore,
+                'prelim_score' => $pScore,
                 'prelim_weighted' => $pWeighted,
-                'prelim_rank'     => $prelimRanks[$c->id] ?? null,
-                'qa_sum'          => $qSum,
-                'qa_avg'          => $qAvg,
-                'qa_weighted'     => $qWeighted,
-                'total'           => $finalGrandTotal,
+                'prelim_rank' => $prelimRanks[$c->id] ?? null,
+                'qa_sum' => $qSum,
+                'qa_avg' => $qAvg,
+                'qa_weighted' => $qWeighted,
+                'total' => $finalGrandTotal,
             ];
 
             // Individual judge Q&A breakdown for this candidate
             $cJudgeScores = [];
             foreach ($judges as $j) {
-                $key = $c->id . '_' . $j->id;
+                $key = $c->id.'_'.$j->id;
                 $qScore = isset($rawQa[$key]) ? (float) $rawQa[$key]->score : null;
 
                 $cJudgeScores[] = [
-                    'judge_id'   => $j->id,
+                    'judge_id' => $j->id,
                     'judge_name' => $j->name,
-                    'qa_score'   => $qScore,
+                    'qa_score' => $qScore,
                 ];
             }
 
             $judgeBreakdown[$c->id] = $cJudgeScores;
+        }
+
+        $candidatesJson = $finalists->map(function ($c) {
+            return [
+                'id' => $c->id,
+                'candidate_number' => (int) $c->candidate_number,
+                'display_name' => $c->display_name,
+                'gender' => $c->gender,
+            ];
+        })->values();
+
+        $judgesJson = $judges->map(function ($j) {
+            return [
+                'id'           => $j->id,
+                'name'         => $j->name,
+                'judge_number' => $j->judge_number ?? $j->id,
+            ];
+        })->values();
+
+        $rawQaMap = $rawQa->map(fn ($s) => (float) $s->score);
+
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'rawQa' => $rawQaMap,
+                'prelimTotals' => $prelimTotals,
+                'finalBreakdown' => $finalBreakdown,
+            ]);
         }
 
         return view('admin.overall.final', compact(
@@ -151,7 +185,11 @@ class FinalOverallController extends Controller
             'judgeBreakdown',
             'rawQa',
             'prelimWeight',
-            'qaWeight'
+            'qaWeight',
+            'candidatesJson',
+            'judgesJson',
+            'rawQaMap',
+            'prelimTotals'
         ));
     }
 }

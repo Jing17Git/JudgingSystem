@@ -426,7 +426,7 @@
                                 @endif
                                 <div>
                                     <span class="font-bold text-gray-900 block leading-tight">{{ $row['judge']->name }}</span>
-                                    <span class="text-[11px] text-gray-400 font-medium">Judge ID: #{{ $row['judge']->id }}</span>
+                                    <span class="text-[11px] font-semibold text-emerald-700">Judge {{ $row['judge']->judge_number ?? $row['judge']->id }}</span>
                                 </div>
                             </div>
                         </td>
@@ -528,6 +528,7 @@
         <div style="text-align: center;">
             <div style="border-bottom: 1px solid #000; height: 35px; margin-bottom: 6px;"></div>
             <p style="font-size: 10pt; font-weight: bold; margin: 0; text-transform: uppercase;">{{ $judge->name }}</p>
+            <p style="font-size: 8pt; color: #16a34a; margin: 0; font-weight: bold;">Judge {{ $judge->judge_number ?? $judge->id }}</p>
             <p style="font-size: 8pt; color: #4b5563; margin: 0;">Judge Signature &amp; Date</p>
         </div>
     @endforeach

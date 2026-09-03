@@ -31,6 +31,7 @@ class CriteriaSetting extends Model
         if ($stage) {
             $query->where('stage', $stage);
         }
+
         return $query->pluck('percentage', 'key')->toArray();
     }
 

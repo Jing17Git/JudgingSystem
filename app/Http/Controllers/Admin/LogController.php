@@ -131,11 +131,11 @@ class LogController extends Controller
     {
         $logFile = storage_path('logs/laravel.log');
 
-        if (!File::exists($logFile)) {
+        if (! File::exists($logFile)) {
             return redirect()->route('admin.logs.index')
                 ->with('error', 'Log file not found.');
         }
 
-        return response()->download($logFile, 'laravel-' . date('Y-m-d-His') . '.log');
+        return response()->download($logFile, 'laravel-'.date('Y-m-d-His').'.log');
     }
 }
