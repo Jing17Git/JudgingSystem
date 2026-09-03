@@ -39,6 +39,15 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="judge_number" class="form-label">Judge Number</label>
+                    <input type="number" id="judge_number" name="judge_number" class="form-input @error('judge_number') border-[var(--danger)] @enderror" value="{{ old('judge_number') }}" min="1" max="999" placeholder="e.g. 1 (auto-assigned if left blank)">
+                    <p class="text-xs text-[var(--text-muted)] mt-1">Numerical identifier displayed on all scorecards and tabulation tables (e.g. 1 for Judge 1).</p>
+                    @error('judge_number')
+                        <p class="form-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="form-group">
                     <label for="username" class="form-label">Username</label>
                     <input type="text" id="username" name="username" class="form-input @error('username') border-[var(--danger)] @enderror" value="{{ old('username') }}" required placeholder="e.g. judge01" minlength="4" maxlength="50">
                     <p class="text-xs text-[var(--text-muted)] mt-1">This will be used for logging in. Must be unique.</p>

@@ -20,6 +20,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'username',
+        'judge_number',
         'email',
         'password',
         'role',
@@ -49,7 +50,16 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'judge_number' => 'integer',
         ];
+    }
+
+    /**
+     * Get the judge number display label (e.g. 'Judge 1').
+     */
+    public function getJudgeNumberDisplayAttribute(): string
+    {
+        return 'Judge ' . ($this->judge_number ?? $this->id);
     }
 
     /**
@@ -57,7 +67,15 @@ class User extends Authenticatable
      */
     public function setNameAttribute($value): void
     {
-        $this->attributes['name'] = !empty($value) ? mb_convert_case(trim($value), MB_CASE_TITLE, 'UTF-8') : $value;
+        $this->attributes['name'] = ! empty($value) ? mb_convert_case(trim($value), MB_CASE_TITLE, 'UTF-8') : $value;
+    }
+
+    /**
+     * Check if the user is a super-administrator.
+     */
+    public function isSuperAdmin(): bool
+    {
+        return in_array($this->role, ['super-admin', 'super_admin']);
     }
 
     /**
@@ -65,7 +83,7 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return in_array($this->role, ['admin', 'super-admin', 'super_admin']);
     }
 
     /**

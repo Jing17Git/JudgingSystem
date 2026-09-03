@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class AdminManagementController extends Controller
@@ -15,7 +14,7 @@ class AdminManagementController extends Controller
      */
     public function index()
     {
-        $admins = User::where('role', 'admin')
+        $admins = User::whereIn('role', ['admin', 'super-admin', 'super_admin'])
             ->orderBy('name')
             ->paginate(15);
 
@@ -40,6 +39,7 @@ class AdminManagementController extends Controller
             'username' => 'required|string|max:255|unique:users,username',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
+            'role' => 'nullable|string|in:admin,super-admin',
         ]);
 
         User::create([
@@ -47,7 +47,7 @@ class AdminManagementController extends Controller
             'username' => $validated['username'],
             'email' => $validated['email'],
             'password' => $validated['password'],
-            'role' => 'admin',
+            'role' => $validated['role'] ?? 'admin',
             'is_active' => true,
         ]);
 
@@ -60,9 +60,10 @@ class AdminManagementController extends Controller
      */
     public function edit(User $admin)
     {
-        if (!$admin->isAdmin()) {
+        if (! $admin->isAdmin()) {
             abort(404);
         }
+
         return view('admin.admins.edit', compact('admin'));
     }
 
@@ -71,7 +72,7 @@ class AdminManagementController extends Controller
      */
     public function update(Request $request, User $admin)
     {
-        if (!$admin->isAdmin()) {
+        if (! $admin->isAdmin()) {
             abort(404);
         }
 
@@ -87,7 +88,7 @@ class AdminManagementController extends Controller
         $admin->email = $validated['email'];
 
         $passwordChanged = false;
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $admin->password = $validated['password'];
             $passwordChanged = true;
         }
@@ -107,7 +108,7 @@ class AdminManagementController extends Controller
      */
     public function destroy(User $admin)
     {
-        if (!$admin->isAdmin()) {
+        if (! $admin->isAdmin()) {
             abort(404);
         }
 

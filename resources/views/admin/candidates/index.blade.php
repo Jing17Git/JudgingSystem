@@ -28,9 +28,7 @@
     <div class="panel-body py-3">
         <form action="{{ route('admin.candidates.index') }}" method="GET" class="flex items-center gap-3">
             <div class="relative flex-1">
-                <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
+
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name or candidate number..." class="form-input pl-10">
             </div>
             <button type="submit" class="btn btn-outline">Search</button>

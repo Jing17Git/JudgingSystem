@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -12,13 +12,13 @@ return new class extends Migration
         // Drop old unique index if present
         try {
             DB::statement('ALTER TABLE candidates DROP INDEX candidates_pageant_id_candidate_number_unique');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // If already dropped or not present, ignore
         }
 
         try {
             DB::statement('ALTER TABLE candidates DROP INDEX candidates_candidate_number_unique');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Ignore
         }
 
@@ -33,7 +33,8 @@ return new class extends Migration
         Schema::table('candidates', function (Blueprint $table) {
             try {
                 $table->dropUnique('candidates_number_gender_unique');
-            } catch (\Throwable $e) {}
+            } catch (Throwable $e) {
+            }
 
             $table->unique(['pageant_id', 'candidate_number'], 'candidates_pageant_id_candidate_number_unique');
         });

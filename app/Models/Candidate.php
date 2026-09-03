@@ -26,7 +26,7 @@ class Candidate extends Model
      */
     public function setFullNameAttribute($value): void
     {
-        $this->attributes['full_name'] = !empty($value) ? mb_convert_case(trim($value), MB_CASE_TITLE, 'UTF-8') : $value;
+        $this->attributes['full_name'] = ! empty($value) ? mb_convert_case(trim($value), MB_CASE_TITLE, 'UTF-8') : $value;
         $this->attributes['first_name'] = $this->attributes['full_name'];
     }
 
@@ -35,9 +35,10 @@ class Candidate extends Model
      */
     public function getDisplayNameAttribute(): string
     {
-        if (!empty($this->full_name)) {
+        if (! empty($this->full_name)) {
             return $this->full_name;
         }
+
         return trim("{$this->first_name} {$this->last_name}");
     }
 

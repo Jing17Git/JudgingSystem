@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -16,7 +17,7 @@ return new class extends Migration
         });
 
         // Insert Final Criteria Settings (30% Preliminary, 70% Q&A)
-        \Illuminate\Support\Facades\DB::table('criteria_settings')->insert([
+        DB::table('criteria_settings')->insert([
             [
                 'key' => 'preliminary_score',
                 'name' => 'Preliminary Grand Total',
@@ -43,7 +44,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        \Illuminate\Support\Facades\DB::table('criteria_settings')->where('stage', 'final')->delete();
+        DB::table('criteria_settings')->where('stage', 'final')->delete();
         Schema::table('criteria_settings', function (Blueprint $table) {
             $table->dropColumn('stage');
         });

@@ -16,6 +16,8 @@
     },
     "dependencies": {
         "@alpinejs/collapse": "^3.16.1",
-        "alpinejs": "^3.16.1"
+        "alpinejs": "^3.16.1",
+        "laravel-echo": "^2.4.0",
+        "pusher-js": "^8.6.0"
     }
 }

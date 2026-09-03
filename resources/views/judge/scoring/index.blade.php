@@ -423,8 +423,13 @@
       <div class="sc-eyebrow">{{ strtoupper($categoryName) }} · LIVE SCORING</div>
       <h1 class="sc-title"><span class="icon">&lt;/&gt;</span> {{ $categoryName }} — Scoring Pad</h1>
     </div>
-    <div class="status-pill">
-      PAIRS <span id="pairIndexText">{{ str_pad($totalPairs > 0 ? 1 : 0, 2, '0', STR_PAD_LEFT) }}</span> / {{ str_pad($totalPairs, 2, '0', STR_PAD_LEFT) }} &nbsp;·&nbsp; SCORED <span id="scoredCount">{{ str_pad($totalSubmitted, 2, '0', STR_PAD_LEFT) }}</span>
+    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+      <div class="status-pill">
+        PAIRS <span id="pairIndexText">{{ str_pad($totalPairs > 0 ? 1 : 0, 2, '0', STR_PAD_LEFT) }}</span> / {{ str_pad($totalPairs, 2, '0', STR_PAD_LEFT) }} &nbsp;·&nbsp; SCORED <span id="scoredCount">{{ str_pad($totalSubmitted, 2, '0', STR_PAD_LEFT) }}</span>
+      </div>
+      <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: #16a34a; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 5px 12px;">
+        JUDGE {{ auth()->user()->judge_number ?? auth()->user()->id }} · {{ strtoupper(auth()->user()->name) }}
+      </div>
     </div>
   </div>
 
@@ -447,7 +452,7 @@
           }
       @endphp
 
-      <div class="pair-slide {{ $i === 0 ? 'active' : '' }}" data-index="{{ $i }}">
+      <div class="pair-slide {{ $i === ($initialPairIndex ?? 0) ? 'active' : '' }}" data-index="{{ $i }}">
         <div class="cand-grid">
 
           {{-- MALE CANDIDATE --}}
@@ -627,8 +632,7 @@
     const CATEGORY  = "{{ $categorySlug }}";
     const CSRF      = "{{ csrf_token() }}";
     const totalPairs = {{ $totalPairs }};
-
-    let currentPairIndex = 0;
+    let currentPairIndex = {{ $initialPairIndex ?? 0 }};
     let totalScored = {{ $totalSubmitted }};
 
     function updateScoredCountDisplay() {
@@ -664,7 +668,7 @@
         }
     }
 
-    function showPair(index) {
+    function showPair(index, updateUrl = true) {
         const slides = document.querySelectorAll('.pair-slide');
         slides.forEach((slide, i) => {
             if (i === index) {
@@ -673,7 +677,19 @@
                 slide.classList.remove('active');
             }
         });
+        currentPairIndex = index;
         updateNavButtons();
+
+        if (updateUrl && window.history && window.history.pushState) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('pair', index + 1);
+            if (url.searchParams.has('candidate_id')) {
+                url.searchParams.delete('candidate_id');
+            }
+            if (window.location.search !== url.search) {
+                window.history.pushState({ pair: index + 1 }, '', url.toString());
+            }
+        }
     }
 
     function goNext() {
@@ -691,6 +707,17 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
+
+    // Handle browser Back / Forward navigation
+    window.addEventListener('popstate', (e) => {
+        const params = new URLSearchParams(window.location.search);
+        let p = parseInt(params.get('pair'));
+        if (!isNaN(p) && p >= 1 && p <= totalPairs) {
+            showPair(p - 1, false);
+        } else {
+            showPair(0, false);
+        }
+    });
 
     function submitScore(candidateId, side, candNum) {
         const select    = document.getElementById(`score-select-${candidateId}`);
@@ -805,7 +832,73 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        showPair(0);
+        showPair(currentPairIndex, false);
+        setupJudgeEcho();
     });
+
+    const CURRENT_JUDGE_ID = {{ auth()->id() }};
+
+    function setupJudgeEcho() {
+        if (!window.Echo) {
+            setTimeout(setupJudgeEcho, 400);
+            return;
+        }
+
+        try {
+            window.Echo.private('judge.scores')
+                .listen('.score.submitted', (e) => {
+                    // If current judge updated score in this category (e.g. from another tab/device)
+                    if (e.judge_id === CURRENT_JUDGE_ID && e.category === CATEGORY) {
+                        const select    = document.getElementById(`score-select-${e.candidate_id}`);
+                        const btnSubmit = document.getElementById(`btn-submit-${e.candidate_id}`);
+                        const btnReset  = document.getElementById(`btn-reset-${e.candidate_id}`);
+                        const status    = document.getElementById(`status-${e.candidate_id}`);
+                        const candNum   = String(e.candidate_number).padStart(2, '0');
+
+                        if (select && btnSubmit && btnReset && status) {
+                            if (e.action === 'saved' && e.score !== null) {
+                                select.value = parseFloat(e.score);
+                                select.disabled = true;
+                                btnSubmit.disabled = true;
+                                btnReset.disabled = false;
+                                status.className = 'confirm-msg';
+                                status.textContent = `✓ score ${parseFloat(e.score)} recorded for #${candNum}`;
+
+                                if (!select.dataset.hasScore) {
+                                    select.dataset.hasScore = "true";
+                                    totalScored++;
+                                    updateScoredCountDisplay();
+                                }
+                            } else if (e.action === 'reset') {
+                                select.value = '';
+                                select.disabled = false;
+                                btnSubmit.disabled = false;
+                                btnReset.disabled = true;
+                                status.className = 'confirm-msg';
+                                status.textContent = '';
+
+                                if (select.dataset.hasScore) {
+                                    delete select.dataset.hasScore;
+                                    totalScored = Math.max(0, totalScored - 1);
+                                    updateScoredCountDisplay();
+                                }
+                            }
+                        }
+                    } else if (e.judge_id !== CURRENT_JUDGE_ID && window.showToast) {
+                        // Toast notification for judge (without leaking numerical score to preserve judging confidentiality)
+                        if (e.action === 'saved') {
+                            window.showToast(
+                                'Judging Activity',
+                                `${e.judge_name} submitted a score in ${e.category_name}`,
+                                'info',
+                                3500
+                            );
+                        }
+                    }
+                });
+        } catch (err) {
+            console.error('Judge Echo setup error:', err);
+        }
+    }
 </script>
 @endpush

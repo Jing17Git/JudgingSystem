@@ -76,46 +76,59 @@
 
   <div class="sidebar-section" style="font-size: 11px">  ->Pre-Judging </div>
 
+            @if(isset($sidebarPrelimCategories) && $sidebarPrelimCategories->isNotEmpty())
+                @foreach($sidebarPrelimCategories as $sidebarCat)
+                    @php
+                        $catKey = $sidebarCat->key;
+                        // Map known category keys to their dedicated named routes
+                        $knownRouteMap = [
+                            'production'        => 'admin.production.index',
+                            'fitness'           => 'admin.fitness.index',
+                            'indigenous-attire' => 'admin.indigenous-attire.index',
+                            'indigenous_attire' => 'admin.indigenous-attire.index',
+                            'traditional-attire'=> 'admin.traditional-attire.index',
+                            'traditional_attire'=> 'admin.traditional-attire.index',
+                        ];
+                        $knownRoutePatternMap = [
+                            'production'        => 'admin.production.*',
+                            'fitness'           => 'admin.fitness.*',
+                            'indigenous-attire' => 'admin.indigenous-attire.*',
+                            'indigenous_attire' => 'admin.indigenous-attire.*',
+                            'traditional-attire'=> 'admin.traditional-attire.*',
+                            'traditional_attire'=> 'admin.traditional-attire.*',
+                        ];
+                        // Icon SVG paths keyed by category key
+                        $iconPaths = [
+                            'production'        => 'M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5',
+                            'fitness'           => 'M3.75 13.5l10.5-10.5m0 0L18 6.75M14.25 3l3.75 3.75M3 14.25l3.75 3.75m0 0l10.5-10.5M6.75 18L3 14.25',
+                            'indigenous-attire' => 'M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 21v-2.25m-6.364-.386l1.591-1.591M3 12h2.25m.386-6.364l1.591 1.591M12 18.75a6.75 6.75 0 100-13.5 6.75 6.75 0 000 13.5z',
+                            'indigenous_attire' => 'M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 21v-2.25m-6.364-.386l1.591-1.591M3 12h2.25m.386-6.364l1.591 1.591M12 18.75a6.75 6.75 0 100-13.5 6.75 6.75 0 000 13.5z',
+                            'traditional-attire'=> 'M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09z',
+                            'traditional_attire'=> 'M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09z',
+                        ];
+                        // Default icon for custom/unknown categories
+                        $defaultIconPath = 'M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z';
 
-            <a href="{{ route('admin.production.index') }}"
-               class="sidebar-link {{ request()->routeIs('admin.production.*') ? 'active' : '' }}">
-                <span class="icon">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"/>
-                    </svg>
-                </span>
-                Production
-            </a>
-
-            <a href="{{ route('admin.fitness.index') }}"
-               class="sidebar-link {{ request()->routeIs('admin.fitness.*') ? 'active' : '' }}">
-                <span class="icon">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 13.5l10.5-10.5m0 0L18 6.75M14.25 3l3.75 3.75M3 14.25l3.75 3.75m0 0l10.5-10.5M6.75 18L3 14.25"/>
-                    </svg>
-                </span>
-                Fitness
-            </a>
-
-            <a href="{{ route('admin.indigenous-attire.index') }}"
-               class="sidebar-link {{ request()->routeIs('admin.indigenous-attire.*') ? 'active' : '' }}">
-                <span class="icon">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 21v-2.25m-6.364-.386l1.591-1.591M3 12h2.25m.386-6.364l1.591 1.591M12 18.75a6.75 6.75 0 100-13.5 6.75 6.75 0 000 13.5z"/>
-                    </svg>
-                </span>
-                Indigenous Attire
-            </a>
-
-            <a href="{{ route('admin.traditional-attire.index') }}"
-               class="sidebar-link {{ request()->routeIs('admin.traditional-attire.*') ? 'active' : '' }}">
-                <span class="icon">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09z"/>
-                    </svg>
-                </span>
-                Traditional Attire
-            </a>
+                        $hasNamedRoute = isset($knownRouteMap[$catKey]);
+                        $routeUrl = $hasNamedRoute
+                            ? route($knownRouteMap[$catKey])
+                            : route('admin.category.index', ['key' => $catKey]);
+                        $isActive = $hasNamedRoute
+                            ? request()->routeIs($knownRoutePatternMap[$catKey])
+                            : (request()->routeIs('admin.category.index') && request()->route('key') === $catKey);
+                        $iconPath = $iconPaths[$catKey] ?? $defaultIconPath;
+                    @endphp
+                    <a href="{{ $routeUrl }}"
+                       class="sidebar-link {{ $isActive ? 'active' : '' }}">
+                        <span class="icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $iconPath }}"/>
+                            </svg>
+                        </span>
+                        {{ $sidebarCat->name }}
+                    </a>
+                @endforeach
+            @endif
              <div class="sidebar-section" style="font-size: 11px">  ->Final-Judging </div>
 
                          <a href="{{ route('admin.qa.index') }}"
@@ -185,6 +198,11 @@
                 <div x-show="open"
                      x-collapse
                      class="pl-6 pr-1 pt-1 pb-2 space-y-1">
+                    <a href="{{ route('admin.settings.categories') }}"
+                       class="sidebar-link text-xs py-2 px-3 {{ request()->routeIs('admin.settings.categories*') ? 'active font-bold' : '' }}">
+                        <span class="w-2 h-2 rounded-full flex-shrink-0 {{ request()->routeIs('admin.settings.categories*') ? 'bg-[var(--green-600)]' : 'bg-gray-400' }}"></span>
+                        <span>Manage Categories</span>
+                    </a>
                     <a href="{{ route('admin.settings.preliminary') }}"
                        class="sidebar-link text-xs py-2 px-3 {{ request()->routeIs('admin.settings.preliminary') || (request()->routeIs('admin.settings.index') && !request()->routeIs('admin.settings.final')) ? 'active font-bold' : '' }}">
                         <span class="w-2 h-2 rounded-full flex-shrink-0 {{ request()->routeIs('admin.settings.preliminary') || (request()->routeIs('admin.settings.index') && !request()->routeIs('admin.settings.final')) ? 'bg-[var(--green-600)]' : 'bg-gray-400' }}"></span>
@@ -199,6 +217,11 @@
                        class="sidebar-link text-xs py-2 px-3 {{ request()->routeIs('admin.settings.judge-scores') ? 'active font-bold' : '' }}">
                         <span class="w-2 h-2 rounded-full flex-shrink-0 {{ request()->routeIs('admin.settings.judge-scores') ? 'bg-[var(--green-600)]' : 'bg-gray-400' }}"></span>
                         <span>Judge Score Sheets</span>
+                    </a>
+                    <a href="{{ route('admin.settings.audit_record') }}"
+                       class="sidebar-link text-xs py-2 px-3 {{ request()->routeIs('admin.settings.audit_record') ? 'active font-bold' : '' }}">
+                        <span class="w-2 h-2 rounded-full flex-shrink-0 {{ request()->routeIs('admin.settings.audit_record') ? 'bg-[var(--green-600)]' : 'bg-gray-400' }}"></span>
+                        <span>Audit Record</span>
                     </a>
 
                     <a href="{{ route('admin.cache.index') }}"
@@ -283,6 +306,53 @@
 </div>
 
 <script>
+    // Global Parameter-Based Navigation Helper
+    window.UrlNav = {
+        getParam(key) {
+            return new URLSearchParams(window.location.search).get(key);
+        },
+        setParam(key, value, push = true) {
+            if (!window.history || !window.history.pushState) return;
+            const url = new URL(window.location.href);
+            if (value === null || value === undefined || value === '') {
+                url.searchParams.delete(key);
+            } else {
+                url.searchParams.set(key, value);
+            }
+            if (window.location.search !== url.search) {
+                if (push) {
+                    window.history.pushState({ [key]: value }, '', url.toString());
+                } else {
+                    window.history.replaceState({ [key]: value }, '', url.toString());
+                }
+            }
+        },
+        setParams(paramsObj, push = true) {
+            if (!window.history || !window.history.pushState) return;
+            const url = new URL(window.location.href);
+            for (const [key, value] of Object.entries(paramsObj)) {
+                if (value === null || value === undefined || value === '') {
+                    url.searchParams.delete(key);
+                } else {
+                    url.searchParams.set(key, value);
+                }
+            }
+            if (window.location.search !== url.search) {
+                if (push) {
+                    window.history.pushState(paramsObj, '', url.toString());
+                } else {
+                    window.history.replaceState(paramsObj, '', url.toString());
+                }
+            }
+        },
+        onPopState(callback) {
+            window.addEventListener('popstate', (e) => {
+                const params = new URLSearchParams(window.location.search);
+                callback(params, e);
+            });
+        }
+    };
+
     // Preserve sidebar navigation scroll position across page transitions
     document.addEventListener('DOMContentLoaded', function() {
         const nav = document.querySelector('.sidebar nav');

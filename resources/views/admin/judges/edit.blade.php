@@ -40,6 +40,15 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="judge_number" class="form-label">Judge Number</label>
+                    <input type="number" id="judge_number" name="judge_number" class="form-input @error('judge_number') border-[var(--danger)] @enderror" value="{{ old('judge_number', $judge->judge_number) }}" min="1" max="999" placeholder="e.g. 1">
+                    <p class="text-xs text-[var(--text-muted)] mt-1">Numerical identifier displayed on all scorecards and tabulation tables (e.g. 1 for Judge 1).</p>
+                    @error('judge_number')
+                        <p class="form-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="form-group">
                     <label for="username" class="form-label">Username</label>
                     <input type="text" id="username" name="username" class="form-input @error('username') border-[var(--danger)] @enderror" value="{{ old('username', $judge->username) }}" required minlength="4" maxlength="50">
                     @error('username')

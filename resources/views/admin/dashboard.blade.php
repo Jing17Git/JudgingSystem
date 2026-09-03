@@ -3,7 +3,7 @@
 @section('title', 'Admin Dashboard')
 
 @section('content')
-<div x-data="dashboardData()" x-init="startPolling()">
+<div x-data="dashboardData()" x-init="initLiveUpdates()">
     {{-- Page header --}}
     <div class="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
@@ -16,10 +16,9 @@
             <p class="page-subtitle">Real-time tabulation overview, judging progress, and category rankings</p>
         </div>
         <div class="flex items-center gap-3">
-    
-            <div class="flex items-center gap-2 text-xs text-[var(--text-muted)] bg-[var(--bg-card)] border border-[var(--border-default)] px-3 py-1.5 rounded-xl shadow-sm">
-                <div class="live-dot"></div>
-                <span class="font-medium">Live Feed</span>
+            <div class="flex items-center gap-2 text-xs bg-[var(--bg-card)] border border-[var(--border-default)] px-3.5 py-2 rounded-xl shadow-sm">
+                <span class="inline-block w-2.5 h-2.5 rounded-full" :class="isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'"></span>
+                <span class="font-semibold text-xs tracking-wide" :class="isConnected ? 'text-emerald-700' : 'text-slate-600'" x-text="isConnected ? '⚡ Real-Time Active' : 'Connecting Live...'">Live Feed</span>
             </div>
         </div>
     </div>
@@ -171,19 +170,19 @@
                 {{-- Division Filter Tabs --}}
                 <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-xl text-xs font-semibold">
                     <button type="button"
-                            @click="rankTab = 'all'"
+                            @click="setRankTab('all')"
                             :class="rankTab === 'all' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'"
                             class="px-3 py-1 rounded-lg transition-all">
                         All (<span x-text="rankings.length"></span>)
                     </button>
                     <button type="button"
-                            @click="rankTab = 'Male'"
+                            @click="setRankTab('Male')"
                             :class="rankTab === 'Male' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:text-blue-600'"
                             class="px-3 py-1 rounded-lg transition-all">
                         ♂ Male
                     </button>
                     <button type="button"
-                            @click="rankTab = 'Female'"
+                            @click="setRankTab('Female')"
                             :class="rankTab === 'Female' ? 'bg-pink-600 text-white shadow-sm' : 'text-gray-600 hover:text-pink-600'"
                             class="px-3 py-1 rounded-lg transition-all">
                         ♀ Female
@@ -380,8 +379,9 @@
 <script>
 function dashboardData() {
     return {
-        rankTab: 'all',
+        rankTab: (window.UrlNav && ['Male', 'Female'].includes(window.UrlNav.getParam('gender'))) ? window.UrlNav.getParam('gender') : 'all',
         isRefreshing: false,
+        isConnected: false,
         stats: {
             total_candidates: {{ $totalCandidates }},
             total_male_candidates: {{ $totalMaleCandidates }},
@@ -398,15 +398,107 @@ function dashboardData() {
         categoryLeaders: @json($categoryLeaders),
         judgeProgress: @json($judgeProgress),
         recentScores: @json($recentScores),
-        pollInterval: null,
+        channel: null,
 
         get filteredRankings() {
             if (this.rankTab === 'all') return this.rankings;
             return this.rankings.filter(r => r.gender === this.rankTab);
         },
 
-        startPolling() {
-            this.pollInterval = setInterval(() => this.fetchLiveData(), 5000);
+        setRankTab(gender) {
+            this.rankTab = gender;
+            if (window.UrlNav) {
+                window.UrlNav.setParam('gender', gender === 'all' ? null : gender);
+            }
+        },
+
+        initLiveUpdates() {
+            this.setupEchoListener();
+            if (window.UrlNav) {
+                window.UrlNav.onPopState((params) => {
+                    const g = params.get('gender');
+                    this.rankTab = ['Male', 'Female'].includes(g) ? g : 'all';
+                });
+            }
+        },
+
+        setupEchoListener() {
+            if (!window.Echo) {
+                setTimeout(() => this.setupEchoListener(), 400);
+                return;
+            }
+
+            try {
+                this.channel = window.Echo.private('admin.scores')
+                    .subscribed(() => {
+                        this.isConnected = true;
+                    })
+                    .error((err) => {
+                        console.error('WebSocket error on admin.scores:', err);
+                        this.isConnected = false;
+                    })
+                    .listen('.score.submitted', (e) => {
+                        this.handleLiveScoreEvent(e);
+                    });
+
+                // Monitor connection status
+                if (window.Echo.connector && window.Echo.connector.pusher) {
+                    const pusher = window.Echo.connector.pusher;
+                    pusher.connection.bind('connected', () => { this.isConnected = true; });
+                    pusher.connection.bind('disconnected', () => { this.isConnected = false; });
+                    pusher.connection.bind('unavailable', () => { this.isConnected = false; });
+                    pusher.connection.bind('failed', () => { this.isConnected = false; });
+                }
+            } catch (error) {
+                console.error('Failed to setup Echo listener:', error);
+            }
+        },
+
+        handleLiveScoreEvent(event) {
+            this.isRefreshing = true;
+
+            // 1. Update data immediately from broadcast payload with 0 latency
+            if (event.dashboardData) {
+                const data = event.dashboardData;
+                this.stats = {
+                    total_candidates: data.totalCandidates,
+                    total_male_candidates: data.totalMaleCandidates,
+                    total_female_candidates: data.totalFemaleCandidates,
+                    total_judges: data.totalJudges,
+                    total_scores: data.totalScores,
+                    submission_progress: data.submissionProgress,
+                    leading_male: data.leadingMale,
+                    leading_female: data.leadingFemale,
+                    leading_candidate: data.leadingCandidate,
+                };
+                this.categoryProgress = data.categoryProgress;
+                this.rankings = data.overallRankings;
+                this.categoryLeaders = data.categoryLeaders;
+                this.judgeProgress = data.judgeProgress;
+                this.recentScores = data.recentScores;
+            } else {
+                this.fetchLiveData();
+            }
+
+            // 2. Trigger Global Real-Time Toast Notification
+            if (window.showToast) {
+                const candNum = String(event.candidate_number || '').padStart(2, '0');
+                if (event.action === 'reset') {
+                    window.showToast(
+                        'Score Reset',
+                        `${event.judge_name} reset score for Candidate #${candNum} (${event.candidate_name}) in ${event.category_name}`,
+                        'warning'
+                    );
+                } else {
+                    window.showToast(
+                        'Score Submitted',
+                        `${event.judge_name} scored ${event.score} for Candidate #${candNum} (${event.candidate_name}) in ${event.category_name}`,
+                        'success'
+                    );
+                }
+            }
+
+            setTimeout(() => { this.isRefreshing = false; }, 400);
         },
 
         async fetchLiveData() {
@@ -446,7 +538,9 @@ function dashboardData() {
         },
 
         destroy() {
-            if (this.pollInterval) clearInterval(this.pollInterval);
+            if (this.channel && window.Echo) {
+                window.Echo.leave('admin.scores');
+            }
         }
     };
 }
