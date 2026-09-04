@@ -271,7 +271,7 @@
     </aside>
 
     {{-- Main content --}}
-    <div class="main-content flex-1" style="width: 60%">
+    <div class="main-content flex-1 min-w-0">
         {{-- Top bar for mobile --}}
         <div class="lg:hidden flex items-center justify-between mb-6">
             <button @click="sidebarOpen = !sidebarOpen" class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-2 rounded-lg hover:bg-gray-100">

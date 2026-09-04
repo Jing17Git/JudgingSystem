@@ -463,13 +463,18 @@
             if (a.total > 0) return -1; if (b.total > 0) return 1;
             return a.candidate_number - b.candidate_number;
         });
-        let r = 1, prev = null, same = 1;
+        let r = 0, prev = null;
         const ranks = {};
         totals.forEach(item => {
-            if (item.total <= 0) { ranks[item.id] = null; }
-            else if (prev !== null && Math.abs(item.total - prev) < 0.0001) { ranks[item.id] = r - same; same++; }
-            else { ranks[item.id] = r; same = 1; }
-            prev = item.total; r++;
+            if (item.total <= 0) {
+                ranks[item.id] = null;
+            } else {
+                if (prev === null || Math.abs(item.total - prev) >= 0.0001) {
+                    r++;
+                }
+                ranks[item.id] = r;
+                prev = item.total;
+            }
         });
         totals.forEach(item => {
             const rankValEl = document.getElementById(`rank-val-${item.id}`);

@@ -58,12 +58,12 @@ class CustomCategoryController extends Controller
                 $gTotals[$c->id] = $candidateTotals[$c->id] ?? 0;
             }
             arsort($gTotals);
-            $r = 1; $prev = null; $same = 1;
+            $r = 0; $prev = null;
             foreach ($gTotals as $cid => $tot) {
                 if ($tot <= 0) { $groupRanks[$cid] = null; continue; }
-                if ($prev !== null && $tot === $prev) { $groupRanks[$cid] = $r - $same; $same++; }
-                else { $groupRanks[$cid] = $r; $same = 1; }
-                $prev = $tot; $r++;
+                if ($prev === null || abs((float) $tot - (float) $prev) > 0.0001) { $r++; }
+                $groupRanks[$cid] = $r;
+                $prev = $tot;
             }
         }
 
