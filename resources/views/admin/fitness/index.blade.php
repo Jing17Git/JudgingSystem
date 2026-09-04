@@ -162,12 +162,12 @@
             $gTotals[$c->id] = $candidateTotals[$c->id] ?? 0;
         }
         arsort($gTotals);
-        $r = 1; $prev = null; $same = 1;
+        $r = 0; $prev = null;
         foreach ($gTotals as $cid => $tot) {
             if ($tot <= 0) { $groupRanks[$cid] = null; continue; }
-            if ($prev !== null && $tot === $prev) { $groupRanks[$cid] = $r - $same; $same++; }
-            else { $groupRanks[$cid] = $r; $same = 1; }
-            $prev = $tot; $r++;
+            if ($prev === null || abs((float)$tot - (float)$prev) > 0.0001) { $r++; }
+            $groupRanks[$cid] = $r;
+            $prev = $tot;
         }
     }
 @endphp
@@ -752,24 +752,21 @@
             return a.candidate_number - b.candidate_number;
         });
 
-        // Assign standard competition ranks
-        let r = 1;
+        // Assign dense ranks (no skipping on ties)
+        let r = 0;
         let prev = null;
-        let same = 1;
         const ranks = {};
 
         totals.forEach(item => {
             if (item.total <= 0) {
                 ranks[item.id] = null;
-            } else if (prev !== null && Math.abs(item.total - prev) < 0.0001) {
-                ranks[item.id] = r - same;
-                same++;
             } else {
+                if (prev === null || Math.abs(item.total - prev) >= 0.0001) {
+                    r++;
+                }
                 ranks[item.id] = r;
-                same = 1;
+                prev = item.total;
             }
-            prev = item.total;
-            r++;
         });
 
         // Update Rank cells in DOM
