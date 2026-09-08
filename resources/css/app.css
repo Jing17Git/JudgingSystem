@@ -703,6 +703,13 @@
 
     .main-content {
         margin-left: 0;
+        padding: 1.25rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .main-content {
+        padding: 0.875rem;
     }
 }
 

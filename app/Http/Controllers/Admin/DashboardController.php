@@ -189,24 +189,19 @@ class DashboardController extends Controller
         });
 
         // Assign overall ranks
-        $r = 1;
+        $r = 0;
         $prevTot = null;
-        $same = 1;
         foreach ($candidateRankings as &$item) {
             if ($item['total_score'] <= 0) {
                 $item['rank'] = '—';
 
                 continue;
             }
-            if ($prevTot !== null && $item['total_score'] == $prevTot) {
-                $item['rank'] = $r - $same;
-                $same++;
-            } else {
-                $item['rank'] = $r;
-                $same = 1;
+            if ($prevTot === null || abs((float) $item['total_score'] - (float) $prevTot) > 0.0001) {
+                $r++;
             }
+            $item['rank'] = $r;
             $prevTot = $item['total_score'];
-            $r++;
         }
         unset($item);
 

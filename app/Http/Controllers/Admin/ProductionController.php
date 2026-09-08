@@ -59,24 +59,19 @@ class ProductionController extends Controller
                 $gTotals[$c->id] = $candidateTotals[$c->id] ?? 0;
             }
             arsort($gTotals);
-            $r = 1;
+            $r = 0;
             $prev = null;
-            $same = 1;
             foreach ($gTotals as $cid => $tot) {
                 if ($tot <= 0) {
                     $ranks[$cid] = null;
 
                     continue;
                 }
-                if ($prev !== null && $tot === $prev) {
-                    $ranks[$cid] = $r - $same;
-                    $same++;
-                } else {
-                    $ranks[$cid] = $r;
-                    $same = 1;
+                if ($prev === null || abs((float) $tot - (float) $prev) > 0.0001) {
+                    $r++;
                 }
+                $ranks[$cid] = $r;
                 $prev = $tot;
-                $r++;
             }
         }
 

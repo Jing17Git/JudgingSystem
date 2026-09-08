@@ -216,26 +216,26 @@
     <p style="font-size: 10pt; margin: 4px 0 0; color: #6b7280;">Generated on {{ now()->format('F d, Y — h:i A') }}</p>
 </div>
 
-<div class="page-header flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 no-print">
+<div class="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-5 sm:mb-6 no-print">
     <div>
-        <h1 class="page-title flex items-center gap-3 text-xl sm:text-2xl font-bold">
+        <h1 class="page-title flex items-center gap-2.5 sm:gap-3 text-lg sm:text-xl md:text-2xl font-bold">
             <svg class="w-6 h-6 sm:w-7 sm:h-7 text-[var(--green-600)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
             </svg>
             Overall Tabulation &amp; Judge Votes
         </h1>
-        <p class="page-subtitle text-xs sm:text-sm mt-1">Weighted score breakdown across all pre-judging categories with real-time updates.</p>
+        <p class="page-subtitle text-xs sm:text-sm mt-0.5 sm:mt-1">Weighted score breakdown across all pre-judging categories with real-time updates.</p>
     </div>
-    <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-        <div id="realtime-status-badge" class="flex items-center gap-2 text-xs bg-[var(--bg-card)] border border-[var(--border-default)] px-3.5 py-1.5 rounded-xl shadow-sm transition-all">
-            <span id="realtime-status-dot" class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span id="realtime-status-text" class="font-semibold text-xs text-emerald-700">⚡ Real-Time Active</span>
+    <div class="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
+        <div id="realtime-status-badge" class="flex items-center gap-1.5 sm:gap-2 text-xs bg-[var(--bg-card)] border border-[var(--border-default)] px-3 py-1.5 rounded-xl shadow-sm transition-all">
+            <span id="realtime-status-dot" class="inline-block w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="realtime-status-text" class="font-semibold text-[11px] sm:text-xs text-emerald-700">⚡ Real-Time Active</span>
         </div>
-        <button onclick="window.print()" class="btn btn-green flex items-center gap-1.5 sm:gap-2 shadow-sm text-xs font-semibold whitespace-nowrap">
-            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button onclick="window.print()" class="btn btn-green flex items-center gap-1.5 shadow-sm text-xs font-semibold whitespace-nowrap px-3 py-1.5 sm:px-4 sm:py-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
             </svg>
-            Print Results Sheet
+            <span>Print Sheet</span>
         </button>
     </div>
 </div>
@@ -268,21 +268,17 @@
             $gTotals[$c->id] = $breakdown[$c->id]['total'] ?? 0;
         }
         arsort($gTotals);
-        $r = 1; $prev = null; $same = 1;
+        $r = 0; $prev = null;
         foreach ($gTotals as $cid => $tot) {
             if ($tot <= 0) {
                 $groupRanks[$cid] = null;
                 continue;
             }
-            if ($prev !== null && $tot === $prev) {
-                $groupRanks[$cid] = $r - $same;
-                $same++;
-            } else {
-                $groupRanks[$cid] = $r;
-                $same = 1;
+            if ($prev === null || abs((float)$tot - (float)$prev) > 0.0001) {
+                $r++;
             }
+            $groupRanks[$cid] = $r;
             $prev = $tot;
-            $r++;
         }
     }
 @endphp
@@ -308,66 +304,66 @@
     @endphp
 
     {{-- Group Section --}}
-    <div class="mb-8 animate-fade-in-up" id="section-{{ strtolower($gKey) }}">
+    <div class="mb-6 sm:mb-8 animate-fade-in-up" id="section-{{ strtolower($gKey) }}">
         {{-- Section Header --}}
-        <div class="flex items-center gap-3 mb-3">
+        <div class="flex items-center gap-2.5 sm:gap-3 mb-2.5 sm:mb-3">
             @if($gKey === 'Male')
-                <div class="flex items-center gap-2 text-white text-sm font-bold px-4 py-2 rounded-xl shadow-md" style="background-color: #2563eb;">
+                <div class="flex items-center gap-2 text-white text-xs sm:text-sm font-bold px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-md" style="background-color: #2563eb;">
                     {{ $group['label'] }}
-                    <span id="badge-count-male" class="bg-white/25 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">{{ $gCandidates->count() }}</span>
+                    <span id="badge-count-male" class="bg-white/25 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">{{ $gCandidates->count() }}</span>
                 </div>
                 <div class="h-px flex-1 bg-blue-200 opacity-60"></div>
             @else
-                <div class="flex items-center gap-2 text-white text-sm font-bold px-4 py-2 rounded-xl shadow-md" style="background-color: #db2777;">
+                <div class="flex items-center gap-2 text-white text-xs sm:text-sm font-bold px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-md" style="background-color: #db2777;">
                     {{ $group['label'] }}
-                    <span id="badge-count-female" class="bg-white/25 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">{{ $gCandidates->count() }}</span>
+                    <span id="badge-count-female" class="bg-white/25 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">{{ $gCandidates->count() }}</span>
                 </div>
                 <div class="h-px flex-1 bg-pink-200 opacity-60"></div>
             @endif
         </div>
 
         {{-- Scoring Table --}}
-        <div class="panel overflow-x-auto border border-[var(--border-default)] shadow-sm rounded-xl">
-            <table class="data-table min-w-full">
+        <div class="panel overflow-x-auto border border-[var(--border-default)] shadow-sm rounded-xl -webkit-overflow-scrolling-touch bg-white">
+            <table class="data-table min-w-full border-collapse text-xs sm:text-sm">
                 <thead>
-                    <tr class="bg-gray-50 border-b border-gray-200">
-                        <th class="sticky left-0 z-10 bg-gray-50 min-w-[90px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">Cand. #</th>
-                        <th class="sticky left-[90px] z-10 bg-gray-50 min-w-[180px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">Name</th>
-                        <th class="text-center min-w-[120px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">
+                    <tr class="bg-gray-50 border-b border-gray-200 whitespace-nowrap">
+                        <th class="sticky left-0 z-20 bg-gray-50 w-[56px] sm:w-[72px] min-w-[56px] sm:min-w-[72px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-2 sm:px-3 text-center border-r border-gray-200/50">Cand. #</th>
+                        <th class="sticky left-[56px] sm:left-[72px] z-20 bg-gray-50 w-[125px] sm:w-[170px] min-w-[125px] sm:min-w-[170px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-2.5 sm:px-4 text-left border-r border-gray-200/80 shadow-[3px_0_6px_-2px_rgba(0,0,0,0.06)]">Name</th>
+                        <th class="text-center min-w-[95px] sm:min-w-[120px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-2 sm:px-4">
                             Production
-                            <span class="block text-[11px] font-bold text-[var(--green-700)] lowercase tracking-normal">({{ (int)($weights['production'] ?? 25) }}%)</span>
+                            <span class="block text-[10px] sm:text-[11px] font-bold text-[var(--green-700)] lowercase tracking-normal">({{ (int)($weights['production'] ?? 25) }}%)</span>
                         </th>
-                        <th class="text-center min-w-[120px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">
+                        <th class="text-center min-w-[95px] sm:min-w-[120px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-2 sm:px-4">
                             Fitness
-                            <span class="block text-[11px] font-bold text-[var(--green-700)] lowercase tracking-normal">({{ (int)($weights['fitness'] ?? 25) }}%)</span>
+                            <span class="block text-[10px] sm:text-[11px] font-bold text-[var(--green-700)] lowercase tracking-normal">({{ (int)($weights['fitness'] ?? 25) }}%)</span>
                         </th>
-                        <th class="text-center min-w-[140px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">
+                        <th class="text-center min-w-[105px] sm:min-w-[135px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-2 sm:px-4">
                             Traditional Attire
-                            <span class="block text-[11px] font-bold text-[var(--green-700)] lowercase tracking-normal">({{ (int)($weights['traditional_attire'] ?? 25) }}%)</span>
+                            <span class="block text-[10px] sm:text-[11px] font-bold text-[var(--green-700)] lowercase tracking-normal">({{ (int)($weights['traditional_attire'] ?? 25) }}%)</span>
                         </th>
-                        <th class="text-center min-w-[140px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">
+                        <th class="text-center min-w-[105px] sm:min-w-[135px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-2 sm:px-4">
                             Indigenous Attire
-                            <span class="block text-[11px] font-bold text-[var(--green-700)] lowercase tracking-normal">({{ (int)($weights['indigenous_attire'] ?? 25) }}%)</span>
+                            <span class="block text-[10px] sm:text-[11px] font-bold text-[var(--green-700)] lowercase tracking-normal">({{ (int)($weights['indigenous_attire'] ?? 25) }}%)</span>
                         </th>
 
                         {{-- Dynamic custom category columns --}}
                         @if(isset($customCategories))
                             @foreach($customCategories as $customCat)
-                                <th class="text-center min-w-[130px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">
+                                <th class="text-center min-w-[100px] sm:min-w-[130px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-2 sm:px-4">
                                     {{ $customCat->name }}
-                                    <span class="block text-[11px] font-bold text-[var(--green-700)] lowercase tracking-normal">({{ (int)$customCat->percentage }}%)</span>
+                                    <span class="block text-[10px] sm:text-[11px] font-bold text-[var(--green-700)] lowercase tracking-normal">({{ (int)$customCat->percentage }}%)</span>
                                 </th>
                             @endforeach
                         @endif
 
                         @if($gKey === 'Male')
-                            <th class="text-center min-w-[100px] text-xs font-bold text-blue-700 uppercase tracking-wider py-3 px-4" style="background-color: #eff6ff;">Grand Total</th>
+                            <th class="text-center min-w-[90px] sm:min-w-[110px] text-xs font-bold text-blue-700 uppercase tracking-wider py-3 px-2 sm:px-4" style="background-color: #eff6ff;">Grand Total</th>
                         @else
-                            <th class="text-center min-w-[100px] text-xs font-bold text-pink-700 uppercase tracking-wider py-3 px-4" style="background-color: #fdf2f8;">Grand Total</th>
+                            <th class="text-center min-w-[90px] sm:min-w-[110px] text-xs font-bold text-pink-700 uppercase tracking-wider py-3 px-2 sm:px-4" style="background-color: #fdf2f8;">Grand Total</th>
                         @endif
 
-                        <th class="text-center min-w-[85px] text-xs font-bold text-amber-800 uppercase tracking-wider py-3 px-4" style="background-color: #fffbeb;">Rank</th>
-                        <th class="text-center min-w-[120px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4 no-print">Judge Votes</th>
+                        <th class="text-center min-w-[75px] sm:min-w-[90px] text-xs font-bold text-amber-800 uppercase tracking-wider py-3 px-2 sm:px-4" style="background-color: #fffbeb;">Rank</th>
+                        <th class="text-center min-w-[95px] sm:min-w-[120px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-2 sm:px-4 no-print">Judge Votes</th>
                     </tr>
                 </thead>
                 <tbody id="tbody-{{ strtolower($gKey) }}" class="divide-y divide-gray-100">
@@ -383,55 +379,55 @@
                             data-gender="{{ $candidate->gender }}"
                             class="group hover:bg-gray-50/80 transition-colors">
                             {{-- Candidate Number --}}
-                            <td class="sticky left-0 bg-white group-hover:bg-gray-50 py-3 px-4 z-[5]">
+                            <td class="sticky left-0 bg-white group-hover:bg-gray-50 py-2.5 sm:py-3 px-2 sm:px-3 z-10 text-center border-r border-gray-100">
                                 @if($gKey === 'Male')
-                                    <span class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full text-white text-sm sm:text-base font-black shadow-md" style="background-color: #2563eb; border: 2px solid #60a5fa;">
+                                    <span class="inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-white text-xs sm:text-base font-black shadow-md" style="background-color: #2563eb; border: 2px solid #60a5fa;">
                                         {{ $candidate->candidate_number }}
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full text-white text-sm sm:text-base font-black shadow-md" style="background-color: #db2777; border: 2px solid #f472b6;">
+                                    <span class="inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-white text-xs sm:text-base font-black shadow-md" style="background-color: #db2777; border: 2px solid #f472b6;">
                                         {{ $candidate->candidate_number }}
                                     </span>
                                 @endif
                             </td>
 
                             {{-- Candidate Name --}}
-                            <td class="sticky left-[90px] bg-white group-hover:bg-gray-50 py-3 px-4 font-semibold text-gray-900 z-[5]">
-                                <div class="flex items-center gap-2.5 sm:gap-3">
+                            <td class="sticky left-[56px] sm:left-[72px] bg-white group-hover:bg-gray-50 py-2.5 sm:py-3 px-2.5 sm:px-4 font-semibold text-gray-900 z-10 border-r border-gray-200/80 shadow-[3px_0_6px_-2px_rgba(0,0,0,0.06)]">
+                                <div class="flex items-center gap-2 sm:gap-3">
                                     @if($candidate->photo_url)
-                                        <img src="{{ asset('storage/' . $candidate->photo_url) }}" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-gray-200 shadow-sm flex-shrink-0">
+                                        <img src="{{ asset('storage/' . $candidate->photo_url) }}" class="w-7 h-7 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-gray-200 shadow-sm flex-shrink-0">
                                     @else
                                         @if($gKey === 'Male')
-                                            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm" style="background-color: #2563eb;">
+                                            <div class="w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white text-[10px] sm:text-xs font-bold flex-shrink-0 shadow-sm" style="background-color: #2563eb;">
                                                 {{ strtoupper(substr($candidate->display_name, 0, 1)) }}
                                             </div>
                                         @else
-                                            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm" style="background-color: #db2777;">
+                                            <div class="w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white text-[10px] sm:text-xs font-bold flex-shrink-0 shadow-sm" style="background-color: #db2777;">
                                                 {{ strtoupper(substr($candidate->display_name, 0, 1)) }}
                                             </div>
                                         @endif
                                     @endif
-                                    <span class="truncate max-w-[120px] sm:max-w-[180px] md:max-w-none text-xs sm:text-sm text-gray-900 font-semibold">{{ $candidate->display_name }}</span>
+                                    <span class="truncate max-w-[85px] sm:max-w-[130px] md:max-w-[170px] text-xs sm:text-sm text-gray-900 font-semibold leading-tight">{{ $candidate->display_name }}</span>
                                 </div>
                             </td>
 
                             {{-- Production Score --}}
-                            <td class="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
+                            <td class="text-center py-2.5 sm:py-3 px-2 sm:px-4 font-semibold text-gray-700 text-xs sm:text-sm">
                                 <span id="prod-val-{{ $candidate->id }}" class="transition-all">{{ $b['production'] > 0 ? number_format($b['production'], 2) : '—' }}</span>
                             </td>
 
                             {{-- Fitness Score --}}
-                            <td class="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
+                            <td class="text-center py-2.5 sm:py-3 px-2 sm:px-4 font-semibold text-gray-700 text-xs sm:text-sm">
                                 <span id="fit-val-{{ $candidate->id }}" class="transition-all">{{ $b['fitness'] > 0 ? number_format($b['fitness'], 2) : '—' }}</span>
                             </td>
 
                             {{-- Traditional Attire Score --}}
-                            <td class="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
+                            <td class="text-center py-2.5 sm:py-3 px-2 sm:px-4 font-semibold text-gray-700 text-xs sm:text-sm">
                                 <span id="trad-val-{{ $candidate->id }}" class="transition-all">{{ $b['traditional'] > 0 ? number_format($b['traditional'], 2) : '—' }}</span>
                             </td>
 
                             {{-- Indigenous Attire Score --}}
-                            <td class="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
+                            <td class="text-center py-2.5 sm:py-3 px-2 sm:px-4 font-semibold text-gray-700 text-xs sm:text-sm">
                                 <span id="indig-val-{{ $candidate->id }}" class="transition-all">{{ $b['indigenous'] > 0 ? number_format($b['indigenous'], 2) : '—' }}</span>
                             </td>
 
@@ -439,7 +435,7 @@
                             @if(isset($customCategories))
                                 @foreach($customCategories as $customCat)
                                     @php $customVal = $b['custom'][$customCat->key]['weighted'] ?? 0; @endphp
-                                    <td class="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
+                                    <td class="text-center py-2.5 sm:py-3 px-2 sm:px-4 font-semibold text-gray-700 text-xs sm:text-sm">
                                         <span id="custom-{{ $customCat->key }}-val-{{ $candidate->id }}" class="transition-all">{{ $customVal > 0 ? number_format($customVal, 2) : '—' }}</span>
                                     </td>
                                 @endforeach
@@ -447,49 +443,50 @@
 
                             {{-- Grand Total --}}
                             @if($gKey === 'Male')
-                                <td class="text-center py-3 px-4" style="background-color: #eff6ff;">
-                                    <span id="total-val-{{ $candidate->id }}" class="font-extrabold text-lg text-blue-700 transition-all">
+                                <td class="text-center py-2.5 sm:py-3 px-2 sm:px-4" style="background-color: #eff6ff;">
+                                    <span id="total-val-{{ $candidate->id }}" class="font-extrabold text-base sm:text-lg text-blue-700 transition-all">
                                         {{ $total > 0 ? number_format($total, 2) : '—' }}
                                     </span>
                                 </td>
                             @else
-                                <td class="text-center py-3 px-4" style="background-color: #fdf2f8;">
-                                    <span id="total-val-{{ $candidate->id }}" class="font-extrabold text-lg text-pink-700 transition-all">
+                                <td class="text-center py-2.5 sm:py-3 px-2 sm:px-4" style="background-color: #fdf2f8;">
+                                    <span id="total-val-{{ $candidate->id }}" class="font-extrabold text-base sm:text-lg text-pink-700 transition-all">
                                         {{ $total > 0 ? number_format($total, 2) : '—' }}
                                     </span>
                                 </td>
                             @endif
 
                             {{-- Rank --}}
-                            <td id="rank-cell-{{ $candidate->id }}" class="text-center py-3 px-4" style="background-color: #fffbeb;">
+                            <td id="rank-cell-{{ $candidate->id }}" class="text-center py-2.5 sm:py-3 px-2 sm:px-4" style="background-color: #fffbeb;">
                                 <div id="rank-val-{{ $candidate->id }}" class="inline-flex items-center justify-center transition-all">
                                     @if(empty($rank))
                                         <span class="text-gray-400 font-medium">—</span>
                                     @elseif($rank === 1)
-                                        <span class="inline-flex items-center justify-center w-11 h-11 rounded-full text-2xl shadow-lg ring-4 ring-amber-300/70 bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-300 text-white" title="1st Place (Champion)">🥇</span>
+                                        <span class="inline-flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-full text-xl sm:text-2xl shadow-lg ring-4 ring-amber-300/70 bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-300 text-white" title="1st Place (Champion)">🥇</span>
                                     @elseif($rank === 2)
-                                        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full text-xl shadow-md ring-2 ring-slate-300 bg-gradient-to-tr from-slate-400 via-gray-300 to-slate-200 text-slate-800" title="2nd Place">🥈</span>
+                                        <span class="inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-lg sm:text-xl shadow-md ring-2 ring-slate-300 bg-gradient-to-tr from-slate-400 via-gray-300 to-slate-200 text-slate-800" title="2nd Place">🥈</span>
                                     @elseif($rank === 3)
-                                        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full text-xl shadow-md ring-2 ring-orange-300 bg-gradient-to-tr from-amber-700 via-orange-500 to-amber-400 text-white" title="3rd Place">🥉</span>
+                                        <span class="inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-lg sm:text-xl shadow-md ring-2 ring-orange-300 bg-gradient-to-tr from-amber-700 via-orange-500 to-amber-400 text-white" title="3rd Place">🥉</span>
                                     @elseif($rank === 4)
-                                        <span class="inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-black shadow-md ring-2 ring-blue-300 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white" title="4th Place">4</span>
+                                        <span class="inline-flex items-center justify-center w-7 h-7 sm:w-9 sm:h-9 rounded-full text-xs sm:text-sm font-black shadow-md ring-2 ring-blue-300 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white" title="4th Place">4</span>
                                     @elseif($rank === 5)
-                                        <span class="inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-black shadow-md ring-2 ring-purple-300 bg-gradient-to-tr from-purple-600 to-pink-600 text-white" title="5th Place">5</span>
+                                        <span class="inline-flex items-center justify-center w-7 h-7 sm:w-9 sm:h-9 rounded-full text-xs sm:text-sm font-black shadow-md ring-2 ring-purple-300 bg-gradient-to-tr from-purple-600 to-pink-600 text-white" title="5th Place">5</span>
                                     @else
-                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 border-2 border-gray-300 text-gray-700 text-xs font-extrabold shadow-sm">{{ $rank }}</span>
+                                        <span class="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-100 border-2 border-gray-300 text-gray-700 text-xs font-extrabold shadow-sm">{{ $rank }}</span>
                                     @endif
                                 </div>
                             </td>
 
                             {{-- Judge Votes Action Button --}}
-                            <td class="text-center py-3 px-4 no-print">
+                            <td class="text-center py-2.5 sm:py-3 px-2 sm:px-4 no-print">
                                 <a href="{{ route('admin.overall.candidate-votes', ['candidate' => $candidate->id, 'from' => 'overall']) }}"
-                                   class="btn btn-outline btn-sm font-semibold flex items-center justify-center gap-1.5 mx-auto hover:border-emerald-500 hover:text-emerald-700 transition-colors whitespace-nowrap">
-                                    <svg class="w-4 h-4 text-[var(--green-600)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                   class="btn btn-outline btn-sm text-xs font-semibold inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 hover:border-emerald-500 hover:text-emerald-700 transition-colors whitespace-nowrap">
+                                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--green-600)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                     </svg>
-                                    View Votes
+                                    <span class="hidden sm:inline">View Votes</span>
+                                    <span class="sm:hidden">Votes</span>
                                 </a>
                             </td>
                         </tr>
@@ -513,11 +510,15 @@
 </div>
 
 {{-- Legend --}}
-<div class="mt-4 flex flex-wrap items-center gap-4 text-xs text-[var(--text-muted)] no-print">
-    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span> 1st Place</span>
-    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-300 inline-block"></span> 2nd Place</span>
-    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-orange-400 inline-block"></span> 3rd Place</span>
-    <span>· Overall score is calculated from each category's judges average multiplied by its percentage weight (Production: {{ (int)($weights['production'] ?? 25) }}%, Fitness: {{ (int)($weights['fitness'] ?? 25) }}%, Traditional: {{ (int)($weights['traditional_attire'] ?? 25) }}%, Indigenous: {{ (int)($weights['indigenous_attire'] ?? 25) }}%).</span>
+<div class="mt-4 p-3 sm:p-4 bg-gray-50 rounded-xl border border-gray-200/70 text-xs text-[var(--text-muted)] no-print flex flex-col md:flex-row md:items-center justify-between gap-2.5 sm:gap-3">
+    <div class="flex flex-wrap items-center gap-3 font-medium">
+        <span class="flex items-center gap-1.5 text-gray-800 font-semibold"><span class="text-sm sm:text-base">🥇</span> 1st Place</span>
+        <span class="flex items-center gap-1.5 text-gray-800 font-semibold"><span class="text-sm sm:text-base">🥈</span> 2nd Place</span>
+        <span class="flex items-center gap-1.5 text-gray-800 font-semibold"><span class="text-sm sm:text-base">🥉</span> 3rd Place</span>
+    </div>
+    <div class="text-[11px] text-gray-500 leading-relaxed">
+        Overall score is calculated from each category's judges average multiplied by its percentage weight (Production: {{ (int)($weights['production'] ?? 25) }}%, Fitness: {{ (int)($weights['fitness'] ?? 25) }}%, Traditional: {{ (int)($weights['traditional_attire'] ?? 25) }}%, Indigenous: {{ (int)($weights['indigenous_attire'] ?? 25) }}%).
+    </div>
 </div>
 
 @endif
@@ -837,23 +838,20 @@
             return a.candidate_number - b.candidate_number;
         });
 
-        let r = 1;
+        let r = 0;
         let prev = null;
-        let same = 1;
         const ranks = {};
 
         totals.forEach(item => {
             if (item.total <= 0) {
                 ranks[item.id] = null;
-            } else if (prev !== null && Math.abs(item.total - prev) < 0.0001) {
-                ranks[item.id] = r - same;
-                same++;
             } else {
+                if (prev === null || Math.abs(item.total - prev) >= 0.0001) {
+                    r++;
+                }
                 ranks[item.id] = r;
-                same = 1;
+                prev = item.total;
             }
-            prev = item.total;
-            r++;
         });
 
         totals.forEach(item => {
