@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Candidate;
 use App\Models\CriteriaSetting;
+use App\Models\CustomCategoryScore;
 use App\Models\FitnessScore;
 use App\Models\IndigenousAttireScore;
 use App\Models\ProductionScore;
@@ -28,14 +29,14 @@ class OverallController extends Controller
 
         // Fetch criteria percentage weights from settings
         $weights = CriteriaSetting::getPercentageMap();
-        $prodWeight  = (float) ($weights['production']        ?? 25.0);
-        $fitWeight   = (float) ($weights['fitness']           ?? 25.0);
-        $tradWeight  = (float) ($weights['traditional_attire'] ?? 25.0);
+        $prodWeight = (float) ($weights['production'] ?? 25.0);
+        $fitWeight = (float) ($weights['fitness'] ?? 25.0);
+        $tradWeight = (float) ($weights['traditional_attire'] ?? 25.0);
         $indigWeight = (float) ($weights['indigenous_attire'] ?? 25.0);
 
         // Built-in category keys (have their own score tables)
         $builtInKeys = ['production', 'fitness', 'traditional_attire', 'indigenous_attire',
-                        'traditional-attire', 'indigenous-attire', 'qa', 'qanda', 'preliminary_total'];
+            'traditional-attire', 'indigenous-attire', 'qa', 'qanda', 'preliminary_total'];
 
         // Load dynamic (custom) categories from CriteriaSetting (preliminary, not built-in)
         $customCategories = CriteriaSetting::where('stage', 'preliminary')
@@ -44,34 +45,34 @@ class OverallController extends Controller
             ->get();
 
         // Fetch built-in scores per candidate grouped by candidate_id
-        $prodScores  = ProductionScore::all()->groupBy('candidate_id');
-        $fitScores   = FitnessScore::all()->groupBy('candidate_id');
-        $tradScores  = TraditionalAttireScore::all()->groupBy('candidate_id');
+        $prodScores = ProductionScore::all()->groupBy('candidate_id');
+        $fitScores = FitnessScore::all()->groupBy('candidate_id');
+        $tradScores = TraditionalAttireScore::all()->groupBy('candidate_id');
         $indigScores = IndigenousAttireScore::all()->groupBy('candidate_id');
-        $qaScores    = QaScore::all()->groupBy('candidate_id');
+        $qaScores = QaScore::all()->groupBy('candidate_id');
 
         // All raw scores keyBy [candidate_id_judge_id]
-        $rawProd  = ProductionScore::all()->keyBy(fn($s) => $s->candidate_id.'_'.$s->judge_id);
-        $rawFit   = FitnessScore::all()->keyBy(fn($s) => $s->candidate_id.'_'.$s->judge_id);
-        $rawTrad  = TraditionalAttireScore::all()->keyBy(fn($s) => $s->candidate_id.'_'.$s->judge_id);
-        $rawIndig = IndigenousAttireScore::all()->keyBy(fn($s) => $s->candidate_id.'_'.$s->judge_id);
-        $rawQa    = QaScore::all()->keyBy(fn($s) => $s->candidate_id.'_'.$s->judge_id);
+        $rawProd = ProductionScore::all()->keyBy(fn ($s) => $s->candidate_id.'_'.$s->judge_id);
+        $rawFit = FitnessScore::all()->keyBy(fn ($s) => $s->candidate_id.'_'.$s->judge_id);
+        $rawTrad = TraditionalAttireScore::all()->keyBy(fn ($s) => $s->candidate_id.'_'.$s->judge_id);
+        $rawIndig = IndigenousAttireScore::all()->keyBy(fn ($s) => $s->candidate_id.'_'.$s->judge_id);
+        $rawQa = QaScore::all()->keyBy(fn ($s) => $s->candidate_id.'_'.$s->judge_id);
 
         // Load custom category scores — keyed by "category_key => [candidate_id_judge_id => score]"
-        $customRawScores   = [];
+        $customRawScores = [];
         $customGroupScores = [];
         foreach ($customCategories as $customCat) {
-            $customRawScores[$customCat->key]   = \App\Models\CustomCategoryScore::forCategory($customCat->key);
-            $customGroupScores[$customCat->key] = \App\Models\CustomCategoryScore::forCategoryGrouped($customCat->key);
+            $customRawScores[$customCat->key] = CustomCategoryScore::forCategory($customCat->key);
+            $customGroupScores[$customCat->key] = CustomCategoryScore::forCategoryGrouped($customCat->key);
         }
 
-        $breakdown     = [];
+        $breakdown = [];
         $judgeBreakdown = [];
 
         foreach ($candidates as $c) {
-            $pSum = isset($prodScores[$c->id])  ? (float) $prodScores[$c->id]->sum('score')  : 0;
-            $fSum = isset($fitScores[$c->id])   ? (float) $fitScores[$c->id]->sum('score')   : 0;
-            $tSum = isset($tradScores[$c->id])  ? (float) $tradScores[$c->id]->sum('score')  : 0;
+            $pSum = isset($prodScores[$c->id]) ? (float) $prodScores[$c->id]->sum('score') : 0;
+            $fSum = isset($fitScores[$c->id]) ? (float) $fitScores[$c->id]->sum('score') : 0;
+            $tSum = isset($tradScores[$c->id]) ? (float) $tradScores[$c->id]->sum('score') : 0;
             $iSum = isset($indigScores[$c->id]) ? (float) $indigScores[$c->id]->sum('score') : 0;
 
             $pAvg = $judgeCount > 0 ? ($pSum / $judgeCount) : 0;
@@ -79,9 +80,9 @@ class OverallController extends Controller
             $tAvg = $judgeCount > 0 ? ($tSum / $judgeCount) : 0;
             $iAvg = $judgeCount > 0 ? ($iSum / $judgeCount) : 0;
 
-            $pWeighted = $pAvg * ($prodWeight  / 100.0);
-            $fWeighted = $fAvg * ($fitWeight   / 100.0);
-            $tWeighted = $tAvg * ($tradWeight  / 100.0);
+            $pWeighted = $pAvg * ($prodWeight / 100.0);
+            $fWeighted = $fAvg * ($fitWeight / 100.0);
+            $tWeighted = $tAvg * ($tradWeight / 100.0);
             $iWeighted = $iAvg * ($indigWeight / 100.0);
 
             $grandTotal = $pWeighted + $fWeighted + $tWeighted + $iWeighted;
@@ -90,39 +91,39 @@ class OverallController extends Controller
             $customBreakdown = [];
             foreach ($customCategories as $customCat) {
                 $grouped = $customGroupScores[$customCat->key] ?? collect();
-                $cSum    = isset($grouped[$c->id]) ? (float) $grouped[$c->id]->sum('score') : 0;
-                $cAvg    = $judgeCount > 0 ? ($cSum / $judgeCount) : 0;
-                $cW      = (float) $customCat->percentage;
+                $cSum = isset($grouped[$c->id]) ? (float) $grouped[$c->id]->sum('score') : 0;
+                $cAvg = $judgeCount > 0 ? ($cSum / $judgeCount) : 0;
+                $cW = (float) $customCat->percentage;
                 $cWeighted = $cAvg * ($cW / 100.0);
                 $grandTotal += $cWeighted;
                 $customBreakdown[$customCat->key] = [
-                    'avg'      => $cAvg,
+                    'avg' => $cAvg,
                     'weighted' => $cWeighted,
                 ];
             }
 
             $breakdown[$c->id] = [
-                'production_avg'  => $pAvg,
-                'fitness_avg'     => $fAvg,
+                'production_avg' => $pAvg,
+                'fitness_avg' => $fAvg,
                 'traditional_avg' => $tAvg,
-                'indigenous_avg'  => $iAvg,
-                'production'      => $pWeighted,
-                'fitness'         => $fWeighted,
-                'traditional'     => $tWeighted,
-                'indigenous'      => $iWeighted,
-                'custom'          => $customBreakdown,
-                'total'           => $grandTotal,
+                'indigenous_avg' => $iAvg,
+                'production' => $pWeighted,
+                'fitness' => $fWeighted,
+                'traditional' => $tWeighted,
+                'indigenous' => $iWeighted,
+                'custom' => $customBreakdown,
+                'total' => $grandTotal,
             ];
 
             // Build detailed per-judge breakdown for this candidate
             $cJudgeScores = [];
             foreach ($judges as $j) {
-                $key    = $c->id.'_'.$j->id;
-                $pScore = isset($rawProd[$key])  ? (float) $rawProd[$key]->score  : null;
-                $fScore = isset($rawFit[$key])   ? (float) $rawFit[$key]->score   : null;
-                $tScore = isset($rawTrad[$key])  ? (float) $rawTrad[$key]->score  : null;
+                $key = $c->id.'_'.$j->id;
+                $pScore = isset($rawProd[$key]) ? (float) $rawProd[$key]->score : null;
+                $fScore = isset($rawFit[$key]) ? (float) $rawFit[$key]->score : null;
+                $tScore = isset($rawTrad[$key]) ? (float) $rawTrad[$key]->score : null;
                 $iScore = isset($rawIndig[$key]) ? (float) $rawIndig[$key]->score : null;
-                $qScore = isset($rawQa[$key])    ? (float) $rawQa[$key]->score    : null;
+                $qScore = isset($rawQa[$key]) ? (float) $rawQa[$key]->score : null;
 
                 $customJudgeScores = [];
                 foreach ($customCategories as $customCat) {
@@ -131,43 +132,53 @@ class OverallController extends Controller
                 }
 
                 $sum = ($pScore ?? 0) + ($fScore ?? 0) + ($tScore ?? 0) + ($iScore ?? 0) + ($qScore ?? 0);
-                foreach ($customJudgeScores as $cs) { $sum += ($cs ?? 0); }
+                foreach ($customJudgeScores as $cs) {
+                    $sum += ($cs ?? 0);
+                }
 
                 $cJudgeScores[] = [
-                    'judge_id'   => $j->id,
+                    'judge_id' => $j->id,
                     'judge_name' => $j->name,
                     'production' => $pScore,
-                    'fitness'    => $fScore,
-                    'traditional'=> $tScore,
+                    'fitness' => $fScore,
+                    'traditional' => $tScore,
                     'indigenous' => $iScore,
-                    'qa'         => $qScore,
-                    'custom'     => $customJudgeScores,
-                    'total'      => $sum,
+                    'qa' => $qScore,
+                    'custom' => $customJudgeScores,
+                    'total' => $sum,
                 ];
             }
 
             $judgeBreakdown[$c->id] = $cJudgeScores;
         }
 
-        $candidatesJson = $candidates->map(fn($c) => [
-            'id'               => $c->id,
+        $candidatesJson = $candidates->map(fn ($c) => [
+            'id' => $c->id,
             'candidate_number' => (int) $c->candidate_number,
-            'display_name'     => $c->display_name,
-            'gender'           => $c->gender,
+            'display_name' => $c->display_name,
+            'gender' => $c->gender,
         ])->values();
 
-        $judgesJson = $judges->map(fn($j) => [
-            'id'           => $j->id,
-            'name'         => $j->name,
+        $judgesJson = $judges->map(fn ($j) => [
+            'id' => $j->id,
+            'name' => $j->name,
             'judge_number' => $j->judge_number ?? $j->id,
         ])->values();
 
         // Build flat raw scores map: 'category_candidateId_judgeId' => score
         $rawScoresMap = [];
-        foreach ($rawProd  as $k => $s) { $rawScoresMap['production_'.$k]         = (float) $s->score; }
-        foreach ($rawFit   as $k => $s) { $rawScoresMap['fitness_'.$k]             = (float) $s->score; }
-        foreach ($rawTrad  as $k => $s) { $rawScoresMap['traditional-attire_'.$k] = (float) $s->score; }
-        foreach ($rawIndig as $k => $s) { $rawScoresMap['indigenous-attire_'.$k]  = (float) $s->score; }
+        foreach ($rawProd as $k => $s) {
+            $rawScoresMap['production_'.$k] = (float) $s->score;
+        }
+        foreach ($rawFit as $k => $s) {
+            $rawScoresMap['fitness_'.$k] = (float) $s->score;
+        }
+        foreach ($rawTrad as $k => $s) {
+            $rawScoresMap['traditional-attire_'.$k] = (float) $s->score;
+        }
+        foreach ($rawIndig as $k => $s) {
+            $rawScoresMap['indigenous-attire_'.$k] = (float) $s->score;
+        }
         foreach ($customCategories as $customCat) {
             $raw = $customRawScores[$customCat->key] ?? collect();
             foreach ($raw as $k => $s) {
@@ -177,7 +188,7 @@ class OverallController extends Controller
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
-                'success'   => true,
+                'success' => true,
                 'rawScores' => $rawScoresMap,
                 'breakdown' => $breakdown,
             ]);
@@ -195,7 +206,6 @@ class OverallController extends Controller
             'customCategories'
         ));
     }
-
 
     /**
      * Display a dedicated full page for an individual candidate's judge votes breakdown.

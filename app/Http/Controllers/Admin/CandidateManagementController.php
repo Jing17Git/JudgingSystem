@@ -23,13 +23,29 @@ class CandidateManagementController extends Controller
                 $q->where('full_name', 'like', "%{$search}%")
                     ->orWhere('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('origin', 'like', "%{$search}%")
                     ->orWhere('candidate_number', 'like', "%{$search}%");
             });
         }
 
+        if ($gender = $request->input('gender')) {
+            $query->where('gender', $gender);
+        }
+
+        if ($origin = $request->input('origin')) {
+            $query->where('origin', $origin);
+        }
+
+        $departments = Candidate::whereNotNull('origin')
+            ->where('origin', '!=', '')
+            ->distinct()
+            ->pluck('origin')
+            ->sort()
+            ->values();
+
         $candidates = $query->orderBy('candidate_number', 'asc')->paginate(15)->withQueryString();
 
-        return view('admin.candidates.index', compact('candidates'));
+        return view('admin.candidates.index', compact('candidates', 'departments'));
     }
 
     /**
@@ -56,6 +72,7 @@ class CandidateManagementController extends Controller
             ],
             'full_name' => 'required|string|min:3|max:100',
             'gender' => 'nullable|in:Male,Female,Other',
+            'origin' => 'nullable|string|max:100',
             'picture' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
         ]);
 
@@ -82,6 +99,7 @@ class CandidateManagementController extends Controller
             'candidate_number' => $validated['candidate_number'],
             'full_name' => $validated['full_name'],
             'gender' => $validated['gender'] ?? null,
+            'origin' => $validated['origin'] ?? null,
             'first_name' => $validated['full_name'],
             'last_name' => '',
             'photo_url' => $photoPath,
@@ -123,12 +141,14 @@ class CandidateManagementController extends Controller
             ],
             'full_name' => 'required|string|min:3|max:100',
             'gender' => 'nullable|in:Male,Female,Other',
+            'origin' => 'nullable|string|max:100',
             'picture' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
         ]);
 
         $candidate->candidate_number = $validated['candidate_number'];
         $candidate->full_name = $validated['full_name'];
         $candidate->gender = $validated['gender'] ?? null;
+        $candidate->origin = $validated['origin'] ?? null;
         $candidate->first_name = $validated['full_name'];
 
         if ($request->filled('cropped_picture_data')) {

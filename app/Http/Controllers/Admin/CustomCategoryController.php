@@ -40,7 +40,7 @@ class CustomCategoryController extends Controller
         foreach ($candidates as $candidate) {
             $total = 0;
             foreach ($judges as $judge) {
-                $k = $candidate->id . '_' . $judge->id;
+                $k = $candidate->id.'_'.$judge->id;
                 $total += isset($scores[$k]) ? (float) $scores[$k]->score : 0;
             }
             $candidateTotals[$candidate->id] = $judgeCount > 0 ? $total / $judgeCount : 0;
@@ -49,10 +49,12 @@ class CustomCategoryController extends Controller
         // Build per-group ranks
         $groupRanks = [];
         foreach (['Male', 'Female', 'Unset'] as $g) {
-            $gSet = $candidates->filter(fn($c) => $g === 'Unset'
-                ? !in_array($c->gender, ['Male', 'Female'])
+            $gSet = $candidates->filter(fn ($c) => $g === 'Unset'
+                ? ! in_array($c->gender, ['Male', 'Female'])
                 : $c->gender === $g);
-            if ($gSet->isEmpty()) continue;
+            if ($gSet->isEmpty()) {
+                continue;
+            }
             $gTotals = [];
             foreach ($gSet as $c) {
                 $gTotals[$c->id] = $candidateTotals[$c->id] ?? 0;
@@ -67,26 +69,26 @@ class CustomCategoryController extends Controller
             }
         }
 
-        $candidatesJson = $candidates->map(fn($c) => [
-            'id'               => $c->id,
+        $candidatesJson = $candidates->map(fn ($c) => [
+            'id' => $c->id,
             'candidate_number' => (int) $c->candidate_number,
-            'display_name'     => $c->display_name,
-            'gender'           => $c->gender,
+            'display_name' => $c->display_name,
+            'gender' => $c->gender,
         ])->values();
 
-        $judgesJson = $judges->map(fn($j) => [
-            'id'           => $j->id,
-            'name'         => $j->name,
+        $judgesJson = $judges->map(fn ($j) => [
+            'id' => $j->id,
+            'name' => $j->name,
             'judge_number' => $j->judge_number ?? $j->id,
         ])->values();
 
-        $scoresJson = $scores->map(fn($s) => (float) $s->score);
+        $scoresJson = $scores->map(fn ($s) => (float) $s->score);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
-                'success'        => true,
-                'scores'         => $scoresJson,
-                'candidateTotals'=> $candidateTotals,
+                'success' => true,
+                'scores' => $scoresJson,
+                'candidateTotals' => $candidateTotals,
             ]);
         }
 
@@ -112,8 +114,8 @@ class CustomCategoryController extends Controller
         $validated = $request->validate([
             'category_key' => 'required|string|max:100',
             'candidate_id' => 'required|exists:candidates,id',
-            'judge_id'     => 'required|exists:users,id',
-            'score'        => 'required|numeric|min:1|max:10',
+            'judge_id' => 'required|exists:users,id',
+            'score' => 'required|numeric|min:1|max:10',
         ]);
 
         // Verify category exists
@@ -124,7 +126,7 @@ class CustomCategoryController extends Controller
         $scoreObj = CustomCategoryScore::updateOrCreate(
             [
                 'candidate_id' => $validated['candidate_id'],
-                'judge_id'     => $validated['judge_id'],
+                'judge_id' => $validated['judge_id'],
                 'category_key' => $validated['category_key'],
             ],
             ['score' => $validated['score']]
@@ -133,19 +135,19 @@ class CustomCategoryController extends Controller
         // Broadcast real-time event
         try {
             broadcast(new ScoreSubmitted(
-                'custom:' . $validated['category_key'],
+                'custom:'.$validated['category_key'],
                 (int) $validated['candidate_id'],
                 (int) $validated['judge_id'],
                 (float) $scoreObj->score,
                 'saved'
             ));
         } catch (\Throwable $e) {
-            Log::warning('Broadcast failed in CustomCategoryController: ' . $e->getMessage());
+            Log::warning('Broadcast failed in CustomCategoryController: '.$e->getMessage());
         }
 
         return response()->json([
             'success' => true,
-            'score'   => $scoreObj->score,
+            'score' => $scoreObj->score,
         ]);
     }
 
@@ -157,7 +159,7 @@ class CustomCategoryController extends Controller
         $validated = $request->validate([
             'category_key' => 'required|string|max:100',
             'candidate_id' => 'required|exists:candidates,id',
-            'judge_id'     => 'required|exists:users,id',
+            'judge_id' => 'required|exists:users,id',
         ]);
 
         CustomCategoryScore::where('candidate_id', $validated['candidate_id'])
@@ -167,14 +169,14 @@ class CustomCategoryController extends Controller
 
         try {
             broadcast(new ScoreSubmitted(
-                'custom:' . $validated['category_key'],
+                'custom:'.$validated['category_key'],
                 (int) $validated['candidate_id'],
                 (int) $validated['judge_id'],
                 null,
                 'reset'
             ));
         } catch (\Throwable $e) {
-            Log::warning('Broadcast failed in CustomCategoryController reset: ' . $e->getMessage());
+            Log::warning('Broadcast failed in CustomCategoryController reset: '.$e->getMessage());
         }
 
         return response()->json(['success' => true]);

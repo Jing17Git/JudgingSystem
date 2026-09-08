@@ -23,25 +23,44 @@
     </div>
 </div>
 
-{{-- Search Bar --}}
+{{-- Search & Filters --}}
 <div class="panel animate-fade-in-up mb-6">
     <div class="panel-body py-3">
-        <form action="{{ route('admin.candidates.index') }}" method="GET" class="flex items-center gap-3">
+        <form action="{{ route('admin.candidates.index') }}" method="GET" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <div class="relative flex-1">
-
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name or candidate number..." class="form-input pl-10">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name, candidate number, or department..." class="form-input">
             </div>
-            <button type="submit" class="btn btn-outline">Search</button>
-            @if(request('search'))
+
+            <div class="w-full sm:w-40">
+                <select name="gender" class="form-input text-sm">
+                    <option value="">All Genders</option>
+                    <option value="Male" {{ request('gender') === 'Male' ? 'selected' : '' }}>Male</option>
+                    <option value="Female" {{ request('gender') === 'Female' ? 'selected' : '' }}>Female</option>
+                </select>
+            </div>
+
+            @if(isset($departments) && $departments->isNotEmpty())
+            <div class="w-full sm:w-48">
+                <select name="origin" class="form-input text-sm">
+                    <option value="">All Departments</option>
+                    @foreach($departments as $dept)
+                        <option value="{{ $dept }}" {{ request('origin') === $dept ? 'selected' : '' }}>{{ $dept }}</option>
+                    @endforeach
+                </select>
+            </div>
+            @endif
+
+            <button type="submit" class="btn btn-outline">Filter</button>
+            @if(request('search') || request('gender') || request('origin'))
                 <a href="{{ route('admin.candidates.index') }}" class="btn btn-outline text-[var(--text-muted)]">Clear</a>
             @endif
         </form>
     </div>
 </div>
 
-@if(request('search'))
+@if(request('search') || request('gender') || request('origin'))
     <div class="mb-4 text-sm text-[var(--text-muted)]">
-        Showing results for "<strong class="text-[var(--text-primary)]">{{ request('search') }}</strong>" — {{ $candidates->total() }} {{ Str::plural('candidate', $candidates->total()) }} found
+        Showing filtered results — {{ $candidates->total() }} {{ Str::plural('candidate', $candidates->total()) }} found
     </div>
 @endif
 
@@ -81,7 +100,12 @@
                                 </div>
                             @endif
                         </td>
-                        <td class="font-medium text-[var(--text-primary)]">{{ $candidate->display_name }}</td>
+                        <td class="font-medium text-[var(--text-primary)]">
+                            <div>{{ $candidate->display_name }}</div>
+                            @if($candidate->origin)
+                                <span class="inline-block text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 mt-0.5">{{ $candidate->origin }}</span>
+                            @endif
+                        </td>
                         <td>
                             @if($candidate->gender === 'Male')
                                 <span class="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">♂ Male</span>

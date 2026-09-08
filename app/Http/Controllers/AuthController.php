@@ -17,7 +17,71 @@ class AuthController extends Controller
      */
     public function showLogin()
     {
+        if (Auth::check()) {
+            return $this->redirectByRole(Auth::user());
+        }
+
         return view('auth.login');
+    }
+
+    /**
+     * Show the dedicated Super Admin login form.
+     */
+    public function showSuperAdminLogin()
+    {
+        if (Auth::check() && Auth::user()->isSuperAdmin()) {
+            return redirect()->route('super-admin.dashboard');
+        }
+
+        return view('auth.super-admin-login');
+    }
+
+    /**
+     * Authenticate Super Admin user.
+     */
+    public function superAdminLogin(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        $loginField = filter_var($request->input('username'), FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        $credentials = [
+            $loginField => $request->input('username'),
+            'password' => $request->input('password'),
+            'is_active' => true,
+        ];
+
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            $user = Auth::user();
+            if (! $user->isSuperAdmin()) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors([
+                    'username' => 'Access denied. Only Super-Admin accounts are allowed on this portal.',
+                ])->withInput($request->only('username'));
+            }
+
+            $request->session()->regenerate();
+
+            return redirect()->route('super-admin.dashboard');
+        }
+
+        // Check if the account exists but is deactivated
+        $user = User::where($loginField, $request->input('username'))->first();
+        if ($user && ! $user->is_active) {
+            return back()->withErrors([
+                'username' => 'Your account has been deactivated. Please contact the administrator.',
+            ])->withInput($request->only('username'));
+        }
+
+        return back()->withErrors([
+            'username' => 'The provided credentials do not match our records.',
+        ])->withInput($request->only('username'));
     }
 
     /**
@@ -39,9 +103,22 @@ class AuthController extends Controller
         ];
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            $user = Auth::user();
+
+            // Prevent Super-Admin accounts from logging in via standard portal
+            if ($user->isSuperAdmin()) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors([
+                    'username' => 'Super-Admin accounts cannot log in here. Please use the Super-Admin portal.',
+                ])->withInput($request->only('username'));
+            }
+
             $request->session()->regenerate();
 
-            return $this->redirectByRole(Auth::user());
+            return $this->redirectByRole($user);
         }
 
         // Check if the account exists but is deactivated

@@ -76,34 +76,11 @@ class FinalOverallController extends Controller
             }
         }
 
-        // Select Top 5 Finalists per division based on preliminary results
-        $top5Male = $candidates->filter(fn ($c) => $c->gender === 'Male')
-            ->sort(function ($a, $b) use ($prelimTotals) {
-                $totA = $prelimTotals[$a->id] ?? 0;
-                $totB = $prelimTotals[$b->id] ?? 0;
-                if ($totA == $totB) {
-                    return $a->candidate_number <=> $b->candidate_number;
-                }
-
-                return $totB <=> $totA;
-            })
-            ->take(5)
-            ->values();
-
-        $top5Female = $candidates->filter(fn ($c) => $c->gender === 'Female')
-            ->sort(function ($a, $b) use ($prelimTotals) {
-                $totA = $prelimTotals[$a->id] ?? 0;
-                $totB = $prelimTotals[$b->id] ?? 0;
-                if ($totA == $totB) {
-                    return $a->candidate_number <=> $b->candidate_number;
-                }
-
-                return $totB <=> $totA;
-            })
-            ->take(5)
-            ->values();
-
-        $finalists = $top5Male->concat($top5Female);
+        // Select Top Finalists per division based on preliminary completion & results
+        $finalistsData = Candidate::getTopQualifiedFinalists();
+        $top5Male = $finalistsData['male'];
+        $top5Female = $finalistsData['female'];
+        $finalists = $finalistsData['all'];
 
         // 2. Fetch Q&A scores
         $qaScores = QaScore::all()->groupBy('candidate_id');
@@ -159,8 +136,8 @@ class FinalOverallController extends Controller
 
         $judgesJson = $judges->map(function ($j) {
             return [
-                'id'           => $j->id,
-                'name'         => $j->name,
+                'id' => $j->id,
+                'name' => $j->name,
                 'judge_number' => $j->judge_number ?? $j->id,
             ];
         })->values();

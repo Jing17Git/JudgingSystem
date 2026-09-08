@@ -368,7 +368,7 @@
     <div class="brand-mid">
       <div class="seal-row">
         <div class="brand-logo-wrap">
-          <img src="{{ asset('images/logo.png') }}" alt="CPSU Logo" class="brand-logo-img">
+          <img src="{{ asset(\App\Models\SiteSetting::get('site_logo', 'images/logo.png')) }}" alt="Logo" class="brand-logo-img">
         </div>
         <div class="seal-text">Central Philippines<br>State University</div>
       </div>
@@ -402,7 +402,7 @@
       </div>
       <div class="mobile-brand">
         <div class="brand-logo-wrap mobile">
-          <img src="{{ asset('images/logo.png') }}" alt="CPSU Logo" class="brand-logo-img">
+          <img src="{{ asset(\App\Models\SiteSetting::get('site_logo', 'images/logo.png')) }}" alt="Logo" class="brand-logo-img">
         </div>
         <h1>Create Password</h1>
         <p>Set a new secure password</p>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditRecord;
 use App\Models\Category;
 use App\Models\CriteriaSetting;
+use App\Models\CustomCategoryScore;
 use App\Models\Pageant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -18,7 +19,7 @@ class CategoryManagementController extends Controller
     private function getOrCreateDefaultPageant(): Pageant
     {
         $pageant = Pageant::first();
-        if (!$pageant) {
+        if (! $pageant) {
             $pageant = Pageant::create([
                 'name' => 'CPSU Judging Pageant 2026',
                 'description' => 'Official Campus Pageant Event',
@@ -27,6 +28,7 @@ class CategoryManagementController extends Controller
                 'status' => 'active',
             ]);
         }
+
         return $pageant;
     }
 
@@ -45,7 +47,7 @@ class CategoryManagementController extends Controller
                     'name' => $setting->name,
                 ],
                 [
-                    'description' => ucfirst($setting->stage) . ' Stage Judging Category',
+                    'description' => ucfirst($setting->stage).' Stage Judging Category',
                     'weight_percentage' => (float) $setting->percentage,
                     'sort_order' => $setting->sort_order,
                 ]
@@ -95,11 +97,11 @@ class CategoryManagementController extends Controller
         $validated['stage'] = 'preliminary';
 
         $key = Str::slug($validated['name']);
-        
+
         // Ensure unique key for stage
         $existingCount = CriteriaSetting::where('key', $key)->count();
         if ($existingCount > 0) {
-            $key = $key . '-' . rand(100, 999);
+            $key = $key.'-'.rand(100, 999);
         }
 
         $maxSort = CriteriaSetting::where('stage', $validated['stage'])->max('sort_order') ?? 0;
@@ -119,7 +121,7 @@ class CategoryManagementController extends Controller
         $category = Category::create([
             'pageant_id' => $pageant->id,
             'name' => $validated['name'],
-            'description' => ucfirst($validated['stage']) . ' Judging Category',
+            'description' => ucfirst($validated['stage']).' Judging Category',
             'weight_percentage' => (float) $validated['percentage'],
             'sort_order' => $maxSort + 1,
         ]);
@@ -136,7 +138,8 @@ class CategoryManagementController extends Controller
                 'ip_address' => $request->ip(),
                 'status' => 'success',
             ]);
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         return redirect()->route('admin.settings.categories')
             ->with('success', "Category '{$setting->name}' added successfully and activated for pre-judging.");
@@ -168,7 +171,8 @@ class CategoryManagementController extends Controller
                 'weight_percentage' => (float) $validated['percentage'],
                 'sort_order' => $validated['sort_order'] ?? $setting->sort_order,
             ]);
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         // Audit Log
         try {
@@ -182,7 +186,8 @@ class CategoryManagementController extends Controller
                 'ip_address' => $request->ip(),
                 'status' => 'success',
             ]);
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         return redirect()->route('admin.settings.categories')
             ->with('success', "Category '{$setting->name}' updated successfully.");
@@ -191,17 +196,28 @@ class CategoryManagementController extends Controller
     /**
      * Delete a category setting across both tables.
      */
-    public function destroy(CriteriaSetting $setting)
+    public function destroy(Request $request, $setting)
     {
-        $name = $setting->name;
-        $setting->delete();
+        $catSetting = $setting instanceof CriteriaSetting ? $setting : CriteriaSetting::findOrFail($setting);
+        $name = $catSetting->name;
+        $key = $catSetting->key;
 
-        // Delete from categories table as well
+        // 1. Delete associated custom category scores if any
+        try {
+            CustomCategoryScore::where('category_key', $key)->delete();
+        } catch (\Throwable $e) {
+        }
+
+        // 2. Delete from categories table
         try {
             Category::where('name', $name)->delete();
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
-        // Audit Log
+        // 3. Delete from criteria_settings table
+        $catSetting->delete();
+
+        // 4. Audit Log
         try {
             AuditRecord::create([
                 'event_type' => 'category_deleted',
@@ -209,15 +225,16 @@ class CategoryManagementController extends Controller
                 'user_id' => auth()->id(),
                 'user_name' => auth()->user()?->name ?? 'Admin',
                 'user_role' => auth()->user()?->role ?? 'admin',
-                'action_description' => "Deleted category '{$name}'",
-                'ip_address' => request()->ip(),
+                'action_description' => "Deleted category '{$name}' (key: {$key})",
+                'ip_address' => $request->ip(),
                 'status' => 'warning',
                 'risk_level' => 'warning',
             ]);
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         return redirect()->route('admin.settings.categories')
-            ->with('success', "Category '{$name}' deleted successfully.");
+            ->with('success', "Category '{$name}' was deleted successfully.");
     }
 
     /**
@@ -247,9 +264,10 @@ class CategoryManagementController extends Controller
                 // Also update categories table weight_percentage
                 try {
                     Category::where('name', $setting->name)->update([
-                        'weight_percentage' => (float) $percentage
+                        'weight_percentage' => (float) $percentage,
                     ]);
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
         }
 
@@ -265,9 +283,10 @@ class CategoryManagementController extends Controller
                 'ip_address' => $request->ip(),
                 'status' => 'success',
             ]);
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         return redirect()->route('admin.settings.categories')
-            ->with('success', ucfirst($validated['stage']) . " category percentage weights updated successfully!");
+            ->with('success', ucfirst($validated['stage']).' category percentage weights updated successfully!');
     }
 }
