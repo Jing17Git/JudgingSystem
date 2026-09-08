@@ -22,11 +22,11 @@ class JudgeCustomCategoryController extends Controller
             ->where('stage', 'preliminary')
             ->firstOrFail();
 
-        $judgeId    = Auth::id();
+        $judgeId = Auth::id();
         $candidates = Candidate::orderBy('candidate_number')->get();
 
-        $maleCandidates   = $candidates->filter(fn($c) => $c->gender === 'Male');
-        $femaleCandidates = $candidates->filter(fn($c) => $c->gender === 'Female');
+        $maleCandidates = $candidates->filter(fn ($c) => $c->gender === 'Male');
+        $femaleCandidates = $candidates->filter(fn ($c) => $c->gender === 'Female');
 
         // Load this judge's existing scores for this category
         $rawScores = CustomCategoryScore::where('judge_id', $judgeId)
@@ -50,7 +50,7 @@ class JudgeCustomCategoryController extends Controller
 
         // Pass the category_key so the judge scoring view knows to use custom routes
         $categoryName = $categorySetting->name;
-        $categorySlug = 'custom:' . $key;
+        $categorySlug = 'custom:'.$key;
 
         return view('judge.scoring.index', compact(
             'categoryName',

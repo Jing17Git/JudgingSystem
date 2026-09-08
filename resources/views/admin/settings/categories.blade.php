@@ -3,6 +3,17 @@
 @section('title', 'Manage Categories — Settings')
 
 @section('content')
+{{-- Hidden standalone percentage forms --}}
+<form id="form-prelim-percentages" action="{{ route('admin.settings.categories.percentages') }}" method="POST" style="display:none;">
+    @csrf
+    <input type="hidden" name="stage" value="preliminary">
+</form>
+
+<form id="form-final-percentages" action="{{ route('admin.settings.categories.percentages') }}" method="POST" style="display:none;">
+    @csrf
+    <input type="hidden" name="stage" value="final">
+</form>
+
 <div x-data="{ activeStage: 'preliminary', showAddModal: false, editModal: false, activeEdit: {} }" class="space-y-6">
     {{-- Page Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -33,6 +44,11 @@
 
     {{-- Navigation Tabs between Settings Sections --}}
     <div class="flex flex-nowrap overflow-x-auto items-center gap-2 border-b border-[var(--border-default)] pb-3 hide-scrollbar">
+        <a href="{{ route('admin.settings.categories') }}"
+           class="px-4 py-2 rounded-xl text-sm font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-2 shadow-sm whitespace-nowrap">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+            Manage Categories
+        </a>
         <a href="{{ route('admin.settings.preliminary') }}"
            class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2 whitespace-nowrap">
             <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
@@ -42,11 +58,6 @@
            class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2 whitespace-nowrap">
             <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
             Final Criteria
-        </a>
-        <a href="{{ route('admin.settings.categories') }}"
-           class="px-4 py-2 rounded-xl text-sm font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-2 shadow-sm whitespace-nowrap">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
-            Manage Categories
         </a>
         <a href="{{ route('admin.settings.judge-scores') }}"
            class="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-gray-100 transition-colors flex items-center gap-2 whitespace-nowrap">
@@ -72,21 +83,21 @@
 
     {{-- Stage Selector Tabs --}}
     <div class="flex border-b border-[var(--border-default)]">
-        <button @click="activeStage = 'preliminary'" 
+        <button @click="activeStage = 'preliminary'"
                 :class="activeStage === 'preliminary' ? 'border-emerald-600 text-emerald-700 font-bold border-b-2' : 'text-[var(--text-muted)] font-medium'"
                 class="px-6 py-3 text-sm flex items-center gap-2 transition-colors cursor-pointer">
             <span>✨ Preliminary Stage</span>
             <span class="px-2 py-0.5 text-xs rounded-full bg-emerald-100 text-emerald-800 font-mono font-bold">{{ $preliminaryTotal }}%</span>
         </button>
 
-        <button @click="activeStage = 'final'" 
+        <button @click="activeStage = 'final'"
                 :class="activeStage === 'final' ? 'border-emerald-600 text-emerald-700 font-bold border-b-2' : 'text-[var(--text-muted)] font-medium'"
                 class="px-6 py-3 text-sm flex items-center gap-2 transition-colors cursor-pointer">
             <span>🏆 Final Stage</span>
             <span class="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800 font-mono font-bold">{{ $finalTotal }}%</span>
         </button>
 
-        <button @click="activeStage = 'categories_table'" 
+        <button @click="activeStage = 'categories_table'"
                 :class="activeStage === 'categories_table' ? 'border-emerald-600 text-emerald-700 font-bold border-b-2' : 'text-[var(--text-muted)] font-medium'"
                 class="px-6 py-3 text-sm flex items-center gap-2 transition-colors cursor-pointer">
             <span>🗄️ Categories DB Table</span>
@@ -94,7 +105,7 @@
         </button>
     </div>
 
-    {{-- Preliminary Stage Panel --}}
+    {{-- ===================== PRELIMINARY STAGE PANEL ===================== --}}
     <div x-show="activeStage === 'preliminary'" class="space-y-6">
         {{-- Total Weight Status Banner --}}
         <div class="panel p-4 flex flex-col sm:flex-row items-center justify-between gap-4 {{ abs($preliminaryTotal - 100) < 0.01 ? 'bg-emerald-50/70 border-emerald-200' : 'bg-amber-50/70 border-amber-200' }}">
@@ -116,14 +127,11 @@
             </div>
         </div>
 
-        {{-- Categories Table & Form --}}
-        <form action="{{ route('admin.settings.categories.percentages') }}" method="POST" class="panel">
-            @csrf
-            <input type="hidden" name="stage" value="preliminary">
-            
+        {{-- Categories Table (clean panel, NOT a form wrapper) --}}
+        <div class="panel">
             <div class="panel-header flex items-center justify-between">
                 <h3 class="panel-title">Preliminary Judging Categories</h3>
-                <button type="submit" class="btn btn-green btn-sm">Save Percentages</button>
+                <button type="submit" form="form-prelim-percentages" class="btn btn-green btn-sm">💾 Save Percentages</button>
             </div>
 
             <div class="overflow-x-auto">
@@ -141,33 +149,37 @@
                         @forelse($preliminarySettings as $setting)
                             <tr>
                                 <td class="font-mono font-medium text-[var(--text-muted)]">#{{ $setting->sort_order }}</td>
-                                <td>
-                                    <span class="font-bold text-[var(--text-primary)]">{{ $setting->name }}</span>
-                                </td>
-                                <td>
-                                    <span class="badge badge-info font-mono text-[11px]">{{ $setting->key }}</span>
-                                </td>
+                                <td><span class="font-bold text-[var(--text-primary)]">{{ $setting->name }}</span></td>
+                                <td><span class="badge badge-info font-mono text-[11px]">{{ $setting->key }}</span></td>
                                 <td>
                                     <div class="flex items-center gap-2">
-                                        <input type="number" 
-                                               name="percentages[{{ $setting->key }}]" 
-                                               value="{{ (int) $setting->percentage }}" 
-                                               min="0" max="100" 
+                                        <input type="number"
+                                               form="form-prelim-percentages"
+                                               name="percentages[{{ $setting->key }}]"
+                                               value="{{ (int) $setting->percentage }}"
+                                               min="0" max="100"
                                                class="form-input w-24 font-mono font-bold text-center py-1">
                                         <span class="text-xs text-[var(--text-muted)] font-bold">%</span>
                                     </div>
                                 </td>
                                 <td class="text-right">
                                     <div class="flex items-center justify-end gap-2">
-                                        <button type="button" 
-                                                @click="editModal = true; activeEdit = { id: '{{ $setting->id }}', name: '{{ $setting->name }}', percentage: '{{ $setting->percentage }}', sort_order: '{{ $setting->sort_order }}' }"
+                                        <button type="button"
+                                                @click="editModal = true; activeEdit = { id: '{{ $setting->id }}', name: '{{ addslashes($setting->name) }}', percentage: '{{ $setting->percentage }}', sort_order: '{{ $setting->sort_order }}' }"
                                                 class="btn btn-outline btn-sm text-blue-600 border-blue-200 hover:bg-blue-50">
-                                            Edit
+                                            ✏️ Edit
                                         </button>
-                                        <form action="{{ route('admin.settings.categories.destroy', $setting->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete category {{ $setting->name }}?');">
+
+                                        {{-- Independent, native Delete form --}}
+                                        <form action="{{ route('admin.settings.categories.destroy', $setting->id) }}"
+                                              method="POST"
+                                              onsubmit="return confirm('Are you sure you want to permanently delete category \'{{ addslashes($setting->name) }}\'? This will remove it from scoring tables.');"
+                                              class="inline-block m-0 p-0">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                🗑 Delete
+                                            </button>
                                         </form>
                                     </div>
                                 </td>
@@ -175,17 +187,17 @@
                         @empty
                             <tr>
                                 <td colspan="5" class="py-8 text-center text-[var(--text-muted)]">
-                                    No preliminary categories configured.
+                                    No preliminary categories configured. Click <strong>Add Category</strong> to create one.
                                 </td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
-        </form>
+        </div>
     </div>
 
-    {{-- Final Stage Panel --}}
+    {{-- ===================== FINAL STAGE PANEL ===================== --}}
     <div x-show="activeStage === 'final'" class="space-y-6">
         {{-- Total Weight Status Banner --}}
         <div class="panel p-4 flex flex-col sm:flex-row items-center justify-between gap-4 {{ abs($finalTotal - 100) < 0.01 ? 'bg-emerald-50/70 border-emerald-200' : 'bg-amber-50/70 border-amber-200' }}">
@@ -207,14 +219,11 @@
             </div>
         </div>
 
-        {{-- Categories Table & Form --}}
-        <form action="{{ route('admin.settings.categories.percentages') }}" method="POST" class="panel">
-            @csrf
-            <input type="hidden" name="stage" value="final">
-            
+        {{-- Final Categories Table --}}
+        <div class="panel">
             <div class="panel-header flex items-center justify-between">
                 <h3 class="panel-title">Final Judging Stage Weights</h3>
-                <button type="submit" class="btn btn-green btn-sm">Save Percentages</button>
+                <button type="submit" form="form-final-percentages" class="btn btn-green btn-sm">💾 Save Percentages</button>
             </div>
 
             <div class="overflow-x-auto">
@@ -232,33 +241,37 @@
                         @forelse($finalSettings as $setting)
                             <tr>
                                 <td class="font-mono font-medium text-[var(--text-muted)]">#{{ $setting->sort_order }}</td>
-                                <td>
-                                    <span class="font-bold text-[var(--text-primary)]">{{ $setting->name }}</span>
-                                </td>
-                                <td>
-                                    <span class="badge badge-info font-mono text-[11px]">{{ $setting->key }}</span>
-                                </td>
+                                <td><span class="font-bold text-[var(--text-primary)]">{{ $setting->name }}</span></td>
+                                <td><span class="badge badge-info font-mono text-[11px]">{{ $setting->key }}</span></td>
                                 <td>
                                     <div class="flex items-center gap-2">
-                                        <input type="number" 
-                                               name="percentages[{{ $setting->key }}]" 
-                                               value="{{ (int) $setting->percentage }}" 
-                                               min="0" max="100" 
+                                        <input type="number"
+                                               form="form-final-percentages"
+                                               name="percentages[{{ $setting->key }}]"
+                                               value="{{ (int) $setting->percentage }}"
+                                               min="0" max="100"
                                                class="form-input w-24 font-mono font-bold text-center py-1">
                                         <span class="text-xs text-[var(--text-muted)] font-bold">%</span>
                                     </div>
                                 </td>
                                 <td class="text-right">
                                     <div class="flex items-center justify-end gap-2">
-                                        <button type="button" 
-                                                @click="editModal = true; activeEdit = { id: '{{ $setting->id }}', name: '{{ $setting->name }}', percentage: '{{ $setting->percentage }}', sort_order: '{{ $setting->sort_order }}' }"
+                                        <button type="button"
+                                                @click="editModal = true; activeEdit = { id: '{{ $setting->id }}', name: '{{ addslashes($setting->name) }}', percentage: '{{ $setting->percentage }}', sort_order: '{{ $setting->sort_order }}' }"
                                                 class="btn btn-outline btn-sm text-blue-600 border-blue-200 hover:bg-blue-50">
-                                            Edit
+                                            ✏️ Edit
                                         </button>
-                                        <form action="{{ route('admin.settings.categories.destroy', $setting->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete category {{ $setting->name }}?');">
+
+                                        {{-- Independent, native Delete form --}}
+                                        <form action="{{ route('admin.settings.categories.destroy', $setting->id) }}"
+                                              method="POST"
+                                              onsubmit="return confirm('Are you sure you want to permanently delete category \'{{ addslashes($setting->name) }}\'?');"
+                                              class="inline-block m-0 p-0">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                🗑 Delete
+                                            </button>
                                         </form>
                                     </div>
                                 </td>
@@ -273,10 +286,10 @@
                     </tbody>
                 </table>
             </div>
-        </form>
+        </div>
     </div>
 
-    {{-- Categories DB Table Panel --}}
+    {{-- ===================== CATEGORIES DB TABLE PANEL ===================== --}}
     <div x-show="activeStage === 'categories_table'" class="panel space-y-4">
         <div class="panel-header flex items-center justify-between">
             <div>
@@ -326,18 +339,18 @@
         </div>
     </div>
 
-    {{-- Add Category Modal --}}
+    {{-- ===================== ADD CATEGORY MODAL ===================== --}}
     <div x-show="showAddModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs" style="display: none;">
         <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-[var(--border-default)]">
             <h3 class="text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                 <span>➕</span> Add New Category
             </h3>
-            
+
             <form action="{{ route('admin.settings.categories.store') }}" method="POST" class="space-y-4">
                 @csrf
                 <div>
                     <label class="form-label">Category Name</label>
-                    <input type="text" name="name" placeholder="e.g. Swimwear & Fitness" class="form-input" required>
+                    <input type="text" name="name" placeholder="e.g. Talent Showcase" class="form-input" required autofocus>
                 </div>
 
                 <div>
@@ -355,9 +368,10 @@
                 <div>
                     <label class="form-label">Initial Weight Percentage (%)</label>
                     <input type="number" name="percentage" min="0" max="100" value="10" class="form-input font-mono font-bold" required>
+                    <p class="text-xs text-[var(--text-muted)] mt-1">You can adjust the percentage after adding via "Save Percentages".</p>
                 </div>
 
-                <div class="flex items-center justify-end gap-3 pt-3">
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
                     <button type="button" @click="showAddModal = false" class="btn btn-outline">Cancel</button>
                     <button type="submit" class="btn btn-green">Create Category</button>
                 </div>
@@ -365,13 +379,13 @@
         </div>
     </div>
 
-    {{-- Edit Category Modal --}}
+    {{-- ===================== EDIT CATEGORY MODAL ===================== --}}
     <div x-show="editModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs" style="display: none;">
         <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-[var(--border-default)]">
             <h3 class="text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                 <span>✏️</span> Edit Category
             </h3>
-            
+
             <form :action="'{{ url('/admin/settings/categories') }}/' + activeEdit.id" method="POST" class="space-y-4">
                 @csrf
                 @method('PUT')
@@ -391,7 +405,7 @@
                     <input type="number" name="sort_order" min="1" x-model="activeEdit.sort_order" class="form-input font-mono">
                 </div>
 
-                <div class="flex items-center justify-end gap-3 pt-3">
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
                     <button type="button" @click="editModal = false" class="btn btn-outline">Cancel</button>
                     <button type="submit" class="btn btn-green">Save Changes</button>
                 </div>

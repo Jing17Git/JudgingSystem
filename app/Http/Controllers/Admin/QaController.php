@@ -5,13 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Events\ScoreSubmitted;
 use App\Http\Controllers\Controller;
 use App\Models\Candidate;
-use App\Models\CriteriaSetting;
-use App\Models\FitnessScore;
-use App\Models\IndigenousAttireScore;
-use App\Models\ProductionScore;
 use App\Models\QaQuestion;
 use App\Models\QaScore;
-use App\Models\TraditionalAttireScore;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -32,88 +27,13 @@ class QaController extends Controller
         $judgeCount = $judges->count();
         $judgeIds = $judges->pluck('id')->toArray();
 
-        $allCandidates = Candidate::all();
+        $allCandidates = Candidate::orderBy('candidate_number')->get();
 
-        // Load all pre-judging scores keyed by candidate_id_judge_id
-        $prodScoresKeyed = ProductionScore::all()->keyBy(fn ($s) => $s->candidate_id.'_'.$s->judge_id);
-        $fitScoresKeyed = FitnessScore::all()->keyBy(fn ($s) => $s->candidate_id.'_'.$s->judge_id);
-        $tradScoresKeyed = TraditionalAttireScore::all()->keyBy(fn ($s) => $s->candidate_id.'_'.$s->judge_id);
-        $indigScoresKeyed = IndigenousAttireScore::all()->keyBy(fn ($s) => $s->candidate_id.'_'.$s->judge_id);
-
-        // Only keep candidates fully scored by ALL judges in ALL 4 categories
-        $fullyScored = $allCandidates->filter(function ($c) use ($judgeIds, $prodScoresKeyed, $fitScoresKeyed, $tradScoresKeyed, $indigScoresKeyed) {
-            if (empty($judgeIds)) {
-                return false;
-            }
-            foreach ($judgeIds as $jid) {
-                $key = $c->id.'_'.$jid;
-                if (
-                    ! isset($prodScoresKeyed[$key]) ||
-                    ! isset($fitScoresKeyed[$key]) ||
-                    ! isset($tradScoresKeyed[$key]) ||
-                    ! isset($indigScoresKeyed[$key])
-                ) {
-                    return false;
-                }
-            }
-
-            return true;
-        });
-
-        // Calculate Pre-Judging weighted totals based on criteria percentages
-        $weights = CriteriaSetting::getPercentageMap();
-        $prodWeight = (float) ($weights['production'] ?? 25.0);
-        $fitWeight = (float) ($weights['fitness'] ?? 25.0);
-        $tradWeight = (float) ($weights['traditional_attire'] ?? 25.0);
-        $indigWeight = (float) ($weights['indigenous_attire'] ?? 25.0);
-
-        $preJudgingTotals = [];
-        foreach ($fullyScored as $c) {
-            $pSum = 0;
-            $fSum = 0;
-            $tSum = 0;
-            $iSum = 0;
-            foreach ($judgeIds as $jid) {
-                $key = $c->id.'_'.$jid;
-                $pSum += (float) $prodScoresKeyed[$key]->score;
-                $fSum += (float) $fitScoresKeyed[$key]->score;
-                $tSum += (float) $tradScoresKeyed[$key]->score;
-                $iSum += (float) $indigScoresKeyed[$key]->score;
-            }
-            $pAvg = $judgeCount > 0 ? $pSum / $judgeCount : 0;
-            $fAvg = $judgeCount > 0 ? $fSum / $judgeCount : 0;
-            $tAvg = $judgeCount > 0 ? $tSum / $judgeCount : 0;
-            $iAvg = $judgeCount > 0 ? $iSum / $judgeCount : 0;
-
-            $preJudgingTotals[$c->id] = ($pAvg * $prodWeight / 100.0)
-                                      + ($fAvg * $fitWeight / 100.0)
-                                      + ($tAvg * $tradWeight / 100.0)
-                                      + ($iAvg * $indigWeight / 100.0);
-        }
-
-        $sortFn = function ($a, $b) use ($preJudgingTotals) {
-            $totA = $preJudgingTotals[$a->id] ?? 0;
-            $totB = $preJudgingTotals[$b->id] ?? 0;
-            if ($totA == $totB) {
-                return $a->candidate_number <=> $b->candidate_number;
-            }
-
-            return $totB <=> $totA;
-        };
-
-        // Pull Top 5 Male & Female Finalists — only from fully-scored candidates
-        $top5Male = $fullyScored->filter(fn ($c) => $c->gender === 'Male')
-            ->sort($sortFn)
-            ->take(5)
-            ->values();
-
-        $top5Female = $fullyScored->filter(fn ($c) => $c->gender === 'Female')
-            ->sort($sortFn)
-            ->take(5)
-            ->values();
-
-        // Combine Top 5 finalists
-        $finalists = $top5Male->concat($top5Female);
+        // Pull Top Qualified Finalists — dynamically calculated from preliminary completion & scores
+        $topFinalists = Candidate::getTopQualifiedFinalists();
+        $top5Male = $topFinalists['male'];
+        $top5Female = $topFinalists['female'];
+        $finalists = $topFinalists['all'];
 
         // Load Q&A scores
         $scores = QaScore::all()->keyBy(function ($s) {
@@ -190,6 +110,18 @@ class QaController extends Controller
             'judge_id' => 'required|exists:users,id',
             'score' => 'required|numeric|min:1|max:10',
         ]);
+
+        $qualifiedIds = Candidate::getTop5QualifiedIds();
+        if (! in_array((int) $validated['candidate_id'], $qualifiedIds, true)) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Candidate is not qualified for Q&A (Top 5 only).',
+                ], 422);
+            }
+
+            return redirect()->back()->withErrors(['candidate_id' => 'Candidate is not qualified for Q&A (Top 5 only).']);
+        }
 
         $qaScore = QaScore::updateOrCreate(
             [

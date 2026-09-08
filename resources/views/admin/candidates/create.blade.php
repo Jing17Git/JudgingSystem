@@ -98,6 +98,14 @@
                     @enderror
                 </div>
 
+                <div class="form-group">
+                    <label for="origin" class="form-label">Department / Course</label>
+                    <input type="text" id="origin" name="origin" class="form-input @error('origin') border-[var(--danger)] @enderror" value="{{ old('origin') }}" placeholder="e.g. BSIT, BSAB, BEED">
+                    @error('origin')
+                        <p class="form-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 {{-- Photo Upload & Crop Section --}}
                 <div class="form-group">
                     <label for="picture" class="form-label flex items-center justify-between">

@@ -7,7 +7,6 @@ use App\Models\AuditRecord;
 use App\Models\Candidate;
 use App\Models\Pageant;
 use App\Models\User;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class SuperAdminDashboardController extends Controller

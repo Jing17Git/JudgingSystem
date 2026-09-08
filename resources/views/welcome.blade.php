@@ -376,20 +376,20 @@
   <header>
     <div class="app-container" style="padding:0;">
       <nav class="nav-bar">
-        {{-- Brand --}}
-        <a href="{{ route('home') }}" class="brand-group" aria-label="CrownScore Home">
+        {{-- Brand Logo -> Super Admin Dedicated Login Portal --}}
+        <a href="{{ route('super-admin.login') }}" class="brand-group" title="Super-Admin Portal" aria-label="Super-Admin Login Portal">
           <div class="brand-logo-wrap">
-            <img src="{{ asset('images/logo.png') }}" alt="CPSU CrownScore Logo" class="brand-logo-img">
+            <img src="{{ asset(\App\Models\SiteSetting::get('site_logo', 'images/logo.png')) }}" alt="Logo" class="brand-logo-img">
           </div>
           <div class="brand-text">
-            <div class="brand-title">CrownScore</div>
-            <div class="brand-subtitle">Pageant Judging System</div>
+            <div class="brand-title">{{ \App\Models\SiteSetting::get('site_name', 'CrownScore') }}</div>
+            <div class="brand-subtitle">{{ \App\Models\SiteSetting::get('site_tagline', 'Pageant Judging System') }}</div>
           </div>
         </a>
 
         {{-- Right Login Pill Button --}}
         <div>
-          <a href="{{ route('login') }}" class="btn-pill-login" aria-label="Login to CrownScore">
+          <a href="{{ route('login') }}" class="btn-pill-login" aria-label="Login">
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
             </svg>
@@ -411,23 +411,22 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l3.5 3L12 5l5.5 6L21 8l-1.6 9.5a1 1 0 01-1 .8H5.6a1 1 0 01-1-.8L3 8z"/>
           </svg>
-          Fair. Transparent. Real-Time.
+          {{ \App\Models\SiteSetting::get('hero_badge_text', 'Fair. Transparent. Real-Time.') }}
         </div>
 
         {{-- Headline --}}
         <h1 class="hero-headline">
-          Where Excellence<br>
-          Meets the <span class="accent-crown">Crown.</span>
+          {!! nl2br(e(\App\Models\SiteSetting::get('hero_headline', "Where Excellence\nMeets the Crown."))) !!}
         </h1>
 
         {{-- Subtitle --}}
         <p class="hero-description">
-          CrownScore is a web-based real-time pageant judging and tabulation system built for accuracy, fairness, and speed.
+          {{ \App\Models\SiteSetting::get('hero_description', 'CrownScore is a web-based real-time pageant judging and tabulation system built for accuracy, fairness, and speed.') }}
         </p>
 
         {{-- Credit --}}
         <p class="hero-credits">
-          Made by <strong>Team MISO.</strong>
+          {{ \App\Models\SiteSetting::get('hero_credits', 'Made by Team MISO.') }}
         </p>
 
         {{-- 3 Mini Feature Cards --}}
@@ -439,8 +438,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
               </svg>
             </div>
-            <div class="mini-feature-title">Real-Time Scoring</div>
-            <div class="mini-feature-text">Instant, accurate results as it happens.</div>
+            <div class="mini-feature-title">{{ \App\Models\SiteSetting::get('feature_1_title', 'Real-Time Scoring') }}</div>
+            <div class="mini-feature-text">{{ \App\Models\SiteSetting::get('feature_1_text', 'Instant, accurate results as it happens.') }}</div>
           </div>
 
           {{-- Feature 2 --}}
@@ -450,8 +449,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
               </svg>
             </div>
-            <div class="mini-feature-title">Secure &amp; Reliable</div>
-            <div class="mini-feature-text">Your data is safe with enterprise-grade security.</div>
+            <div class="mini-feature-title">{{ \App\Models\SiteSetting::get('feature_2_title', 'Secure & Reliable') }}</div>
+            <div class="mini-feature-text">{{ \App\Models\SiteSetting::get('feature_2_text', 'Your data is safe with enterprise-grade security.') }}</div>
           </div>
 
           {{-- Feature 3 --}}
@@ -461,8 +460,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
             </div>
-            <div class="mini-feature-title">Transparent Results</div>
-            <div class="mini-feature-text">Clear, auditable, and built for fairness.</div>
+            <div class="mini-feature-title">{{ \App\Models\SiteSetting::get('feature_3_title', 'Transparent Results') }}</div>
+            <div class="mini-feature-text">{{ \App\Models\SiteSetting::get('feature_3_text', 'Clear, auditable, and built for fairness.') }}</div>
           </div>
         </div>
 
@@ -471,8 +470,8 @@
       {{-- Right Hero Column (Stage Image) --}}
       <div class="hero-right">
         <div class="stage-image-container">
-          <img src="{{ asset('images/pageant_stage_hero.png') }}" 
-               alt="CrownScore Grand Pageant Stage" 
+          <img src="{{ asset(\App\Models\SiteSetting::get('hero_image', 'images/pageant_stage_hero.png')) }}" 
+               alt="Hero Stage Image" 
                class="stage-image"
                onerror="this.src='https://images.unsplash.com/photo-1580889240911-931ce4dfa11e?w=900&q=80'">
         </div>

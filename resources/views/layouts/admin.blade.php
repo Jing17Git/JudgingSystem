@@ -18,9 +18,9 @@
     <aside :class="sidebarOpen ? 'open' : ''" class="sidebar flex flex-col lg:translate-x-0">
         {{-- Logo area --}}
         <div class="flex items-center gap-3 px-5 py-5 border-b border-[var(--border-default)]">
-            <img src="{{ asset('images/logo.png') }}" alt="CPSU Logo" class="w-10 h-10 object-contain drop-shadow-sm flex-shrink-0">
+            <img src="{{ asset(\App\Models\SiteSetting::get('site_logo', 'images/logo.png')) }}" alt="Logo" class="w-10 h-10 object-contain drop-shadow-sm flex-shrink-0">
             <div>
-                <h1 class="text-sm font-bold text-[var(--text-primary)] leading-tight">JudgingSystem</h1>
+                <h1 class="text-sm font-bold text-[var(--text-primary)] leading-tight">{{ \App\Models\SiteSetting::get('site_name', 'JudgingSystem') }}</h1>
                 <p class="text-xs text-[var(--text-muted)]">Admin Panel</p>
             </div>
         </div>

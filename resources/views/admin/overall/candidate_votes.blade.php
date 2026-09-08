@@ -87,7 +87,7 @@
 {{-- Printable Document Header --}}
 <div class="print-header">
     <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 8px;">
-        <img src="{{ asset('images/logo.png') }}" style="width: 55px; height: 55px; object-fit: contain;">
+        <img src="{{ asset(\App\Models\SiteSetting::get('site_logo', 'images/logo.png')) }}" style="width: 55px; height: 55px; object-fit: contain;">
         <div style="text-align: center;">
             <h1 style="font-size: 17pt; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 0.02em;">Official Judge Tabulation &amp; Vote Sheet</h1>
             <p style="font-size: 11pt; margin: 2px 0 0; color: #374151; font-weight: 600;">Central Philippines State University — Pageant Tabulation System</p>

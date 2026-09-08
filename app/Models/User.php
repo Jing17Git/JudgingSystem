@@ -59,7 +59,7 @@ class User extends Authenticatable
      */
     public function getJudgeNumberDisplayAttribute(): string
     {
-        return 'Judge ' . ($this->judge_number ?? $this->id);
+        return 'Judge '.($this->judge_number ?? $this->id);
     }
 
     /**

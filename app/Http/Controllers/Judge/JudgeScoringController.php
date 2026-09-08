@@ -5,14 +5,12 @@ namespace App\Http\Controllers\Judge;
 use App\Events\ScoreSubmitted;
 use App\Http\Controllers\Controller;
 use App\Models\Candidate;
-use App\Models\CriteriaSetting;
 use App\Models\CustomCategoryScore;
 use App\Models\FitnessScore;
 use App\Models\IndigenousAttireScore;
 use App\Models\ProductionScore;
 use App\Models\QaScore;
 use App\Models\TraditionalAttireScore;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -51,86 +49,9 @@ class JudgeScoringController extends Controller
         }
 
         if (in_array($categorySlug, ['qa', 'qanda'])) {
-            $weights = CriteriaSetting::getPercentageMap();
-            $prodWeight = (float) ($weights['production'] ?? 25.0);
-            $fitWeight = (float) ($weights['fitness'] ?? 25.0);
-            $tradWeight = (float) ($weights['traditional_attire'] ?? 25.0);
-            $indigWeight = (float) ($weights['indigenous_attire'] ?? 25.0);
-
-            $activeJudges = User::where('role', 'judge')->where('is_active', true)->get();
-            $judgeCount = $activeJudges->count();
-            $judgeIds = $activeJudges->pluck('id')->toArray();
-
-            // Load all pre-judging scores keyed by candidate_id_judge_id
-            $prodScoresKeyed = ProductionScore::all()->keyBy(fn ($s) => $s->candidate_id.'_'.$s->judge_id);
-            $fitScoresKeyed = FitnessScore::all()->keyBy(fn ($s) => $s->candidate_id.'_'.$s->judge_id);
-            $tradScoresKeyed = TraditionalAttireScore::all()->keyBy(fn ($s) => $s->candidate_id.'_'.$s->judge_id);
-            $indigScoresKeyed = IndigenousAttireScore::all()->keyBy(fn ($s) => $s->candidate_id.'_'.$s->judge_id);
-
-            // Only keep candidates fully scored by ALL judges in ALL 4 categories
-            $fullyScored = $candidates->filter(function ($c) use ($judgeIds, $prodScoresKeyed, $fitScoresKeyed, $tradScoresKeyed, $indigScoresKeyed) {
-                if (empty($judgeIds)) {
-                    return false;
-                }
-                foreach ($judgeIds as $jid) {
-                    $key = $c->id.'_'.$jid;
-                    if (
-                        ! isset($prodScoresKeyed[$key]) ||
-                        ! isset($fitScoresKeyed[$key]) ||
-                        ! isset($tradScoresKeyed[$key]) ||
-                        ! isset($indigScoresKeyed[$key])
-                    ) {
-                        return false;
-                    }
-                }
-
-                return true;
-            });
-
-            // Compute combined pre-judging weighted totals for fully-scored candidates
-            $preJudgingTotals = [];
-            foreach ($fullyScored as $c) {
-                $pSum = 0;
-                $fSum = 0;
-                $tSum = 0;
-                $iSum = 0;
-                foreach ($judgeIds as $jid) {
-                    $key = $c->id.'_'.$jid;
-                    $pSum += (float) $prodScoresKeyed[$key]->score;
-                    $fSum += (float) $fitScoresKeyed[$key]->score;
-                    $tSum += (float) $tradScoresKeyed[$key]->score;
-                    $iSum += (float) $indigScoresKeyed[$key]->score;
-                }
-                $pAvg = $judgeCount > 0 ? $pSum / $judgeCount : 0;
-                $fAvg = $judgeCount > 0 ? $fSum / $judgeCount : 0;
-                $tAvg = $judgeCount > 0 ? $tSum / $judgeCount : 0;
-                $iAvg = $judgeCount > 0 ? $iSum / $judgeCount : 0;
-
-                $preJudgingTotals[$c->id] = ($pAvg * $prodWeight / 100.0)
-                                          + ($fAvg * $fitWeight / 100.0)
-                                          + ($tAvg * $tradWeight / 100.0)
-                                          + ($iAvg * $indigWeight / 100.0);
-            }
-
-            $sortFn = function ($a, $b) use ($preJudgingTotals) {
-                $totA = $preJudgingTotals[$a->id] ?? 0;
-                $totB = $preJudgingTotals[$b->id] ?? 0;
-                if ($totA == $totB) {
-                    return $a->candidate_number <=> $b->candidate_number;
-                }
-
-                return $totB <=> $totA;
-            };
-
-            $maleCandidates = $fullyScored->filter(fn ($c) => $c->gender === 'Male')
-                ->sort($sortFn)
-                ->take(5)
-                ->values();
-
-            $femaleCandidates = $fullyScored->filter(fn ($c) => $c->gender === 'Female')
-                ->sort($sortFn)
-                ->take(5)
-                ->values();
+            $topFinalists = Candidate::getTopQualifiedFinalists();
+            $maleCandidates = $topFinalists['male'];
+            $femaleCandidates = $topFinalists['female'];
         } else {
             $maleCandidates = $candidates->filter(fn ($c) => $c->gender === 'Male');
             $femaleCandidates = $candidates->filter(fn ($c) => $c->gender === 'Female');
@@ -243,6 +164,16 @@ class JudgeScoringController extends Controller
             'score' => 'required|numeric|min:1|max:10',
         ]);
 
+        if (in_array($validated['category'], ['qa', 'qanda'], true)) {
+            $qualifiedIds = Candidate::getTop5QualifiedIds();
+            if (! in_array((int) $validated['candidate_id'], $qualifiedIds, true)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Candidate is not qualified for Q&A (Top 5 only).',
+                ], 422);
+            }
+        }
+
         $judgeId = Auth::id();
 
         // Handle dynamic custom categories
@@ -251,7 +182,7 @@ class JudgeScoringController extends Controller
             $scoreObj = CustomCategoryScore::updateOrCreate(
                 [
                     'candidate_id' => $validated['candidate_id'],
-                    'judge_id'     => $judgeId,
+                    'judge_id' => $judgeId,
                     'category_key' => $catKey,
                 ],
                 ['score' => $validated['score']]
@@ -266,13 +197,13 @@ class JudgeScoringController extends Controller
                     'saved'
                 ));
             } catch (\Throwable $e) {
-                Log::warning('Real-time score broadcast failed: ' . $e->getMessage());
+                Log::warning('Real-time score broadcast failed: '.$e->getMessage());
             }
 
             return response()->json([
-                'success'      => true,
-                'message'      => 'Score submitted successfully!',
-                'score'        => number_format((float) $scoreObj->score, 2),
+                'success' => true,
+                'message' => 'Score submitted successfully!',
+                'score' => number_format((float) $scoreObj->score, 2),
                 'candidate_id' => $validated['candidate_id'],
             ]);
         }
@@ -343,12 +274,12 @@ class JudgeScoringController extends Controller
                     'reset'
                 ));
             } catch (\Throwable $e) {
-                Log::warning('Real-time score reset broadcast failed: ' . $e->getMessage());
+                Log::warning('Real-time score reset broadcast failed: '.$e->getMessage());
             }
 
             return response()->json([
-                'success'      => true,
-                'message'      => 'Score reset successfully!',
+                'success' => true,
+                'message' => 'Score reset successfully!',
                 'candidate_id' => $validated['candidate_id'],
             ]);
         }

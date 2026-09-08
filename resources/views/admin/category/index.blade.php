@@ -332,6 +332,11 @@
             text.className = 'font-semibold text-xs text-emerald-700';
             text.textContent = '⚡ Real-Time Connected';
             stopFallbackPolling();
+        } else if (status === 'connecting') {
+            dot.className  = 'inline-block w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping';
+            text.className = 'font-semibold text-xs text-amber-700';
+            text.textContent = '🟡 Connecting... (Live Sync Active)';
+            startFallbackPolling();
         } else {
             dot.className  = 'inline-block w-2.5 h-2.5 rounded-full bg-slate-400';
             text.className = 'font-semibold text-xs text-slate-600';
@@ -341,25 +346,56 @@
     }
 
     function setupCategoryEcho() {
-        if (!window.Echo) { updateStatusIndicator('disconnected'); setTimeout(setupCategoryEcho, 400); return; }
+        if (!window.Echo) {
+            updateStatusIndicator('connecting');
+            setTimeout(setupCategoryEcho, 400);
+            return;
+        }
         try {
             window.Echo.private('admin.scores')
-                .subscribed(() => { isSocketConnected = true; updateStatusIndicator('connected'); })
-                .error(() => { isSocketConnected = false; updateStatusIndicator('disconnected'); })
+                .subscribed(() => {
+                    isSocketConnected = true;
+                    updateStatusIndicator('connected');
+                    console.log('⚡ Connected to admin.scores channel on ' + CATEGORY_NAME + ' table');
+                })
+                .error((err) => {
+                    console.warn('Echo subscription error, using live fallback:', err);
+                    isSocketConnected = false;
+                    updateStatusIndicator('disconnected');
+                    startFallbackPolling();
+                })
                 .listen('.score.submitted', (e) => {
-                    if (e.category === 'custom:' + CATEGORY_KEY) {
-                        const isReset = (e.action === 'reset' || e.score === null || e.score === undefined);
-                        handleLiveScoreChange(parseInt(e.candidate_id), parseInt(e.judge_id),
-                            isReset ? null : parseFloat(e.score), e.judge_name, e.candidate_name,
-                            e.candidate_number, isReset ? 'reset' : 'saved');
+                    const matchesCategory = (
+                        e.category === 'custom:' + CATEGORY_KEY ||
+                        e.category === CATEGORY_KEY ||
+                        e.category === 'custom:' + CATEGORY_KEY.replace('_', '-') ||
+                        e.category === CATEGORY_KEY.replace('_', '-')
+                    );
+                    if (matchesCategory) {
+                        const isReset = (e.action === 'reset' || e.score === null || e.score === '' || e.score === undefined);
+                        handleLiveScoreChange(
+                            parseInt(e.candidate_id),
+                            parseInt(e.judge_id),
+                            isReset ? null : parseFloat(e.score),
+                            e.judge_name,
+                            e.candidate_name,
+                            e.candidate_number,
+                            isReset ? 'reset' : 'saved'
+                        );
                     }
                 });
             if (window.Echo.connector && window.Echo.connector.pusher) {
                 const pusher = window.Echo.connector.pusher;
                 pusher.connection.bind('connected', () => { isSocketConnected = true; updateStatusIndicator('connected'); });
                 pusher.connection.bind('disconnected', () => { isSocketConnected = false; updateStatusIndicator('disconnected'); });
+                pusher.connection.bind('unavailable', () => { isSocketConnected = false; updateStatusIndicator('disconnected'); });
+                pusher.connection.bind('failed', () => { isSocketConnected = false; updateStatusIndicator('disconnected'); });
             }
-        } catch (err) { updateStatusIndicator('disconnected'); }
+        } catch (err) {
+            console.warn('Echo setup error, fallback activated:', err);
+            updateStatusIndicator('disconnected');
+            startFallbackPolling();
+        }
     }
 
     function startFallbackPolling() {

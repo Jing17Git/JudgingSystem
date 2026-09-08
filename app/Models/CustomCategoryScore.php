@@ -39,7 +39,7 @@ class CustomCategoryScore extends Model
     {
         return static::where('category_key', $key)
             ->get()
-            ->keyBy(fn($s) => $s->candidate_id . '_' . $s->judge_id);
+            ->keyBy(fn ($s) => $s->candidate_id.'_'.$s->judge_id);
     }
 
     /**

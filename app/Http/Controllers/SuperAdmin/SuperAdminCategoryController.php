@@ -6,7 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditRecord;
 use App\Models\Category;
 use App\Models\CriteriaSetting;
+use App\Models\CustomCategoryScore;
+use App\Models\FitnessScore;
+use App\Models\IndigenousAttireScore;
 use App\Models\Pageant;
+use App\Models\ProductionScore;
+use App\Models\QaScore;
+use App\Models\TraditionalAttireScore;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -18,7 +24,7 @@ class SuperAdminCategoryController extends Controller
     private function getOrCreateDefaultPageant(): Pageant
     {
         $pageant = Pageant::first();
-        if (!$pageant) {
+        if (! $pageant) {
             $pageant = Pageant::create([
                 'name' => 'CPSU Judging Pageant 2026',
                 'description' => 'Official Campus Pageant Event',
@@ -27,6 +33,7 @@ class SuperAdminCategoryController extends Controller
                 'status' => 'active',
             ]);
         }
+
         return $pageant;
     }
 
@@ -45,7 +52,7 @@ class SuperAdminCategoryController extends Controller
                     'name' => $setting->name,
                 ],
                 [
-                    'description' => ucfirst($setting->stage) . ' Stage Judging Category',
+                    'description' => ucfirst($setting->stage).' Stage Judging Category',
                     'weight_percentage' => (float) $setting->percentage,
                     'sort_order' => $setting->sort_order,
                 ]
@@ -95,11 +102,11 @@ class SuperAdminCategoryController extends Controller
         $validated['stage'] = 'preliminary';
 
         $key = Str::slug($validated['name']);
-        
+
         // Ensure unique key for stage
         $existingCount = CriteriaSetting::where('key', $key)->count();
         if ($existingCount > 0) {
-            $key = $key . '-' . rand(100, 999);
+            $key = $key.'-'.rand(100, 999);
         }
 
         $maxSort = CriteriaSetting::where('stage', $validated['stage'])->max('sort_order') ?? 0;
@@ -119,7 +126,7 @@ class SuperAdminCategoryController extends Controller
         $category = Category::create([
             'pageant_id' => $pageant->id,
             'name' => $validated['name'],
-            'description' => ucfirst($validated['stage']) . ' Judging Category',
+            'description' => ucfirst($validated['stage']).' Judging Category',
             'weight_percentage' => (float) $validated['percentage'],
             'sort_order' => $maxSort + 1,
         ]);
@@ -136,7 +143,8 @@ class SuperAdminCategoryController extends Controller
                 'ip_address' => $request->ip(),
                 'status' => 'success',
             ]);
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         return redirect()->route('super-admin.categories.management')
             ->with('success', "Category '{$setting->name}' inserted into categories table (ID #{$category->id}) and criteria settings successfully.");
@@ -168,7 +176,8 @@ class SuperAdminCategoryController extends Controller
                 'weight_percentage' => (float) $validated['percentage'],
                 'sort_order' => $validated['sort_order'] ?? $setting->sort_order,
             ]);
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         // Audit Log
         try {
@@ -182,7 +191,8 @@ class SuperAdminCategoryController extends Controller
                 'ip_address' => $request->ip(),
                 'status' => 'success',
             ]);
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         return redirect()->route('super-admin.categories.management')
             ->with('success', "Category '{$setting->name}' updated in categories table and criteria settings successfully.");
@@ -199,7 +209,8 @@ class SuperAdminCategoryController extends Controller
         // Delete from categories table as well
         try {
             Category::where('name', $name)->delete();
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         // Audit Log
         try {
@@ -214,7 +225,8 @@ class SuperAdminCategoryController extends Controller
                 'status' => 'warning',
                 'risk_level' => 'warning',
             ]);
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         return redirect()->route('super-admin.categories.management')
             ->with('success', "Category '{$name}' deleted from categories table successfully.");
@@ -247,9 +259,10 @@ class SuperAdminCategoryController extends Controller
                 // Also update categories table weight_percentage
                 try {
                     Category::where('name', $setting->name)->update([
-                        'weight_percentage' => (float) $percentage
+                        'weight_percentage' => (float) $percentage,
                     ]);
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
         }
 
@@ -265,9 +278,152 @@ class SuperAdminCategoryController extends Controller
                 'ip_address' => $request->ip(),
                 'status' => 'success',
             ]);
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         return redirect()->route('super-admin.categories.management')
-            ->with('success', ucfirst($validated['stage']) . " category percentage weights updated successfully!");
+            ->with('success', ucfirst($validated['stage']).' category percentage weights updated successfully!');
+    }
+
+    /**
+     * Show the Reset All Category Data confirmation page.
+     */
+    public function resetPage()
+    {
+        // Score counts for each category
+        $counts = [
+            'production' => ProductionScore::count(),
+            'fitness' => FitnessScore::count(),
+            'traditional_attire' => TraditionalAttireScore::count(),
+            'indigenous_attire' => IndigenousAttireScore::count(),
+            'qa' => QaScore::count(),
+            'custom' => CustomCategoryScore::count(),
+        ];
+
+        $customCategories = CriteriaSetting::where('stage', 'preliminary')
+            ->whereNotIn('key', ['production', 'fitness', 'traditional_attire', 'indigenous_attire', 'traditional-attire', 'indigenous-attire', 'qa', 'qanda', 'preliminary_total'])
+            ->orderBy('sort_order')
+            ->get();
+
+        $totalScores = array_sum($counts);
+
+        return view('super-admin.categories.reset', compact('counts', 'customCategories', 'totalScores'));
+    }
+
+    /**
+     * Perform the actual reset — wipe all score data from every category table.
+     */
+    public function resetAllData(Request $request)
+    {
+        $request->validate([
+            'confirmation' => 'required|in:RESET ALL DATA',
+        ], [
+            'confirmation.in' => 'You must type exactly "RESET ALL DATA" to confirm.',
+        ]);
+
+        $scope = $request->input('scope', 'all'); // 'all' or specific category key
+
+        $deleted = [];
+
+        if ($scope === 'all' || $scope === 'production') {
+            $deleted['production'] = ProductionScore::count();
+            ProductionScore::truncate();
+        }
+        if ($scope === 'all' || $scope === 'fitness') {
+            $deleted['fitness'] = FitnessScore::count();
+            FitnessScore::truncate();
+        }
+        if ($scope === 'all' || $scope === 'traditional_attire') {
+            $deleted['traditional_attire'] = TraditionalAttireScore::count();
+            TraditionalAttireScore::truncate();
+        }
+        if ($scope === 'all' || $scope === 'indigenous_attire') {
+            $deleted['indigenous_attire'] = IndigenousAttireScore::count();
+            IndigenousAttireScore::truncate();
+        }
+        if ($scope === 'all' || $scope === 'qa') {
+            $deleted['qa'] = QaScore::count();
+            QaScore::truncate();
+        }
+        if ($scope === 'all' || $scope === 'custom') {
+            $deleted['custom'] = CustomCategoryScore::count();
+            CustomCategoryScore::truncate();
+        }
+
+        $total = array_sum($deleted);
+
+        // Audit log
+        try {
+            AuditRecord::create([
+                'event_type' => 'scores_reset',
+                'category' => 'system',
+                'user_id' => auth()->id(),
+                'user_name' => auth()->user()?->name ?? 'Super Admin',
+                'user_role' => 'super-admin',
+                'action_description' => "RESET ALL SCORE DATA — scope: {$scope} — {$total} records deleted",
+                'ip_address' => $request->ip(),
+                'status' => 'danger',
+                'risk_level' => 'critical',
+            ]);
+        } catch (\Throwable $e) {
+        }
+
+        return redirect()->route('super-admin.categories.reset')
+            ->with('success', "✅ Reset complete. {$total} score record(s) deleted across all categories.");
+    }
+
+    /**
+     * Reset scores for a single category (individual reset).
+     */
+    public function resetCategory(Request $request, string $category)
+    {
+        $allowed = ['production', 'fitness', 'traditional_attire', 'indigenous_attire', 'qa', 'custom'];
+
+        if (! in_array($category, $allowed)) {
+            return redirect()->route('super-admin.categories.reset')
+                ->with('error', "Unknown category key: {$category}");
+        }
+
+        $modelMap = [
+            'production' => ProductionScore::class,
+            'fitness' => FitnessScore::class,
+            'traditional_attire' => TraditionalAttireScore::class,
+            'indigenous_attire' => IndigenousAttireScore::class,
+            'qa' => QaScore::class,
+            'custom' => CustomCategoryScore::class,
+        ];
+
+        $labelMap = [
+            'production' => 'Production',
+            'fitness' => 'Fitness',
+            'traditional_attire' => 'Traditional Attire',
+            'indigenous_attire' => 'Indigenous Attire',
+            'qa' => 'Final Q & A',
+            'custom' => 'Custom Categories',
+        ];
+
+        $model = $modelMap[$category];
+        $label = $labelMap[$category];
+        $deleted = $model::count();
+        $model::truncate();
+
+        // Audit log
+        try {
+            AuditRecord::create([
+                'event_type' => 'scores_reset',
+                'category' => $category,
+                'user_id' => auth()->id(),
+                'user_name' => auth()->user()?->name ?? 'Super Admin',
+                'user_role' => 'super-admin',
+                'action_description' => "RESET '{$label}' scores — {$deleted} records deleted",
+                'ip_address' => $request->ip(),
+                'status' => 'danger',
+                'risk_level' => 'critical',
+            ]);
+        } catch (\Throwable $e) {
+        }
+
+        return redirect()->route('super-admin.categories.reset')
+            ->with('success', "✅ {$label} scores reset. {$deleted} record(s) deleted.");
     }
 }

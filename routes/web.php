@@ -23,6 +23,8 @@ use App\Http\Controllers\Judge\JudgeCustomCategoryController;
 use App\Http\Controllers\Judge\JudgeDashboardController;
 use App\Http\Controllers\Judge\JudgeProfileController;
 use App\Http\Controllers\Judge\JudgeScoringController;
+use App\Http\Controllers\SuperAdmin\SiteSettingsController;
+use App\Http\Controllers\SuperAdmin\SuperAdminAuditController;
 use App\Http\Controllers\SuperAdmin\SuperAdminCategoryController;
 use App\Http\Controllers\SuperAdmin\SuperAdminDashboardController;
 use App\Http\Controllers\WelcomeController;
@@ -42,6 +44,10 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Super Admin Dedicated Login Portal
+Route::get('/super-admin/login', [AuthController::class, 'showSuperAdminLogin'])->name('super-admin.login');
+Route::post('/super-admin/login', [AuthController::class, 'superAdminLogin'])->name('super-admin.login.store');
+
 // Secret Super Admin Registration Portal
 Route::get('/super-admin/secret-register', [SuperAdminRegisterController::class, 'showRegister'])->name('super-admin.secret-register');
 Route::post('/super-admin/secret-register', [SuperAdminRegisterController::class, 'register'])->name('super-admin.secret-register.store');
@@ -55,13 +61,31 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('
 // Super Admin routes
 Route::prefix('super-admin')->middleware(['auth', 'super-admin'])->name('super-admin.')->group(function () {
     Route::get('/dashboard', [SuperAdminDashboardController::class, 'index'])->name('dashboard');
-    
+
     // Category Management
     Route::get('/categories/management', [SuperAdminCategoryController::class, 'index'])->name('categories.management');
     Route::post('/categories/management', [SuperAdminCategoryController::class, 'store'])->name('categories.management.store');
     Route::put('/categories/management/{setting}', [SuperAdminCategoryController::class, 'update'])->name('categories.management.update');
     Route::delete('/categories/management/{setting}', [SuperAdminCategoryController::class, 'destroy'])->name('categories.management.destroy');
     Route::post('/categories/management/percentages', [SuperAdminCategoryController::class, 'updatePercentages'])->name('categories.management.percentages');
+
+    // Reset Category Score Data (all or individual)
+    Route::get('/categories/reset', [SuperAdminCategoryController::class, 'resetPage'])->name('categories.reset');
+    Route::post('/categories/reset', [SuperAdminCategoryController::class, 'resetAllData'])->name('categories.reset.confirm');
+    Route::post('/categories/reset/{category}', [SuperAdminCategoryController::class, 'resetCategory'])->name('categories.reset.single');
+
+    // Site Branding & Settings
+    Route::get('/site-settings', [SiteSettingsController::class, 'index'])->name('site-settings.index');
+    Route::post('/site-settings', [SiteSettingsController::class, 'update'])->name('site-settings.update');
+
+    // System Audit Trail & Security Ledger
+    Route::get('/settings/audit_record', [SuperAdminAuditController::class, 'index'])->name('settings.audit_record');
+    Route::get('/settings/audit-record', [SuperAdminAuditController::class, 'index']);
+    Route::post('/settings/audit_record/clear', [SuperAdminAuditController::class, 'clear'])->name('settings.audit_record.clear');
+    Route::get('/settings/audit_record/export', [SuperAdminAuditController::class, 'export'])->name('settings.audit_record.export');
+    Route::get('/settings/audit_record/candidate_history', [SuperAdminAuditController::class, 'candidateHistory'])->name('settings.audit_record.candidate_history');
+    Route::post('/settings/audit_record/{record}/review', [SuperAdminAuditController::class, 'review'])->name('settings.audit_record.review');
+    Route::post('/settings/audit_record/{record}/flag', [SuperAdminAuditController::class, 'flag'])->name('settings.audit_record.flag');
 });
 
 // Admin routes
@@ -112,9 +136,10 @@ Route::prefix('admin')->middleware('admin')->name('admin.')->group(function () {
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::get('/settings/categories', [CategoryManagementController::class, 'index'])->name('settings.categories');
     Route::post('/settings/categories', [CategoryManagementController::class, 'store'])->name('settings.categories.store');
+    Route::post('/settings/categories/percentages', [CategoryManagementController::class, 'updatePercentages'])->name('settings.categories.percentages');
+    Route::get('/settings/categories/percentages', fn () => redirect()->route('admin.settings.categories'));
     Route::put('/settings/categories/{setting}', [CategoryManagementController::class, 'update'])->name('settings.categories.update');
     Route::delete('/settings/categories/{setting}', [CategoryManagementController::class, 'destroy'])->name('settings.categories.destroy');
-    Route::post('/settings/categories/percentages', [CategoryManagementController::class, 'updatePercentages'])->name('settings.categories.percentages');
     Route::get('/categories/management', [CategoryManagementController::class, 'index'])->name('categories.management');
     Route::get('/settings/preliminary', [SettingsController::class, 'preliminary'])->name('settings.preliminary');
     Route::get('/settings/final', [SettingsController::class, 'final'])->name('settings.final');

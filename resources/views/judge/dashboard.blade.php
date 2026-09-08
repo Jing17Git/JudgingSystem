@@ -100,8 +100,10 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         @foreach($categories as $cat)
             @php
-                $pct = $totalCandidates > 0 ? round(($cat['submitted'] / $totalCandidates) * 100) : 0;
-                $isFinished = $cat['submitted'] >= $totalCandidates && $totalCandidates > 0;
+                $targetCount = $cat['target_candidates'] ?? $totalCandidates;
+                $pct = $targetCount > 0 ? min(100, round(($cat['submitted'] / $targetCount) * 100)) : 0;
+                $isFinished = $cat['submitted'] >= $targetCount && $targetCount > 0;
+                $catUrl = $cat['url'] ?? (Route::has($cat['route'] ?? '') ? route($cat['route']) : '#');
             @endphp
             <div class="panel p-6 border border-gray-200 hover:border-green-300 transition-all rounded-2xl shadow-sm bg-white animate-fade-in-up">
                 <div class="flex items-start justify-between mb-4">
@@ -134,7 +136,7 @@
                 <div class="mb-4">
                     <div class="flex justify-between text-xs font-semibold mb-1">
                         <span class="text-gray-600">Scored Candidates</span>
-                        <span class="text-gray-900">{{ $cat['submitted'] }} / {{ $totalCandidates }}</span>
+                        <span class="text-gray-900">{{ $cat['submitted'] }} / {{ $targetCount }}</span>
                     </div>
                     <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
                         <div class="bg-gradient-to-r from-green-500 to-emerald-600 h-2.5 rounded-full transition-all duration-500" style="width: {{ $pct }}%;"></div>
@@ -143,7 +145,7 @@
 
                 {{-- Action Button --}}
                 <div class="pt-2 flex justify-end">
-                    <a href="{{ route($cat['route']) }}" class="btn btn-green btn-md w-full sm:w-auto flex items-center justify-center gap-2 font-bold">
+                    <a href="{{ $catUrl }}" class="btn btn-green btn-md w-full sm:w-auto flex items-center justify-center gap-2 font-bold">
                         <span>{{ $cat['submitted'] > 0 ? 'Continue Scoring' : 'Start Scoring' }}</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
