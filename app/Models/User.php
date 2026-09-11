@@ -71,11 +71,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if the user is a super-administrator.
+     * Check if the user is a super-administrator (deprecated/removed).
      */
     public function isSuperAdmin(): bool
     {
-        return in_array($this->role, ['super-admin', 'super_admin']);
+        return false;
     }
 
     /**
@@ -83,7 +83,7 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return in_array($this->role, ['admin', 'super-admin', 'super_admin']);
+        return $this->role === 'admin';
     }
 
     /**

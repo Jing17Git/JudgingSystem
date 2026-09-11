@@ -118,12 +118,19 @@
                             <p class="text-xs text-[var(--text-muted)]">Category Evaluation (1–10)</p>
                         </div>
                     </div>
-                    @if($isFinished)
-                        <span class="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full bg-green-100 text-green-700 border border-green-200">
+                    @if(!empty($cat['is_finalized']))
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                            Finalized &amp; Locked
+                        </span>
+                    @elseif($isFinished)
+                        <span class="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                             </svg>
-                            Completed
+                            All Scored (Pending Submission)
                         </span>
                     @else
                         <span class="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
@@ -145,12 +152,21 @@
 
                 {{-- Action Button --}}
                 <div class="pt-2 flex justify-end">
-                    <a href="{{ $catUrl }}" class="btn btn-green btn-md w-full sm:w-auto flex items-center justify-center gap-2 font-bold">
-                        <span>{{ $cat['submitted'] > 0 ? 'Continue Scoring' : 'Start Scoring' }}</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                        </svg>
-                    </a>
+                    @if(!empty($cat['is_finalized']))
+                        <a href="{{ $catUrl }}" class="btn btn-secondary btn-md w-full sm:w-auto flex items-center justify-center gap-2 font-bold text-slate-700 bg-slate-100 border border-slate-300 hover:bg-slate-200">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                            <span>View Scorecard (Locked)</span>
+                        </a>
+                    @else
+                        <a href="{{ $catUrl }}" class="btn btn-green btn-md w-full sm:w-auto flex items-center justify-center gap-2 font-bold">
+                            <span>{{ $cat['submitted'] > 0 ? 'Continue Scoring' : 'Start Scoring' }}</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                            </svg>
+                        </a>
+                    @endif
                 </div>
             </div>
         @endforeach

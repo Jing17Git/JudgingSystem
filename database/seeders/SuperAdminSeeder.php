@@ -18,7 +18,7 @@ class SuperAdminSeeder extends Seeder
                 'name' => 'Super Administrator',
                 'email' => 'superadmin@pageant.com',
                 'password' => 'password',
-                'role' => 'super-admin',
+                'role' => 'admin',
                 'is_active' => true,
             ]
         );

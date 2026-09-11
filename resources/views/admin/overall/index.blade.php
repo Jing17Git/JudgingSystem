@@ -178,6 +178,97 @@
         display: none;
     }
 
+    /* ── Responsive Overall Table ─────────────────────────────────────── */
+    :root {
+        --ot-col1-w: 64px;   /* Cand # column */
+        --ot-col2-w: 150px;  /* Name column   */
+    }
+    @media (min-width: 1280px) {
+        :root {
+            --ot-col1-w: 70px;
+            --ot-col2-w: 160px;
+        }
+    }
+    @media (min-width: 1536px) {
+        :root {
+            --ot-col1-w: 76px;
+            --ot-col2-w: 170px;
+        }
+    }
+
+    /* Sticky column offsets use CSS variables so they stay in sync */
+    .ot-sticky-1 {
+        position: sticky;
+        left: 0;
+        z-index: 5;
+        min-width: var(--ot-col1-w);
+        max-width: var(--ot-col1-w);
+    }
+    .ot-sticky-2 {
+        position: sticky;
+        left: var(--ot-col1-w);
+        z-index: 5;
+        min-width: var(--ot-col2-w);
+        max-width: var(--ot-col2-w);
+    }
+
+    /* Compact table cells */
+    .ot-table th,
+    .ot-table td {
+        padding: 8px 8px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+    .ot-table th {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-weight: 700;
+        white-space: normal;   /* allow header text to wrap */
+        word-break: break-word;
+        min-width: 80px;
+    }
+    /* Freeze sticky header cells */
+    .ot-table thead .ot-sticky-1,
+    .ot-table thead .ot-sticky-2 {
+        z-index: 10;
+    }
+    /* Frosted look on sticky cells while scrolling */
+    .ot-table td.ot-sticky-1,
+    .ot-table th.ot-sticky-1 {
+        box-shadow: 2px 0 6px -2px rgba(0,0,0,0.08);
+    }
+    .ot-table td.ot-sticky-2,
+    .ot-table th.ot-sticky-2 {
+        box-shadow: 2px 0 6px -2px rgba(0,0,0,0.06);
+    }
+    /* Subtle scroll hint gradient on the right edge of the sticky name col */
+    .ot-scroll-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        /* show scrollbar always so users know they can scroll */
+        scrollbar-width: thin;
+        scrollbar-color: #d1d5db transparent;
+    }
+    .ot-scroll-wrap::-webkit-scrollbar {
+        height: 6px;
+    }
+    .ot-scroll-wrap::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .ot-scroll-wrap::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 3px;
+    }
+    /* Name truncation */
+    .ot-name-text {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: calc(var(--ot-col2-w) - 48px); /* subtract avatar + gap */
+    }
+
     @keyframes cellScoreFlash {
         0% { background-color: #fde047; transform: scale(1.18); box-shadow: 0 0 14px rgba(234, 179, 8, 0.5); }
         45% { background-color: #86efac; transform: scale(1.06); }
@@ -327,47 +418,47 @@
         </div>
 
         {{-- Scoring Table --}}
-        <div class="panel overflow-x-auto border border-[var(--border-default)] shadow-sm rounded-xl">
-            <table class="data-table min-w-full">
+        <div class="panel ot-scroll-wrap border border-[var(--border-default)] shadow-sm rounded-xl">
+            <table class="data-table ot-table w-full">
                 <thead>
                     <tr class="bg-gray-50 border-b border-gray-200">
-                        <th class="sticky left-0 z-10 bg-gray-50 min-w-[90px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">Cand. #</th>
-                        <th class="sticky left-[90px] z-10 bg-gray-50 min-w-[180px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">Name</th>
-                        <th class="text-center min-w-[120px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">
-                            Production
-                            <span class="block text-[11px] font-bold text-[var(--green-700)] lowercase tracking-normal">({{ (int)($weights['production'] ?? 25) }}%)</span>
+                        <th class="ot-sticky-1 bg-gray-50 text-gray-600 text-center">No.</th>
+                        <th class="ot-sticky-2 bg-gray-50 text-gray-600">Name</th>
+                        <th class="text-center text-gray-600" style="min-width:90px;">
+                            Prod.
+                            <span class="block font-bold text-[var(--green-700)] normal-case tracking-normal">({{ (int)($weights['production'] ?? 25) }}%)</span>
                         </th>
-                        <th class="text-center min-w-[120px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">
+                        <th class="text-center text-gray-600" style="min-width:85px;">
                             Fitness
-                            <span class="block text-[11px] font-bold text-[var(--green-700)] lowercase tracking-normal">({{ (int)($weights['fitness'] ?? 25) }}%)</span>
+                            <span class="block font-bold text-[var(--green-700)] normal-case tracking-normal">({{ (int)($weights['fitness'] ?? 25) }}%)</span>
                         </th>
-                        <th class="text-center min-w-[140px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">
-                            Traditional Attire
-                            <span class="block text-[11px] font-bold text-[var(--green-700)] lowercase tracking-normal">({{ (int)($weights['traditional_attire'] ?? 25) }}%)</span>
+                        <th class="text-center text-gray-600" style="min-width:95px;">
+                            Trad. Attire
+                            <span class="block font-bold text-[var(--green-700)] normal-case tracking-normal">({{ (int)($weights['traditional_attire'] ?? 25) }}%)</span>
                         </th>
-                        <th class="text-center min-w-[140px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">
-                            Indigenous Attire
-                            <span class="block text-[11px] font-bold text-[var(--green-700)] lowercase tracking-normal">({{ (int)($weights['indigenous_attire'] ?? 25) }}%)</span>
+                        <th class="text-center text-gray-600" style="min-width:95px;">
+                            Indig. Attire
+                            <span class="block font-bold text-[var(--green-700)] normal-case tracking-normal">({{ (int)($weights['indigenous_attire'] ?? 25) }}%)</span>
                         </th>
 
                         {{-- Dynamic custom category columns --}}
                         @if(isset($customCategories))
                             @foreach($customCategories as $customCat)
-                                <th class="text-center min-w-[130px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4">
+                                <th class="text-center text-gray-600" style="min-width:95px;">
                                     {{ $customCat->name }}
-                                    <span class="block text-[11px] font-bold text-[var(--green-700)] lowercase tracking-normal">({{ (int)$customCat->percentage }}%)</span>
+                                    <span class="block font-bold text-[var(--green-700)] normal-case tracking-normal">({{ (int)$customCat->percentage }}%)</span>
                                 </th>
                             @endforeach
                         @endif
 
                         @if($gKey === 'Male')
-                            <th class="text-center min-w-[100px] text-xs font-bold text-blue-700 uppercase tracking-wider py-3 px-4" style="background-color: #eff6ff;">Grand Total</th>
+                            <th class="text-center text-blue-700" style="min-width:88px; background-color:#eff6ff;">Grand<br>Total</th>
                         @else
-                            <th class="text-center min-w-[100px] text-xs font-bold text-pink-700 uppercase tracking-wider py-3 px-4" style="background-color: #fdf2f8;">Grand Total</th>
+                            <th class="text-center text-pink-700" style="min-width:88px; background-color:#fdf2f8;">Grand<br>Total</th>
                         @endif
 
-                        <th class="text-center min-w-[85px] text-xs font-bold text-amber-800 uppercase tracking-wider py-3 px-4" style="background-color: #fffbeb;">Rank</th>
-                        <th class="text-center min-w-[120px] text-xs font-bold text-gray-600 uppercase tracking-wider py-3 px-4 no-print">Judge Votes</th>
+                        <th class="text-center text-amber-800" style="min-width:64px; background-color:#fffbeb;">Rank</th>
+                        <th class="text-center text-gray-600 no-print" style="min-width:96px;">Votes</th>
                     </tr>
                 </thead>
                 <tbody id="tbody-{{ strtolower($gKey) }}" class="divide-y divide-gray-100">
@@ -383,55 +474,55 @@
                             data-gender="{{ $candidate->gender }}"
                             class="group hover:bg-gray-50/80 transition-colors">
                             {{-- Candidate Number --}}
-                            <td class="sticky left-0 bg-white group-hover:bg-gray-50 py-3 px-4 z-[5]">
+                            <td class="ot-sticky-1 bg-white group-hover:bg-gray-50 text-center">
                                 @if($gKey === 'Male')
-                                    <span class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full text-white text-sm sm:text-base font-black shadow-md" style="background-color: #2563eb; border: 2px solid #60a5fa;">
+                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white text-xs font-black shadow-md" style="background-color: #2563eb; border: 2px solid #60a5fa;">
                                         {{ $candidate->candidate_number }}
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full text-white text-sm sm:text-base font-black shadow-md" style="background-color: #db2777; border: 2px solid #f472b6;">
+                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white text-xs font-black shadow-md" style="background-color: #db2777; border: 2px solid #f472b6;">
                                         {{ $candidate->candidate_number }}
                                     </span>
                                 @endif
                             </td>
 
                             {{-- Candidate Name --}}
-                            <td class="sticky left-[90px] bg-white group-hover:bg-gray-50 py-3 px-4 font-semibold text-gray-900 z-[5]">
-                                <div class="flex items-center gap-2.5 sm:gap-3">
+                            <td class="ot-sticky-2 bg-white group-hover:bg-gray-50 font-semibold text-gray-900">
+                                <div class="flex items-center gap-2">
                                     @if($candidate->photo_url)
-                                        <img src="{{ asset('storage/' . $candidate->photo_url) }}" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-gray-200 shadow-sm flex-shrink-0">
+                                        <img src="{{ asset('storage/' . $candidate->photo_url) }}" class="w-7 h-7 rounded-full object-cover border-2 border-gray-200 shadow-sm flex-shrink-0">
                                     @else
                                         @if($gKey === 'Male')
-                                            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm" style="background-color: #2563eb;">
+                                            <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm" style="background-color: #2563eb;">
                                                 {{ strtoupper(substr($candidate->display_name, 0, 1)) }}
                                             </div>
                                         @else
-                                            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm" style="background-color: #db2777;">
+                                            <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm" style="background-color: #db2777;">
                                                 {{ strtoupper(substr($candidate->display_name, 0, 1)) }}
                                             </div>
                                         @endif
                                     @endif
-                                    <span class="truncate max-w-[120px] sm:max-w-[180px] md:max-w-none text-xs sm:text-sm text-gray-900 font-semibold">{{ $candidate->display_name }}</span>
+                                    <span class="ot-name-text text-xs text-gray-900 font-semibold" title="{{ $candidate->display_name }}">{{ $candidate->display_name }}</span>
                                 </div>
                             </td>
 
                             {{-- Production Score --}}
-                            <td class="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
+                            <td class="text-center font-semibold text-gray-700">
                                 <span id="prod-val-{{ $candidate->id }}" class="transition-all">{{ $b['production'] > 0 ? number_format($b['production'], 2) : '—' }}</span>
                             </td>
 
                             {{-- Fitness Score --}}
-                            <td class="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
+                            <td class="text-center font-semibold text-gray-700">
                                 <span id="fit-val-{{ $candidate->id }}" class="transition-all">{{ $b['fitness'] > 0 ? number_format($b['fitness'], 2) : '—' }}</span>
                             </td>
 
                             {{-- Traditional Attire Score --}}
-                            <td class="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
+                            <td class="text-center font-semibold text-gray-700">
                                 <span id="trad-val-{{ $candidate->id }}" class="transition-all">{{ $b['traditional'] > 0 ? number_format($b['traditional'], 2) : '—' }}</span>
                             </td>
 
                             {{-- Indigenous Attire Score --}}
-                            <td class="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
+                            <td class="text-center font-semibold text-gray-700">
                                 <span id="indig-val-{{ $candidate->id }}" class="transition-all">{{ $b['indigenous'] > 0 ? number_format($b['indigenous'], 2) : '—' }}</span>
                             </td>
 
@@ -439,7 +530,7 @@
                             @if(isset($customCategories))
                                 @foreach($customCategories as $customCat)
                                     @php $customVal = $b['custom'][$customCat->key]['weighted'] ?? 0; @endphp
-                                    <td class="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
+                                    <td class="text-center font-semibold text-gray-700">
                                         <span id="custom-{{ $customCat->key }}-val-{{ $candidate->id }}" class="transition-all">{{ $customVal > 0 ? number_format($customVal, 2) : '—' }}</span>
                                     </td>
                                 @endforeach
@@ -447,49 +538,49 @@
 
                             {{-- Grand Total --}}
                             @if($gKey === 'Male')
-                                <td class="text-center py-3 px-4" style="background-color: #eff6ff;">
-                                    <span id="total-val-{{ $candidate->id }}" class="font-extrabold text-lg text-blue-700 transition-all">
+                                <td class="text-center" style="background-color: #eff6ff;">
+                                    <span id="total-val-{{ $candidate->id }}" class="font-extrabold text-base text-blue-700 transition-all">
                                         {{ $total > 0 ? number_format($total, 2) : '—' }}
                                     </span>
                                 </td>
                             @else
-                                <td class="text-center py-3 px-4" style="background-color: #fdf2f8;">
-                                    <span id="total-val-{{ $candidate->id }}" class="font-extrabold text-lg text-pink-700 transition-all">
+                                <td class="text-center" style="background-color: #fdf2f8;">
+                                    <span id="total-val-{{ $candidate->id }}" class="font-extrabold text-base text-pink-700 transition-all">
                                         {{ $total > 0 ? number_format($total, 2) : '—' }}
                                     </span>
                                 </td>
                             @endif
 
                             {{-- Rank --}}
-                            <td id="rank-cell-{{ $candidate->id }}" class="text-center py-3 px-4" style="background-color: #fffbeb;">
+                            <td id="rank-cell-{{ $candidate->id }}" class="text-center" style="background-color: #fffbeb;">
                                 <div id="rank-val-{{ $candidate->id }}" class="inline-flex items-center justify-center transition-all">
                                     @if(empty($rank))
                                         <span class="text-gray-400 font-medium">—</span>
                                     @elseif($rank === 1)
-                                        <span class="inline-flex items-center justify-center w-11 h-11 rounded-full text-2xl shadow-lg ring-4 ring-amber-300/70 bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-300 text-white" title="1st Place (Champion)">🥇</span>
+                                        <span class="inline-flex items-center justify-center w-9 h-9 rounded-full text-xl shadow-lg ring-4 ring-amber-300/70 bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-300 text-white" title="1st Place (Champion)">🥇</span>
                                     @elseif($rank === 2)
-                                        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full text-xl shadow-md ring-2 ring-slate-300 bg-gradient-to-tr from-slate-400 via-gray-300 to-slate-200 text-slate-800" title="2nd Place">🥈</span>
+                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-lg shadow-md ring-2 ring-slate-300 bg-gradient-to-tr from-slate-400 via-gray-300 to-slate-200 text-slate-800" title="2nd Place">🥈</span>
                                     @elseif($rank === 3)
-                                        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full text-xl shadow-md ring-2 ring-orange-300 bg-gradient-to-tr from-amber-700 via-orange-500 to-amber-400 text-white" title="3rd Place">🥉</span>
+                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-lg shadow-md ring-2 ring-orange-300 bg-gradient-to-tr from-amber-700 via-orange-500 to-amber-400 text-white" title="3rd Place">🥉</span>
                                     @elseif($rank === 4)
-                                        <span class="inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-black shadow-md ring-2 ring-blue-300 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white" title="4th Place">4</span>
+                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-black shadow-md ring-2 ring-blue-300 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white" title="4th Place">4</span>
                                     @elseif($rank === 5)
-                                        <span class="inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-black shadow-md ring-2 ring-purple-300 bg-gradient-to-tr from-purple-600 to-pink-600 text-white" title="5th Place">5</span>
+                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-black shadow-md ring-2 ring-purple-300 bg-gradient-to-tr from-purple-600 to-pink-600 text-white" title="5th Place">5</span>
                                     @else
-                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 border-2 border-gray-300 text-gray-700 text-xs font-extrabold shadow-sm">{{ $rank }}</span>
+                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 border-2 border-gray-300 text-gray-700 text-xs font-extrabold shadow-sm">{{ $rank }}</span>
                                     @endif
                                 </div>
                             </td>
 
                             {{-- Judge Votes Action Button --}}
-                            <td class="text-center py-3 px-4 no-print">
+                            <td class="text-center no-print">
                                 <a href="{{ route('admin.overall.candidate-votes', ['candidate' => $candidate->id, 'from' => 'overall']) }}"
-                                   class="btn btn-outline btn-sm font-semibold flex items-center justify-center gap-1.5 mx-auto hover:border-emerald-500 hover:text-emerald-700 transition-colors whitespace-nowrap">
-                                    <svg class="w-4 h-4 text-[var(--green-600)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                   class="btn btn-outline btn-sm font-semibold inline-flex items-center gap-1 hover:border-emerald-500 hover:text-emerald-700 transition-colors whitespace-nowrap" style="padding: 4px 8px; font-size: 11px;">
+                                    <svg class="w-3.5 h-3.5 text-[var(--green-600)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                     </svg>
-                                    View Votes
+                                    Votes
                                 </a>
                             </td>
                         </tr>

@@ -28,7 +28,7 @@ class CategoryResetTest extends TestCase
             'username' => 'superadmin_'.Str::random(6),
             'email' => 'superadmin_'.Str::random(6).'@example.com',
             'password' => bcrypt('password'),
-            'role' => 'super-admin',
+            'role' => 'admin',
             'is_active' => true,
         ]);
         $this->actingAs($this->admin);
@@ -68,7 +68,7 @@ class CategoryResetTest extends TestCase
     /** @test */
     public function reset_page_loads_successfully()
     {
-        $response = $this->get(route('super-admin.categories.reset'));
+        $response = $this->get(route('admin.categories.reset'));
         $response->assertStatus(200);
         $response->assertSee('Score Data Reset Center');
     }
@@ -77,8 +77,8 @@ class CategoryResetTest extends TestCase
     public function can_reset_single_category()
     {
         $this->assertEquals(2, ProductionScore::count());
-        $response = $this->post(route('super-admin.categories.reset.single', ['category' => 'production']));
-        $response->assertRedirect(route('super-admin.categories.reset'));
+        $response = $this->post(route('admin.categories.reset.single', ['category' => 'production']));
+        $response->assertRedirect(route('admin.categories.reset'));
         $this->assertEquals(0, ProductionScore::count());
     }
 
@@ -87,16 +87,38 @@ class CategoryResetTest extends TestCase
     {
         $totalBefore = ProductionScore::count() + FitnessScore::count() + TraditionalAttireScore::count() + IndigenousAttireScore::count() + QaScore::count() + CustomCategoryScore::count();
         $this->assertTrue($totalBefore > 0);
-        $response = $this->post(route('super-admin.categories.reset.confirm'), [
+        $response = $this->post(route('admin.categories.reset.confirm'), [
             'scope' => 'all',
             'confirmation' => 'RESET ALL DATA',
         ]);
-        $response->assertRedirect(route('super-admin.categories.reset'));
+        $response->assertRedirect(route('admin.categories.reset'));
         $this->assertEquals(0, ProductionScore::count());
         $this->assertEquals(0, FitnessScore::count());
         $this->assertEquals(0, TraditionalAttireScore::count());
         $this->assertEquals(0, IndigenousAttireScore::count());
         $this->assertEquals(0, QaScore::count());
         $this->assertEquals(0, CustomCategoryScore::count());
+    }
+
+    /** @test */
+    public function can_reset_candidates_manually()
+    {
+        $this->assertTrue(Candidate::count() > 0);
+        $response = $this->post(route('admin.categories.reset.single', ['category' => 'candidates']));
+        $response->assertRedirect(route('admin.categories.reset'));
+        $this->assertEquals(0, Candidate::count());
+        $this->assertEquals(0, ProductionScore::count());
+    }
+
+    /** @test */
+    public function can_reset_judges_manually()
+    {
+        $this->assertTrue(User::where('role', 'judge')->count() > 0);
+        $response = $this->post(route('admin.categories.reset.single', ['category' => 'judges']));
+        $response->assertRedirect(route('admin.categories.reset'));
+        $this->assertEquals(0, User::where('role', 'judge')->count());
+        $this->assertEquals(0, ProductionScore::count());
+        // Admin account must still exist
+        $this->assertTrue(User::where('role', 'admin')->count() > 0);
     }
 }

@@ -12,15 +12,15 @@ class SuperAdminAuditRecordTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** Helper: create a super-admin user. */
-    private function makeSuperAdmin(string $suffix = ''): User
+    /** Helper: create an admin user. */
+    private function makeAdmin(string $suffix = ''): User
     {
         return User::create([
-            'name' => 'Super Admin'.$suffix,
-            'username' => 'superadmin'.$suffix,
-            'email' => 'superadmin'.$suffix.'@test.com',
+            'name' => 'Admin'.$suffix,
+            'username' => 'admin'.$suffix,
+            'email' => 'admin'.$suffix.'@test.com',
             'password' => bcrypt('password'),
-            'role' => 'super-admin',
+            'role' => 'admin',
         ]);
     }
 
@@ -36,17 +36,17 @@ class SuperAdminAuditRecordTest extends TestCase
     }
 
     // -----------------------------------------------------------------------
-    // TEST 1: Super-admin can access the audit record page and see entries
+    // TEST 1: Admin can access the audit record page and see entries
     // -----------------------------------------------------------------------
-    public function test_super_admin_can_access_audit_record_page(): void
+    public function test_admin_can_access_audit_record_page(): void
     {
-        $superAdmin = $this->makeSuperAdmin('_page');
+        $admin = $this->makeAdmin('_page');
         $candidate = $this->makeCandidate();
 
         AuditRecord::create([
             'event_type' => 'score_submitted',
             'category' => 'qa',
-            'user_id' => $superAdmin->id,
+            'user_id' => $admin->id,
             'user_name' => 'Judge John',
             'user_role' => 'judge',
             'candidate_id' => $candidate->id,
@@ -57,27 +57,27 @@ class SuperAdminAuditRecordTest extends TestCase
             'details' => json_encode(['score' => 9.5, 'category' => 'qa', 'action' => 'saved']),
         ]);
 
-        $response = $this->actingAs($superAdmin)->get(route('super-admin.settings.audit_record'));
+        $response = $this->actingAs($admin)->get(route('admin.settings.audit_record'));
 
         $response->assertStatus(200);
-        $response->assertSee('System Audit Trail', false);
+        $response->assertSee('Audit Management', false);
         $response->assertSee('Jane Contestant');
     }
 
     // -----------------------------------------------------------------------
-    // TEST 2: Regular admin is blocked from the super-admin audit page
+    // TEST 2: Judge is blocked from the admin audit page
     // -----------------------------------------------------------------------
-    public function test_regular_admin_cannot_access_super_admin_audit_record_page(): void
+    public function test_judge_cannot_access_admin_audit_record_page(): void
     {
-        $admin = User::create([
-            'name' => 'Regular Admin',
-            'username' => 'regular_admin',
-            'email' => 'admin_regular@test.com',
+        $judge = User::create([
+            'name' => 'Regular Judge',
+            'username' => 'regular_judge',
+            'email' => 'judge_regular@test.com',
             'password' => bcrypt('password'),
-            'role' => 'admin',
+            'role' => 'judge',
         ]);
 
-        $response = $this->actingAs($admin)->get(route('super-admin.settings.audit_record'));
+        $response = $this->actingAs($judge)->get(route('admin.settings.audit_record'));
 
         $this->assertTrue(
             in_array($response->getStatusCode(), [302, 403]),
@@ -88,15 +88,14 @@ class SuperAdminAuditRecordTest extends TestCase
     // -----------------------------------------------------------------------
     // TEST 3: CSV export returns a valid streaming download
     // -----------------------------------------------------------------------
-    public function test_super_admin_can_export_audit_records_csv(): void
+    public function test_admin_can_export_audit_records_csv(): void
     {
-        $superAdmin = $this->makeSuperAdmin('_csv');
+        $admin = $this->makeAdmin('_csv');
 
-        $response = $this->actingAs($superAdmin)->get(route('super-admin.settings.audit_record.export'));
+        $response = $this->actingAs($admin)->get(route('admin.settings.audit_record.export'));
 
         $response->assertStatus(200);
 
-        // Accept text/csv with or without charset suffix (Laravel stream does not always append it)
         $contentType = $response->headers->get('content-type');
         $this->assertStringStartsWith('text/csv', $contentType,
             "Expected content-type to start with 'text/csv', got: {$contentType}"
@@ -108,13 +107,13 @@ class SuperAdminAuditRecordTest extends TestCase
     // -----------------------------------------------------------------------
     public function test_audit_record_stores_all_fields_correctly(): void
     {
-        $superAdmin = $this->makeSuperAdmin('_fields');
+        $admin = $this->makeAdmin('_fields');
         $candidate = $this->makeCandidate();
 
         $record = AuditRecord::create([
             'event_type' => 'score_reset',
             'category' => 'fitness',
-            'user_id' => $superAdmin->id,
+            'user_id' => $admin->id,
             'user_name' => 'Judge Maria',
             'user_role' => 'judge',
             'candidate_id' => $candidate->id,
@@ -143,7 +142,7 @@ class SuperAdminAuditRecordTest extends TestCase
     // -----------------------------------------------------------------------
     public function test_anomaly_detection_flags_excessive_resets_as_critical(): void
     {
-        $judge = $this->makeSuperAdmin('_anomaly');
+        $judge = $this->makeAdmin('_anomaly');
         $candidate = $this->makeCandidate();
 
         // Insert 3 prior resets so the next evaluation triggers the critical rule (>= 3)
@@ -178,15 +177,15 @@ class SuperAdminAuditRecordTest extends TestCase
     // -----------------------------------------------------------------------
     // TEST 6: Search filter returns matching audit records
     // -----------------------------------------------------------------------
-    public function test_super_admin_can_search_audit_records(): void
+    public function test_admin_can_search_audit_records(): void
     {
-        $superAdmin = $this->makeSuperAdmin('_search');
+        $admin = $this->makeAdmin('_search');
         $candidate = $this->makeCandidate();
 
         AuditRecord::create([
             'event_type' => 'score_submitted',
             'category' => 'talent_portion',
-            'user_id' => $superAdmin->id,
+            'user_id' => $admin->id,
             'user_name' => 'Judge SearchTest',
             'user_role' => 'judge',
             'candidate_id' => $candidate->id,
@@ -196,8 +195,8 @@ class SuperAdminAuditRecordTest extends TestCase
             'action_description' => 'Unique-SearchPhrase-XYZ submitted score',
         ]);
 
-        $response = $this->actingAs($superAdmin)
-            ->get(route('super-admin.settings.audit_record', ['search' => 'Unique-SearchPhrase-XYZ']));
+        $response = $this->actingAs($admin)
+            ->get(route('admin.settings.audit_record', ['search' => 'Unique-SearchPhrase-XYZ']));
 
         $response->assertStatus(200);
         $response->assertSee('Unique-SearchPhrase-XYZ');

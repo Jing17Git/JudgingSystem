@@ -376,8 +376,8 @@
   <header>
     <div class="app-container" style="padding:0;">
       <nav class="nav-bar">
-        {{-- Brand Logo -> Super Admin Dedicated Login Portal --}}
-        <a href="{{ route('super-admin.login') }}" class="brand-group" title="Super-Admin Portal" aria-label="Super-Admin Login Portal">
+        {{-- Brand Logo -> Home --}}
+        <a href="{{ route('home') }}" class="brand-group" title="{{ \App\Models\SiteSetting::get('site_name', 'CrownScore') }}" aria-label="Home">
           <div class="brand-logo-wrap">
             <img src="{{ asset(\App\Models\SiteSetting::get('site_logo', 'images/logo.png')) }}" alt="Logo" class="brand-logo-img">
           </div>
