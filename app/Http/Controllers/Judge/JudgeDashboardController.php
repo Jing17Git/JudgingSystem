@@ -44,7 +44,7 @@ class JudgeDashboardController extends Controller
         if ($prelimSettings->isNotEmpty()) {
             foreach ($prelimSettings as $setting) {
                 $catKey = strtolower(str_replace('_', '-', $setting->key));
-                $isDisabled = !$setting->is_enabled;
+                $isDisabled = ! $setting->is_enabled;
 
                 if ($catKey === 'production') {
                     $categories[] = [
@@ -154,7 +154,7 @@ class JudgeDashboardController extends Controller
         $qaSetting = CriteriaSetting::where('stage', 'final')
             ->whereIn('key', ['qa_score', 'qa'])
             ->first();
-        $qaIsDisabled = $qaSetting && !$qaSetting->is_enabled;
+        $qaIsDisabled = $qaSetting && ! $qaSetting->is_enabled;
 
         $categories[] = [
             'name' => 'Q & A',

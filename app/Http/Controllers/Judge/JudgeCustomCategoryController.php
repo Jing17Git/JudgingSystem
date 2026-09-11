@@ -23,8 +23,6 @@ class JudgeCustomCategoryController extends Controller
             ->where('stage', 'preliminary')
             ->firstOrFail();
 
-
-
         $judgeId = Auth::id();
         $candidates = Candidate::orderBy('candidate_number')->get();
 
@@ -55,7 +53,7 @@ class JudgeCustomCategoryController extends Controller
         $categoryName = $categorySetting->name;
         $categorySlug = 'custom:'.$key;
 
-        $isFinalized = JudgeCategorySubmission::isFinalized($judgeId, $categorySlug) || !$categorySetting->is_enabled;
+        $isFinalized = JudgeCategorySubmission::isFinalized($judgeId, $categorySlug) || ! $categorySetting->is_enabled;
         $submission = JudgeCategorySubmission::getSubmission($judgeId, $categorySlug);
         $finalizedAt = $submission?->finalized_at;
 

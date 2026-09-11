@@ -19,9 +19,9 @@ class CriteriaSetting extends Model
     ];
 
     protected $casts = [
-        'percentage'  => 'float',
-        'sort_order'  => 'integer',
-        'is_enabled'  => 'boolean',
+        'percentage' => 'float',
+        'sort_order' => 'integer',
+        'is_enabled' => 'boolean',
     ];
 
     /**
