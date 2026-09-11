@@ -117,6 +117,7 @@
                             ? request()->routeIs($knownRoutePatternMap[$catKey])
                             : (request()->routeIs('admin.category.index') && request()->route('key') === $catKey);
                         $iconPath = $iconPaths[$catKey] ?? $defaultIconPath;
+
                     @endphp
                     <a href="{{ $routeUrl }}"
                        class="sidebar-link {{ $isActive ? 'active' : '' }}">
@@ -129,9 +130,10 @@
                     </a>
                 @endforeach
             @endif
-             <div class="sidebar-section" style="font-size: 11px">  ->Final-Judging </div>
 
-                         <a href="{{ route('admin.qa.index') }}"
+            <div class="sidebar-section" style="font-size: 11px">  ->Final-Judging </div>
+
+            <a href="{{ route('admin.qa.index') }}"
                class="sidebar-link {{ request()->routeIs('admin.qa.*') ? 'active' : '' }}">
                 <span class="icon">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -169,7 +171,7 @@
             <div x-data="{
                 open: localStorage.getItem('sidebar_settings_open') !== null
                     ? localStorage.getItem('sidebar_settings_open') === 'true'
-                    : {{ request()->routeIs('admin.settings.*') ? 'true' : 'true' }},
+                    : {{ (request()->routeIs('admin.settings.*') || request()->routeIs('admin.site-settings.*') || request()->routeIs('admin.categories.*')) ? 'true' : 'true' }},
                 toggle() {
                     this.open = !this.open;
                     localStorage.setItem('sidebar_settings_open', this.open);
@@ -177,7 +179,7 @@
             }">
                 <button type="button"
                         @click.prevent.stop="toggle()"
-                        class="sidebar-link w-full text-left justify-between cursor-pointer {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.cache.*') ? 'text-[var(--green-700)] bg-[var(--green-50)]' : '' }}">
+                        class="sidebar-link w-full text-left justify-between cursor-pointer {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.site-settings.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.cache.*') ? 'text-[var(--green-700)] bg-[var(--green-50)]' : '' }}">
                     <div class="flex items-center gap-3">
                         <span class="icon">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,10 +200,15 @@
                 <div x-show="open"
                      x-collapse
                      class="pl-6 pr-1 pt-1 pb-2 space-y-1">
-                    <a href="{{ route('admin.settings.categories') }}"
-                       class="sidebar-link text-xs py-2 px-3 {{ request()->routeIs('admin.settings.categories*') ? 'active font-bold' : '' }}">
-                        <span class="w-2 h-2 rounded-full flex-shrink-0 {{ request()->routeIs('admin.settings.categories*') ? 'bg-[var(--green-600)]' : 'bg-gray-400' }}"></span>
+                    <a href="{{ route('admin.categories.management') }}"
+                       class="sidebar-link text-xs py-2 px-3 {{ request()->routeIs('admin.categories.management*') || request()->routeIs('admin.settings.categories*') ? 'active font-bold' : '' }}">
+                        <span class="w-2 h-2 rounded-full flex-shrink-0 {{ request()->routeIs('admin.categories.management*') || request()->routeIs('admin.settings.categories*') ? 'bg-[var(--green-600)]' : 'bg-gray-400' }}"></span>
                         <span>Manage Categories</span>
+                    </a>
+                    <a href="{{ route('admin.site-settings.index') }}"
+                       class="sidebar-link text-xs py-2 px-3 {{ request()->routeIs('admin.site-settings.*') ? 'active font-bold' : '' }}">
+                        <span class="w-2 h-2 rounded-full flex-shrink-0 {{ request()->routeIs('admin.site-settings.*') ? 'bg-[var(--green-600)]' : 'bg-gray-400' }}"></span>
+                        <span>Site Branding & Settings</span>
                     </a>
                     <a href="{{ route('admin.settings.preliminary') }}"
                        class="sidebar-link text-xs py-2 px-3 {{ request()->routeIs('admin.settings.preliminary') || (request()->routeIs('admin.settings.index') && !request()->routeIs('admin.settings.final')) ? 'active font-bold' : '' }}">
@@ -221,7 +228,12 @@
                     <a href="{{ route('admin.settings.audit_record') }}"
                        class="sidebar-link text-xs py-2 px-3 {{ request()->routeIs('admin.settings.audit_record') ? 'active font-bold' : '' }}">
                         <span class="w-2 h-2 rounded-full flex-shrink-0 {{ request()->routeIs('admin.settings.audit_record') ? 'bg-[var(--green-600)]' : 'bg-gray-400' }}"></span>
-                        <span>Audit Record</span>
+                        <span>Audit Trail & Ledger</span>
+                    </a>
+                    <a href="{{ route('admin.categories.reset') }}"
+                       class="sidebar-link text-xs py-2 px-3 {{ request()->routeIs('admin.categories.reset*') ? 'active font-bold text-red-600' : '' }}">
+                        <span class="w-2 h-2 rounded-full flex-shrink-0 {{ request()->routeIs('admin.categories.reset*') ? 'bg-red-500' : 'bg-gray-400' }}"></span>
+                        <span class="text-red-600 font-semibold">Reset Categories All Data</span>
                     </a>
 
                     <a href="{{ route('admin.cache.index') }}"

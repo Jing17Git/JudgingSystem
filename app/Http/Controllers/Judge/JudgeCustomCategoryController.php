@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Candidate;
 use App\Models\CriteriaSetting;
 use App\Models\CustomCategoryScore;
+use App\Models\JudgeCategorySubmission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -21,6 +22,8 @@ class JudgeCustomCategoryController extends Controller
         $categorySetting = CriteriaSetting::where('key', $key)
             ->where('stage', 'preliminary')
             ->firstOrFail();
+
+
 
         $judgeId = Auth::id();
         $candidates = Candidate::orderBy('candidate_number')->get();
@@ -52,6 +55,10 @@ class JudgeCustomCategoryController extends Controller
         $categoryName = $categorySetting->name;
         $categorySlug = 'custom:'.$key;
 
+        $isFinalized = JudgeCategorySubmission::isFinalized($judgeId, $categorySlug) || !$categorySetting->is_enabled;
+        $submission = JudgeCategorySubmission::getSubmission($judgeId, $categorySlug);
+        $finalizedAt = $submission?->finalized_at;
+
         return view('judge.scoring.index', compact(
             'categoryName',
             'categorySlug',
@@ -59,7 +66,9 @@ class JudgeCustomCategoryController extends Controller
             'maleCandidates',
             'femaleCandidates',
             'scores',
-            'initialPairIndex'
+            'initialPairIndex',
+            'isFinalized',
+            'finalizedAt'
         ));
     }
 }

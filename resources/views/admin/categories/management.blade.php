@@ -1,13 +1,28 @@
-@extends('layouts.super-admin')
+@extends('layouts.admin')
 
 @section('content')
 <div x-data="{ activeStage: 'preliminary', showAddModal: false, editModal: false, activeEdit: {} }" class="space-y-6">
+    {{-- Flash Messages --}}
+    @if(session('success'))
+        <div class="panel p-4 bg-emerald-50/70 border-emerald-200 flex items-center gap-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)" x-transition>
+            <span class="text-emerald-600 text-lg">✅</span>
+            <p class="text-sm font-semibold text-emerald-800">{{ session('success') }}</p>
+            <button @click="show = false" class="ml-auto text-emerald-400 hover:text-emerald-700 text-lg cursor-pointer">&times;</button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="panel p-4 bg-red-50/70 border-red-200 flex items-center gap-3" x-data="{ show: true }" x-show="show" x-transition>
+            <span class="text-red-600 text-lg">❌</span>
+            <p class="text-sm font-semibold text-red-800">{{ session('error') }}</p>
+            <button @click="show = false" class="ml-auto text-red-400 hover:text-red-700 text-lg cursor-pointer">&times;</button>
+        </div>
+    @endif
     {{-- Page Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <div class="flex items-center gap-2">
                 <h1 class="page-title text-2xl font-bold text-[var(--text-primary)]">Manage Judging Categories</h1>
-                <span class="badge bg-purple-100 text-purple-800 border border-purple-200">Super Control</span>
+                <span class="badge bg-green-100 text-green-800 border border-green-200">Admin Control</span>
             </div>
             <p class="page-subtitle text-sm text-[var(--text-muted)] mt-1">Configure pageant judging categories, percentage weights, and scoring criteria stages.</p>
         </div>
@@ -25,21 +40,21 @@
     {{-- Stage Selector Tabs --}}
     <div class="flex border-b border-[var(--border-default)]">
         <button @click="activeStage = 'preliminary'" 
-                :class="activeStage === 'preliminary' ? 'border-purple-600 text-purple-700 font-bold border-b-2' : 'text-[var(--text-muted)] font-medium'"
+                :class="activeStage === 'preliminary' ? 'border-green-600 text-green-700 font-bold border-b-2' : 'text-[var(--text-muted)] font-medium'"
                 class="px-6 py-3 text-sm flex items-center gap-2 transition-colors cursor-pointer">
             <span>✨ Preliminary Stage</span>
-            <span class="px-2 py-0.5 text-xs rounded-full bg-purple-100 text-purple-800 font-mono font-bold">{{ $preliminaryTotal }}%</span>
+            <span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800 font-mono font-bold">{{ $preliminaryTotal }}%</span>
         </button>
 
         <button @click="activeStage = 'final'" 
-                :class="activeStage === 'final' ? 'border-purple-600 text-purple-700 font-bold border-b-2' : 'text-[var(--text-muted)] font-medium'"
+                :class="activeStage === 'final' ? 'border-green-600 text-green-700 font-bold border-b-2' : 'text-[var(--text-muted)] font-medium'"
                 class="px-6 py-3 text-sm flex items-center gap-2 transition-colors cursor-pointer">
             <span>🏆 Final Stage</span>
             <span class="px-2 py-0.5 text-xs rounded-full bg-indigo-100 text-indigo-800 font-mono font-bold">{{ $finalTotal }}%</span>
         </button>
 
         <button @click="activeStage = 'categories_table'" 
-                :class="activeStage === 'categories_table' ? 'border-purple-600 text-purple-700 font-bold border-b-2' : 'text-[var(--text-muted)] font-medium'"
+                :class="activeStage === 'categories_table' ? 'border-green-600 text-green-700 font-bold border-b-2' : 'text-[var(--text-muted)] font-medium'"
                 class="px-6 py-3 text-sm flex items-center gap-2 transition-colors cursor-pointer">
             <span>🗄️ Categories DB Table</span>
             <span class="px-2 py-0.5 text-xs rounded-full bg-emerald-100 text-emerald-800 font-mono font-bold">{{ $dbCategories->count() }} Records</span>
@@ -68,14 +83,17 @@
             </div>
         </div>
 
-        {{-- Categories Table & Form --}}
-        <form action="{{ route('super-admin.categories.management.percentages') }}" method="POST" class="panel">
+        {{-- Hidden Form for Preliminary Percentages (prevents nested forms inside the table) --}}
+        <form id="preliminaryPercentagesForm" action="{{ route('admin.categories.management.percentages') }}" method="POST" style="display: none;">
             @csrf
             <input type="hidden" name="stage" value="preliminary">
-            
+        </form>
+
+        {{-- Categories Table Panel --}}
+        <div class="panel">
             <div class="panel-header">
                 <h3 class="panel-title">Preliminary Judging Categories</h3>
-                <button type="submit" class="btn btn-green btn-sm">Save Percentages</button>
+                <button type="submit" form="preliminaryPercentagesForm" class="btn btn-green btn-sm">Save Percentages</button>
             </div>
 
             <div class="overflow-x-auto">
@@ -85,13 +103,14 @@
                             <th>Order</th>
                             <th>Category Name</th>
                             <th>Key Identifier</th>
+                            <th>Voting Status</th>
                             <th>Percentage Weight</th>
                             <th class="text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($preliminarySettings as $setting)
-                            <tr>
+                            <tr class="{{ !$setting->is_enabled ? 'opacity-60 bg-rose-50/20' : '' }}">
                                 <td class="font-mono font-medium text-[var(--text-muted)]">#{{ $setting->sort_order }}</td>
                                 <td>
                                     <span class="font-bold text-[var(--text-primary)]">{{ $setting->name }}</span>
@@ -100,8 +119,22 @@
                                     <span class="badge badge-info font-mono text-[11px]">{{ $setting->key }}</span>
                                 </td>
                                 <td>
+                                    @if($setting->is_enabled)
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300" title="Voting is unlocked. Judges can submit and modify scores.">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            <span>Voting Unlocked</span>
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300" title="Voting is locked. Judges cannot submit or modify scores.">
+                                            <svg class="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                            <span>Voting Locked</span>
+                                        </span>
+                                    @endif
+                                </td>
+                                <td>
                                     <div class="flex items-center gap-2">
                                         <input type="number" 
+                                               form="preliminaryPercentagesForm"
                                                name="percentages[{{ $setting->key }}]" 
                                                value="{{ (int) $setting->percentage }}" 
                                                min="0" max="100" 
@@ -111,12 +144,31 @@
                                 </td>
                                 <td class="text-right">
                                     <div class="flex items-center justify-end gap-2">
+                                        {{-- Lock / Unlock voting toggle button --}}
+                                        <form action="{{ route('admin.categories.management.toggle', $setting->id) }}" method="POST">
+                                            @csrf
+                                            @if($setting->is_enabled)
+                                                <button type="submit" 
+                                                        class="btn btn-outline btn-sm text-rose-600 border-rose-300 hover:bg-rose-50 hover:border-rose-400 font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer" 
+                                                        title="Lock judges from voting in {{ $setting->name }}">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                                    <span>Lock Voting</span>
+                                                </button>
+                                            @else
+                                                <button type="submit" 
+                                                        class="btn btn-outline btn-sm text-emerald-700 border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400 font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer" 
+                                                        title="Unlock judges to allow voting in {{ $setting->name }}">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                                                    <span>Unlock Voting</span>
+                                                </button>
+                                            @endif
+                                        </form>
                                         <button type="button" 
                                                 @click="editModal = true; activeEdit = { id: '{{ $setting->id }}', name: '{{ $setting->name }}', percentage: '{{ $setting->percentage }}', sort_order: '{{ $setting->sort_order }}' }"
                                                 class="btn btn-outline btn-sm text-blue-600 border-blue-200 hover:bg-blue-50">
                                             Edit
                                         </button>
-                                        <form action="{{ route('super-admin.categories.management.destroy', $setting->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete category {{ $setting->name }}?');">
+                                        <form action="{{ route('admin.categories.management.destroy', $setting->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete category {{ $setting->name }}?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -126,7 +178,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="py-8 text-center text-[var(--text-muted)]">
+                                <td colspan="6" class="py-8 text-center text-[var(--text-muted)]">
                                     No preliminary categories configured.
                                 </td>
                             </tr>
@@ -134,7 +186,7 @@
                     </tbody>
                 </table>
             </div>
-        </form>
+        </div>
     </div>
 
     {{-- Final Stage Panel --}}
@@ -159,14 +211,17 @@
             </div>
         </div>
 
-        {{-- Categories Table & Form --}}
-        <form action="{{ route('super-admin.categories.management.percentages') }}" method="POST" class="panel">
+        {{-- Hidden Form for Final Percentages (prevents nested forms inside the table) --}}
+        <form id="finalPercentagesForm" action="{{ route('admin.categories.management.percentages') }}" method="POST" style="display: none;">
             @csrf
             <input type="hidden" name="stage" value="final">
-            
+        </form>
+
+        {{-- Categories Table Panel --}}
+        <div class="panel">
             <div class="panel-header">
                 <h3 class="panel-title">Final Judging Stage Weights</h3>
-                <button type="submit" class="btn btn-green btn-sm">Save Percentages</button>
+                <button type="submit" form="finalPercentagesForm" class="btn btn-green btn-sm">Save Percentages</button>
             </div>
 
             <div class="overflow-x-auto">
@@ -176,13 +231,14 @@
                             <th>Order</th>
                             <th>Category Name</th>
                             <th>Key Identifier</th>
+                            <th>Voting Status</th>
                             <th>Percentage Weight</th>
                             <th class="text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($finalSettings as $setting)
-                            <tr>
+                            <tr class="{{ !$setting->is_enabled ? 'opacity-60 bg-rose-50/20' : '' }}">
                                 <td class="font-mono font-medium text-[var(--text-muted)]">#{{ $setting->sort_order }}</td>
                                 <td>
                                     <span class="font-bold text-[var(--text-primary)]">{{ $setting->name }}</span>
@@ -191,8 +247,22 @@
                                     <span class="badge badge-info font-mono text-[11px]">{{ $setting->key }}</span>
                                 </td>
                                 <td>
+                                    @if($setting->is_enabled)
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300" title="Voting is unlocked. Judges can submit and modify scores.">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            <span>Voting Unlocked</span>
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300" title="Voting is locked. Judges cannot submit or modify scores.">
+                                            <svg class="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                            <span>Voting Locked</span>
+                                        </span>
+                                    @endif
+                                </td>
+                                <td>
                                     <div class="flex items-center gap-2">
                                         <input type="number" 
+                                               form="finalPercentagesForm"
                                                name="percentages[{{ $setting->key }}]" 
                                                value="{{ (int) $setting->percentage }}" 
                                                min="0" max="100" 
@@ -202,12 +272,31 @@
                                 </td>
                                 <td class="text-right">
                                     <div class="flex items-center justify-end gap-2">
+                                        {{-- Lock / Unlock voting toggle button --}}
+                                        <form action="{{ route('admin.categories.management.toggle', $setting->id) }}" method="POST">
+                                            @csrf
+                                            @if($setting->is_enabled)
+                                                <button type="submit" 
+                                                        class="btn btn-outline btn-sm text-rose-600 border-rose-300 hover:bg-rose-50 hover:border-rose-400 font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer" 
+                                                        title="Lock judges from voting in {{ $setting->name }}">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                                    <span>Lock Voting</span>
+                                                </button>
+                                            @else
+                                                <button type="submit" 
+                                                        class="btn btn-outline btn-sm text-emerald-700 border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400 font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer" 
+                                                        title="Unlock judges to allow voting in {{ $setting->name }}">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                                                    <span>Unlock Voting</span>
+                                                </button>
+                                            @endif
+                                        </form>
                                         <button type="button" 
                                                 @click="editModal = true; activeEdit = { id: '{{ $setting->id }}', name: '{{ $setting->name }}', percentage: '{{ $setting->percentage }}', sort_order: '{{ $setting->sort_order }}' }"
                                                 class="btn btn-outline btn-sm text-blue-600 border-blue-200 hover:bg-blue-50">
                                             Edit
                                         </button>
-                                        <form action="{{ route('super-admin.categories.management.destroy', $setting->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete category {{ $setting->name }}?');">
+                                        <form action="{{ route('admin.categories.management.destroy', $setting->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete category {{ $setting->name }}?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -217,7 +306,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="py-8 text-center text-[var(--text-muted)]">
+                                <td colspan="6" class="py-8 text-center text-[var(--text-muted)]">
                                     No final categories configured.
                                 </td>
                             </tr>
@@ -225,7 +314,7 @@
                     </tbody>
                 </table>
             </div>
-        </form>
+        </div>
     </div>
 
     {{-- Categories DB Table Panel --}}
@@ -259,7 +348,7 @@
                             <td class="font-bold text-[var(--text-primary)]">{{ $catItem->name }}</td>
                             <td class="text-xs text-[var(--text-muted)]">{{ $catItem->description ?? 'N/A' }}</td>
                             <td>
-                                <span class="px-2 py-0.5 rounded text-xs font-mono font-bold bg-purple-100 text-purple-800">
+                                <span class="px-2 py-0.5 rounded text-xs font-mono font-bold bg-green-100 text-green-800">
                                     {{ (int) $catItem->weight_percentage }}%
                                 </span>
                             </td>
@@ -285,22 +374,22 @@
                 <span>➕</span> Add New Category
             </h3>
             
-            <form action="{{ route('super-admin.categories.management.store') }}" method="POST" class="space-y-4">
+            <form action="{{ route('admin.categories.management.store') }}" method="POST" class="space-y-4">
                 @csrf
                 <div>
                     <label class="form-label">Category Name</label>
-                    <input type="text" name="name" placeholder="e.g. Swimwear & Fitness" class="form-input" required>
+                    <input type="text" name="name" placeholder="e.g. Swimwear &amp; Fitness" class="form-input" required>
                 </div>
 
                 <div>
                     <label class="form-label">Judging Stage</label>
                     <input type="hidden" name="stage" value="preliminary">
-                    <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 border border-purple-200">
-                        <svg class="w-4 h-4 text-purple-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 border border-green-200">
+                        <svg class="w-4 h-4 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
-                        <span class="text-sm font-semibold text-purple-800">Pre-Judging (Preliminary)</span>
-                        <span class="ml-auto text-[11px] text-purple-500">Always default</span>
+                        <span class="text-sm font-semibold text-green-800">Pre-Judging (Preliminary)</span>
+                        <span class="ml-auto text-[11px] text-green-500">Always default</span>
                     </div>
                 </div>
 
@@ -324,7 +413,7 @@
                 <span>✏️</span> Edit Category
             </h3>
             
-            <form :action="'{{ url('/super-admin/categories/management') }}/' + activeEdit.id" method="POST" class="space-y-4">
+            <form :action="'{{ url('/admin/categories/management') }}/' + activeEdit.id" method="POST" class="space-y-4">
                 @csrf
                 @method('PUT')
 

@@ -178,6 +178,97 @@
         display: none;
     }
 
+    /* ── Responsive Overall Table ─────────────────────────────────────── */
+    :root {
+        --ot-col1-w: 64px;   /* Cand # column */
+        --ot-col2-w: 150px;  /* Name column   */
+    }
+    @media (min-width: 1280px) {
+        :root {
+            --ot-col1-w: 70px;
+            --ot-col2-w: 160px;
+        }
+    }
+    @media (min-width: 1536px) {
+        :root {
+            --ot-col1-w: 76px;
+            --ot-col2-w: 170px;
+        }
+    }
+
+    /* Sticky column offsets use CSS variables so they stay in sync */
+    .ot-sticky-1 {
+        position: sticky;
+        left: 0;
+        z-index: 5;
+        min-width: var(--ot-col1-w);
+        max-width: var(--ot-col1-w);
+    }
+    .ot-sticky-2 {
+        position: sticky;
+        left: var(--ot-col1-w);
+        z-index: 5;
+        min-width: var(--ot-col2-w);
+        max-width: var(--ot-col2-w);
+    }
+
+    /* Compact table cells */
+    .ot-table th,
+    .ot-table td {
+        padding: 8px 8px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+    .ot-table th {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-weight: 700;
+        white-space: normal;   /* allow header text to wrap */
+        word-break: break-word;
+        min-width: 80px;
+    }
+    /* Freeze sticky header cells */
+    .ot-table thead .ot-sticky-1,
+    .ot-table thead .ot-sticky-2 {
+        z-index: 10;
+    }
+    /* Frosted look on sticky cells while scrolling */
+    .ot-table td.ot-sticky-1,
+    .ot-table th.ot-sticky-1 {
+        box-shadow: 2px 0 6px -2px rgba(0,0,0,0.08);
+    }
+    .ot-table td.ot-sticky-2,
+    .ot-table th.ot-sticky-2 {
+        box-shadow: 2px 0 6px -2px rgba(0,0,0,0.06);
+    }
+    /* Subtle scroll hint gradient on the right edge of the sticky name col */
+    .ot-scroll-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        /* show scrollbar always so users know they can scroll */
+        scrollbar-width: thin;
+        scrollbar-color: #d1d5db transparent;
+    }
+    .ot-scroll-wrap::-webkit-scrollbar {
+        height: 6px;
+    }
+    .ot-scroll-wrap::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .ot-scroll-wrap::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 3px;
+    }
+    /* Name truncation */
+    .ot-name-text {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: calc(var(--ot-col2-w) - 48px); /* subtract avatar + gap */
+    }
+
     @keyframes cellScoreFlash {
         0% { background-color: #fde047; transform: scale(1.18); box-shadow: 0 0 14px rgba(234, 179, 8, 0.5); }
         45% { background-color: #86efac; transform: scale(1.06); }

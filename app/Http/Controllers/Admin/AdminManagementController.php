@@ -39,7 +39,7 @@ class AdminManagementController extends Controller
             'username' => 'required|string|max:255|unique:users,username',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
-            'role' => 'nullable|string|in:admin,super-admin',
+            'role' => 'nullable|string|in:admin',
         ]);
 
         User::create([

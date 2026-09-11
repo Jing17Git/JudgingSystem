@@ -15,11 +15,13 @@ class CriteriaSetting extends Model
         'stage',
         'percentage',
         'sort_order',
+        'is_enabled',
     ];
 
     protected $casts = [
-        'percentage' => 'float',
-        'sort_order' => 'integer',
+        'percentage'  => 'float',
+        'sort_order'  => 'integer',
+        'is_enabled'  => 'boolean',
     ];
 
     /**

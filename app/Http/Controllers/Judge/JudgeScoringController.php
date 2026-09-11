@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Judge;
 
 use App\Events\ScoreSubmitted;
 use App\Http\Controllers\Controller;
+use App\Models\AuditRecord;
 use App\Models\Candidate;
+use App\Models\CriteriaSetting;
 use App\Models\CustomCategoryScore;
 use App\Models\FitnessScore;
 use App\Models\IndigenousAttireScore;
+use App\Models\JudgeCategorySubmission;
 use App\Models\ProductionScore;
 use App\Models\QaScore;
 use App\Models\TraditionalAttireScore;
@@ -37,8 +40,22 @@ class JudgeScoringController extends Controller
      */
     protected function renderScoringView(Request $request, string $categoryName, string $categorySlug, string $iconPath)
     {
+        // Check if category is disabled
+        $settingKey = str_replace('-', '_', $categorySlug);
+        $searchKeys = [$categorySlug, $settingKey, str_replace('_', '-', $categorySlug)];
+        if (in_array($categorySlug, ['qa', 'qanda'])) {
+            $searchKeys[] = 'qa_score';
+            $searchKeys[] = 'qa-score';
+        }
+        $categorySetting = CriteriaSetting::whereIn('key', $searchKeys)->first();
+        $isCategoryDisabled = $categorySetting && !$categorySetting->is_enabled;
+
         $judgeId = Auth::id();
         $candidates = Candidate::orderBy('candidate_number')->get();
+
+        $isFinalized = JudgeCategorySubmission::isFinalized($judgeId, $categorySlug) || $isCategoryDisabled;
+        $submission = JudgeCategorySubmission::getSubmission($judgeId, $categorySlug);
+        $finalizedAt = $submission?->finalized_at;
 
         $modelClass = $this->getScoreModel($categorySlug);
         $rawScores = $modelClass ? $modelClass::where('judge_id', $judgeId)->get()->keyBy('candidate_id') : collect();
@@ -98,7 +115,9 @@ class JudgeScoringController extends Controller
             'maleCandidates',
             'femaleCandidates',
             'scores',
-            'initialPairIndex'
+            'initialPairIndex',
+            'isFinalized',
+            'finalizedAt'
         ));
     }
 
@@ -175,6 +194,24 @@ class JudgeScoringController extends Controller
         }
 
         $judgeId = Auth::id();
+
+        // Guard: Check if scoring for this category is already finalized & disabled
+        $catKeyCheck = str_starts_with($validated['category'], 'custom:')
+            ? substr($validated['category'], 7)
+            : str_replace('-', '_', $validated['category']);
+        $searchKeys = [$catKeyCheck, $validated['category'], str_replace('_', '-', $validated['category'])];
+        if (in_array($validated['category'], ['qa', 'qanda'])) {
+            $searchKeys[] = 'qa_score';
+            $searchKeys[] = 'qa-score';
+        }
+        $catSetting = CriteriaSetting::whereIn('key', $searchKeys)->first();
+
+        if (JudgeCategorySubmission::isFinalized($judgeId, $validated['category']) || ($catSetting && !$catSetting->is_enabled)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Scoring for this category is finalized and disabled. Modifications are locked.',
+            ], 403);
+        }
 
         // Handle dynamic custom categories
         if (str_starts_with($validated['category'], 'custom:')) {
@@ -257,6 +294,24 @@ class JudgeScoringController extends Controller
 
         $judgeId = Auth::id();
 
+        // Guard: Check if scoring for this category is already finalized & disabled
+        $catKeyCheck = str_starts_with($validated['category'], 'custom:')
+            ? substr($validated['category'], 7)
+            : str_replace('-', '_', $validated['category']);
+        $searchKeys = [$catKeyCheck, $validated['category'], str_replace('_', '-', $validated['category'])];
+        if (in_array($validated['category'], ['qa', 'qanda'])) {
+            $searchKeys[] = 'qa_score';
+            $searchKeys[] = 'qa-score';
+        }
+        $catSetting = CriteriaSetting::whereIn('key', $searchKeys)->first();
+
+        if (JudgeCategorySubmission::isFinalized($judgeId, $validated['category']) || ($catSetting && !$catSetting->is_enabled)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Scoring for this category is finalized and disabled. Reset is locked.',
+            ], 403);
+        }
+
         // Handle dynamic custom categories
         if (str_starts_with($validated['category'], 'custom:')) {
             $catKey = substr($validated['category'], 7);
@@ -310,6 +365,76 @@ class JudgeScoringController extends Controller
             'success' => true,
             'message' => 'Score reset successfully!',
             'candidate_id' => $validated['candidate_id'],
+        ]);
+    }
+
+    /**
+     * Finalize scoring for a category by the authenticated judge.
+     *
+     * This creates a per-judge JudgeCategorySubmission record that locks only THIS
+     * judge's scoring inputs. It does NOT globally disable the category (is_enabled).
+     * Global category locking is controlled exclusively by admin via the management page.
+     */
+    public function finalizeCategory(Request $request)
+    {
+        $validated = $request->validate([
+            'category' => 'required|string',
+        ]);
+
+        $judgeId = Auth::id();
+        $category = $validated['category'];
+
+        // If already finalized, return success state
+        if (JudgeCategorySubmission::isFinalized($judgeId, $category)) {
+            $submission = JudgeCategorySubmission::getSubmission($judgeId, $category);
+
+            return response()->json([
+                'success'      => true,
+                'message'      => 'Category scoring is already finalized.',
+                'is_finalized' => true,
+                'finalized_at' => $submission?->finalized_at?->format('M d, Y h:i A'),
+            ]);
+        }
+
+        // Create per-judge submission lock
+        $submission = JudgeCategorySubmission::finalize($judgeId, $category);
+
+        // Lock the category afterwards so that it is marked locked
+        $catKeyCheck = str_starts_with($category, 'custom:')
+            ? substr($category, 7)
+            : str_replace('-', '_', $category);
+        $searchKeys = [$catKeyCheck, $category, str_replace('_', '-', $category)];
+        if (in_array($category, ['qa', 'qanda'])) {
+            $searchKeys[] = 'qa_score';
+            $searchKeys[] = 'qa-score';
+        }
+        $catSetting = CriteriaSetting::whereIn('key', $searchKeys)->first();
+        if ($catSetting) {
+            $catSetting->update(['is_enabled' => false]);
+        }
+
+        // Record security audit
+        try {
+            AuditRecord::create([
+                'event_type'         => 'category_finalized',
+                'category'           => 'scoring',
+                'user_id'            => $judgeId,
+                'user_name'          => Auth::user()?->name ?? "Judge #{$judgeId}",
+                'user_role'          => 'judge',
+                'action_description' => "Judge finalized & submitted their scores for '{$category}'. Their scoring inputs are now locked.",
+                'ip_address'         => $request->ip(),
+                'status'             => 'success',
+                'risk_level'         => 'low',
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Audit logging for category finalization failed: '.$e->getMessage());
+        }
+
+        return response()->json([
+            'success'      => true,
+            'message'      => 'Scores finalized and submitted successfully! Your scoring for this category is now locked.',
+            'is_finalized' => true,
+            'finalized_at' => $submission->finalized_at?->format('M d, Y h:i A'),
         ]);
     }
 }
