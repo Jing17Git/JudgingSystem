@@ -15,7 +15,9 @@ class JudgeCategoryFinalSubmissionTest extends TestCase
     use RefreshDatabase;
 
     protected User $judge;
+
     protected Candidate $maleCandidate;
+
     protected Candidate $femaleCandidate;
 
     protected function setUp(): void

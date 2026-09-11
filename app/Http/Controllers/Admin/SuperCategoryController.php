@@ -17,7 +17,6 @@ use App\Models\QaScore;
 use App\Models\TraditionalAttireScore;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -31,11 +30,11 @@ class SuperCategoryController extends Controller
         $pageant = Pageant::first();
         if (! $pageant) {
             $pageant = Pageant::create([
-                'name'        => 'CPSU Judging Pageant 2026',
+                'name' => 'CPSU Judging Pageant 2026',
                 'description' => 'Official Campus Pageant Event',
-                'venue'       => 'Main Grand Hall',
-                'event_date'  => now(),
-                'status'      => 'active',
+                'venue' => 'Main Grand Hall',
+                'event_date' => now(),
+                'status' => 'active',
             ]);
         }
 
@@ -47,19 +46,19 @@ class SuperCategoryController extends Controller
      */
     private function syncCategoriesTable()
     {
-        $pageant  = $this->getOrCreateDefaultPageant();
+        $pageant = $this->getOrCreateDefaultPageant();
         $settings = CriteriaSetting::orderBy('sort_order')->get();
 
         foreach ($settings as $setting) {
             Category::updateOrCreate(
                 [
                     'pageant_id' => $pageant->id,
-                    'name'       => $setting->name,
+                    'name' => $setting->name,
                 ],
                 [
-                    'description'       => ucfirst($setting->stage).' Stage Judging Category',
+                    'description' => ucfirst($setting->stage).' Stage Judging Category',
                     'weight_percentage' => (float) $setting->percentage,
-                    'sort_order'        => $setting->sort_order,
+                    'sort_order' => $setting->sort_order,
                 ]
             );
         }
@@ -73,10 +72,10 @@ class SuperCategoryController extends Controller
         $this->syncCategoriesTable();
 
         $preliminarySettings = CriteriaSetting::where('stage', 'preliminary')->orderBy('sort_order')->get();
-        $finalSettings       = CriteriaSetting::where('stage', 'final')->orderBy('sort_order')->get();
+        $finalSettings = CriteriaSetting::where('stage', 'final')->orderBy('sort_order')->get();
 
         $preliminaryTotal = $preliminarySettings->sum('percentage');
-        $finalTotal       = $finalSettings->sum('percentage');
+        $finalTotal = $finalSettings->sum('percentage');
 
         $dbCategories = Category::orderBy('sort_order')->get();
 
@@ -95,8 +94,8 @@ class SuperCategoryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'       => 'required|string|max:255',
-            'stage'      => 'nullable|string|in:preliminary,final',
+            'name' => 'required|string|max:255',
+            'stage' => 'nullable|string|in:preliminary,final',
             'percentage' => 'required|numeric|min:0|max:100',
         ]);
 
@@ -113,32 +112,32 @@ class SuperCategoryController extends Controller
         $maxSort = CriteriaSetting::where('stage', $validated['stage'])->max('sort_order') ?? 0;
 
         $setting = CriteriaSetting::create([
-            'key'        => $key,
-            'name'       => $validated['name'],
-            'stage'      => $validated['stage'],
+            'key' => $key,
+            'name' => $validated['name'],
+            'stage' => $validated['stage'],
             'percentage' => (float) $validated['percentage'],
             'sort_order' => $maxSort + 1,
         ]);
 
-        $pageant  = $this->getOrCreateDefaultPageant();
+        $pageant = $this->getOrCreateDefaultPageant();
         $category = Category::create([
-            'pageant_id'        => $pageant->id,
-            'name'              => $validated['name'],
-            'description'       => ucfirst($validated['stage']).' Judging Category',
+            'pageant_id' => $pageant->id,
+            'name' => $validated['name'],
+            'description' => ucfirst($validated['stage']).' Judging Category',
             'weight_percentage' => (float) $validated['percentage'],
-            'sort_order'        => $maxSort + 1,
+            'sort_order' => $maxSort + 1,
         ]);
 
         try {
             AuditRecord::create([
-                'event_type'         => 'category_created',
-                'category'           => 'system',
-                'user_id'            => auth()->id(),
-                'user_name'          => auth()->user()?->name ?? 'Admin',
-                'user_role'          => 'admin',
+                'event_type' => 'category_created',
+                'category' => 'system',
+                'user_id' => auth()->id(),
+                'user_name' => auth()->user()?->name ?? 'Admin',
+                'user_role' => 'admin',
                 'action_description' => "Created category '{$setting->name}' in {$setting->stage} stage ({$setting->percentage}%)",
-                'ip_address'         => $request->ip(),
-                'status'             => 'success',
+                'ip_address' => $request->ip(),
+                'status' => 'success',
             ]);
         } catch (\Throwable $e) {
         }
@@ -153,7 +152,7 @@ class SuperCategoryController extends Controller
     public function update(Request $request, CriteriaSetting $setting)
     {
         $validated = $request->validate([
-            'name'       => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'percentage' => 'required|numeric|min:0|max:100',
             'sort_order' => 'nullable|integer|min:0',
         ]);
@@ -161,30 +160,30 @@ class SuperCategoryController extends Controller
         $oldName = $setting->name;
 
         $setting->update([
-            'name'       => $validated['name'],
+            'name' => $validated['name'],
             'percentage' => (float) $validated['percentage'],
             'sort_order' => $validated['sort_order'] ?? $setting->sort_order,
         ]);
 
         try {
             Category::where('name', $oldName)->update([
-                'name'              => $validated['name'],
+                'name' => $validated['name'],
                 'weight_percentage' => (float) $validated['percentage'],
-                'sort_order'        => $validated['sort_order'] ?? $setting->sort_order,
+                'sort_order' => $validated['sort_order'] ?? $setting->sort_order,
             ]);
         } catch (\Throwable $e) {
         }
 
         try {
             AuditRecord::create([
-                'event_type'         => 'category_updated',
-                'category'           => 'system',
-                'user_id'            => auth()->id(),
-                'user_name'          => auth()->user()?->name ?? 'Admin',
-                'user_role'          => 'admin',
+                'event_type' => 'category_updated',
+                'category' => 'system',
+                'user_id' => auth()->id(),
+                'user_name' => auth()->user()?->name ?? 'Admin',
+                'user_role' => 'admin',
                 'action_description' => "Updated category '{$setting->name}' ({$setting->percentage}%)",
-                'ip_address'         => $request->ip(),
-                'status'             => 'success',
+                'ip_address' => $request->ip(),
+                'status' => 'success',
             ]);
         } catch (\Throwable $e) {
         }
@@ -208,15 +207,15 @@ class SuperCategoryController extends Controller
 
         try {
             AuditRecord::create([
-                'event_type'         => 'category_deleted',
-                'category'           => 'system',
-                'user_id'            => auth()->id(),
-                'user_name'          => auth()->user()?->name ?? 'Admin',
-                'user_role'          => 'admin',
+                'event_type' => 'category_deleted',
+                'category' => 'system',
+                'user_id' => auth()->id(),
+                'user_name' => auth()->user()?->name ?? 'Admin',
+                'user_role' => 'admin',
                 'action_description' => "Deleted category '{$name}'",
-                'ip_address'         => request()->ip(),
-                'status'             => 'warning',
-                'risk_level'         => 'warning',
+                'ip_address' => request()->ip(),
+                'status' => 'warning',
+                'risk_level' => 'warning',
             ]);
         } catch (\Throwable $e) {
         }
@@ -231,9 +230,9 @@ class SuperCategoryController extends Controller
     public function updatePercentages(Request $request)
     {
         $validated = $request->validate([
-            'percentages'   => 'required|array',
+            'percentages' => 'required|array',
             'percentages.*' => 'required|numeric|min:0|max:100',
-            'stage'         => 'required|string|in:preliminary,final',
+            'stage' => 'required|string|in:preliminary,final',
         ]);
 
         $total = array_sum($validated['percentages']);
@@ -259,14 +258,14 @@ class SuperCategoryController extends Controller
 
         try {
             AuditRecord::create([
-                'event_type'         => 'percentages_updated',
-                'category'           => 'system',
-                'user_id'            => auth()->id(),
-                'user_name'          => auth()->user()?->name ?? 'Admin',
-                'user_role'          => 'admin',
+                'event_type' => 'percentages_updated',
+                'category' => 'system',
+                'user_id' => auth()->id(),
+                'user_name' => auth()->user()?->name ?? 'Admin',
+                'user_role' => 'admin',
                 'action_description' => "Bulk updated {$validated['stage']} category percentage weights (Total 100%)",
-                'ip_address'         => $request->ip(),
-                'status'             => 'success',
+                'ip_address' => $request->ip(),
+                'status' => 'success',
             ]);
         } catch (\Throwable $e) {
         }
@@ -280,7 +279,7 @@ class SuperCategoryController extends Controller
      */
     public function toggleEnabled(Request $request, CriteriaSetting $setting)
     {
-        $setting->update(['is_enabled' => !$setting->is_enabled]);
+        $setting->update(['is_enabled' => ! $setting->is_enabled]);
 
         $isUnlocked = (bool) $setting->is_enabled;
         $stateText = $isUnlocked ? 'UNLOCKED' : 'LOCKED';
@@ -291,9 +290,9 @@ class SuperCategoryController extends Controller
             $catKey = strtolower(str_replace('-', '_', $setting->key));
             JudgeCategorySubmission::where(function ($q) use ($catSlug, $catKey) {
                 $q->where('category', $catSlug)
-                  ->orWhere('category', $catKey)
-                  ->orWhere('category', 'custom:'.$catSlug)
-                  ->orWhere('category', 'custom:'.$catKey);
+                    ->orWhere('category', $catKey)
+                    ->orWhere('category', 'custom:'.$catSlug)
+                    ->orWhere('category', 'custom:'.$catKey);
                 if (in_array($catKey, ['qa', 'qa_score', 'qanda'])) {
                     $q->orWhereIn('category', ['qa', 'qanda', 'qa_score']);
                 }
@@ -302,14 +301,14 @@ class SuperCategoryController extends Controller
 
         try {
             AuditRecord::create([
-                'event_type'         => 'category_voting_toggled',
-                'category'           => 'system',
-                'user_id'            => auth()->id(),
-                'user_name'          => auth()->user()?->name ?? 'Admin',
-                'user_role'          => 'admin',
+                'event_type' => 'category_voting_toggled',
+                'category' => 'system',
+                'user_id' => auth()->id(),
+                'user_name' => auth()->user()?->name ?? 'Admin',
+                'user_role' => 'admin',
                 'action_description' => "Voting for '{$setting->name}' has been {$stateText} by Administrator",
-                'ip_address'         => $request->ip(),
-                'status'             => $isUnlocked ? 'success' : 'warning',
+                'ip_address' => $request->ip(),
+                'status' => $isUnlocked ? 'success' : 'warning',
             ]);
         } catch (\Throwable $e) {
         }
@@ -328,16 +327,16 @@ class SuperCategoryController extends Controller
     public function resetPage()
     {
         $counts = [
-            'production'         => ProductionScore::count(),
-            'fitness'            => FitnessScore::count(),
+            'production' => ProductionScore::count(),
+            'fitness' => FitnessScore::count(),
             'traditional_attire' => TraditionalAttireScore::count(),
-            'indigenous_attire'  => IndigenousAttireScore::count(),
-            'qa'                 => QaScore::count(),
-            'custom'             => CustomCategoryScore::count(),
+            'indigenous_attire' => IndigenousAttireScore::count(),
+            'qa' => QaScore::count(),
+            'custom' => CustomCategoryScore::count(),
         ];
 
         $candidateCount = Candidate::count();
-        $judgeCount     = User::where('role', 'judge')->count();
+        $judgeCount = User::where('role', 'judge')->count();
 
         $customCategories = CriteriaSetting::where('stage', 'preliminary')
             ->whereNotIn('key', ['production', 'fitness', 'traditional_attire', 'indigenous_attire', 'traditional-attire', 'indigenous-attire', 'qa', 'qanda', 'preliminary_total'])
@@ -360,7 +359,7 @@ class SuperCategoryController extends Controller
             'confirmation.in' => 'You must type exactly "RESET ALL DATA" to confirm.',
         ]);
 
-        $scope   = $request->input('scope', 'all');
+        $scope = $request->input('scope', 'all');
         $deleted = [];
 
         if (in_array($scope, ['all', 'scores_only', 'production'])) {
@@ -410,15 +409,15 @@ class SuperCategoryController extends Controller
 
         try {
             AuditRecord::create([
-                'event_type'         => 'master_purge',
-                'category'           => 'system',
-                'user_id'            => auth()->id(),
-                'user_name'          => auth()->user()?->name ?? 'Admin',
-                'user_role'          => 'admin',
+                'event_type' => 'master_purge',
+                'category' => 'system',
+                'user_id' => auth()->id(),
+                'user_name' => auth()->user()?->name ?? 'Admin',
+                'user_role' => 'admin',
                 'action_description' => "MASTER PURGE — scope: {$scope} — {$total} total records deleted",
-                'ip_address'         => $request->ip(),
-                'status'             => 'danger',
-                'risk_level'         => 'critical',
+                'ip_address' => $request->ip(),
+                'status' => 'danger',
+                'risk_level' => 'critical',
             ]);
         } catch (\Throwable $e) {
         }
@@ -456,15 +455,15 @@ class SuperCategoryController extends Controller
 
             try {
                 AuditRecord::create([
-                    'event_type'         => 'candidates_reset',
-                    'category'           => 'candidates',
-                    'user_id'            => auth()->id(),
-                    'user_name'          => auth()->user()?->name ?? 'Admin',
-                    'user_role'          => 'admin',
+                    'event_type' => 'candidates_reset',
+                    'category' => 'candidates',
+                    'user_id' => auth()->id(),
+                    'user_name' => auth()->user()?->name ?? 'Admin',
+                    'user_role' => 'admin',
                     'action_description' => "MANUAL RESET 'Candidates' — {$deleted} candidate records purged and scores cleared",
-                    'ip_address'         => $request->ip(),
-                    'status'             => 'danger',
-                    'risk_level'         => 'critical',
+                    'ip_address' => $request->ip(),
+                    'status' => 'danger',
+                    'risk_level' => 'critical',
                 ]);
             } catch (\Throwable $e) {
             }
@@ -490,15 +489,15 @@ class SuperCategoryController extends Controller
 
             try {
                 AuditRecord::create([
-                    'event_type'         => 'judges_reset',
-                    'category'           => 'judges',
-                    'user_id'            => auth()->id(),
-                    'user_name'          => auth()->user()?->name ?? 'Admin',
-                    'user_role'          => 'admin',
+                    'event_type' => 'judges_reset',
+                    'category' => 'judges',
+                    'user_id' => auth()->id(),
+                    'user_name' => auth()->user()?->name ?? 'Admin',
+                    'user_role' => 'admin',
                     'action_description' => "MANUAL RESET 'Judges' — {$deleted} judge accounts purged and scores cleared",
-                    'ip_address'         => $request->ip(),
-                    'status'             => 'danger',
-                    'risk_level'         => 'critical',
+                    'ip_address' => $request->ip(),
+                    'status' => 'danger',
+                    'risk_level' => 'critical',
                 ]);
             } catch (\Throwable $e) {
             }
@@ -509,25 +508,25 @@ class SuperCategoryController extends Controller
 
         // Standard Scoring Category Reset
         $modelMap = [
-            'production'         => ProductionScore::class,
-            'fitness'            => FitnessScore::class,
+            'production' => ProductionScore::class,
+            'fitness' => FitnessScore::class,
             'traditional_attire' => TraditionalAttireScore::class,
-            'indigenous_attire'  => IndigenousAttireScore::class,
-            'qa'                 => QaScore::class,
-            'custom'             => CustomCategoryScore::class,
+            'indigenous_attire' => IndigenousAttireScore::class,
+            'qa' => QaScore::class,
+            'custom' => CustomCategoryScore::class,
         ];
 
         $labelMap = [
-            'production'         => 'Production',
-            'fitness'            => 'Fitness',
+            'production' => 'Production',
+            'fitness' => 'Fitness',
             'traditional_attire' => 'Traditional Attire',
-            'indigenous_attire'  => 'Indigenous Attire',
-            'qa'                 => 'Final Q & A',
-            'custom'             => 'Custom Categories',
+            'indigenous_attire' => 'Indigenous Attire',
+            'qa' => 'Final Q & A',
+            'custom' => 'Custom Categories',
         ];
 
-        $model   = $modelMap[$category];
-        $label   = $labelMap[$category];
+        $model = $modelMap[$category];
+        $label = $labelMap[$category];
         $deleted = $model::count();
         $model::truncate();
 
@@ -535,7 +534,7 @@ class SuperCategoryController extends Controller
         $normalizedCat = str_replace('_', '-', $category);
         JudgeCategorySubmission::where(function ($q) use ($category, $normalizedCat) {
             $q->where('category', $category)
-              ->orWhere('category', $normalizedCat);
+                ->orWhere('category', $normalizedCat);
             if ($category === 'custom') {
                 $q->orWhere('category', 'like', 'custom:%');
             }
@@ -543,15 +542,15 @@ class SuperCategoryController extends Controller
 
         try {
             AuditRecord::create([
-                'event_type'         => 'scores_reset',
-                'category'           => $category,
-                'user_id'            => auth()->id(),
-                'user_name'          => auth()->user()?->name ?? 'Admin',
-                'user_role'          => 'admin',
+                'event_type' => 'scores_reset',
+                'category' => $category,
+                'user_id' => auth()->id(),
+                'user_name' => auth()->user()?->name ?? 'Admin',
+                'user_role' => 'admin',
                 'action_description' => "RESET '{$label}' scores — {$deleted} records deleted",
-                'ip_address'         => $request->ip(),
-                'status'             => 'danger',
-                'risk_level'         => 'critical',
+                'ip_address' => $request->ip(),
+                'status' => 'danger',
+                'risk_level' => 'critical',
             ]);
         } catch (\Throwable $e) {
         }

@@ -48,7 +48,7 @@ class JudgeScoringController extends Controller
             $searchKeys[] = 'qa-score';
         }
         $categorySetting = CriteriaSetting::whereIn('key', $searchKeys)->first();
-        $isCategoryDisabled = $categorySetting && !$categorySetting->is_enabled;
+        $isCategoryDisabled = $categorySetting && ! $categorySetting->is_enabled;
 
         $judgeId = Auth::id();
         $candidates = Candidate::orderBy('candidate_number')->get();
@@ -206,7 +206,7 @@ class JudgeScoringController extends Controller
         }
         $catSetting = CriteriaSetting::whereIn('key', $searchKeys)->first();
 
-        if (JudgeCategorySubmission::isFinalized($judgeId, $validated['category']) || ($catSetting && !$catSetting->is_enabled)) {
+        if (JudgeCategorySubmission::isFinalized($judgeId, $validated['category']) || ($catSetting && ! $catSetting->is_enabled)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Scoring for this category is finalized and disabled. Modifications are locked.',
@@ -305,7 +305,7 @@ class JudgeScoringController extends Controller
         }
         $catSetting = CriteriaSetting::whereIn('key', $searchKeys)->first();
 
-        if (JudgeCategorySubmission::isFinalized($judgeId, $validated['category']) || ($catSetting && !$catSetting->is_enabled)) {
+        if (JudgeCategorySubmission::isFinalized($judgeId, $validated['category']) || ($catSetting && ! $catSetting->is_enabled)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Scoring for this category is finalized and disabled. Reset is locked.',
@@ -389,8 +389,8 @@ class JudgeScoringController extends Controller
             $submission = JudgeCategorySubmission::getSubmission($judgeId, $category);
 
             return response()->json([
-                'success'      => true,
-                'message'      => 'Category scoring is already finalized.',
+                'success' => true,
+                'message' => 'Category scoring is already finalized.',
                 'is_finalized' => true,
                 'finalized_at' => $submission?->finalized_at?->format('M d, Y h:i A'),
             ]);
@@ -416,23 +416,23 @@ class JudgeScoringController extends Controller
         // Record security audit
         try {
             AuditRecord::create([
-                'event_type'         => 'category_finalized',
-                'category'           => 'scoring',
-                'user_id'            => $judgeId,
-                'user_name'          => Auth::user()?->name ?? "Judge #{$judgeId}",
-                'user_role'          => 'judge',
+                'event_type' => 'category_finalized',
+                'category' => 'scoring',
+                'user_id' => $judgeId,
+                'user_name' => Auth::user()?->name ?? "Judge #{$judgeId}",
+                'user_role' => 'judge',
                 'action_description' => "Judge finalized & submitted their scores for '{$category}'. Their scoring inputs are now locked.",
-                'ip_address'         => $request->ip(),
-                'status'             => 'success',
-                'risk_level'         => 'low',
+                'ip_address' => $request->ip(),
+                'status' => 'success',
+                'risk_level' => 'low',
             ]);
         } catch (\Throwable $e) {
             Log::warning('Audit logging for category finalization failed: '.$e->getMessage());
         }
 
         return response()->json([
-            'success'      => true,
-            'message'      => 'Scores finalized and submitted successfully! Your scoring for this category is now locked.',
+            'success' => true,
+            'message' => 'Scores finalized and submitted successfully! Your scoring for this category is now locked.',
             'is_finalized' => true,
             'finalized_at' => $submission->finalized_at?->format('M d, Y h:i A'),
         ]);

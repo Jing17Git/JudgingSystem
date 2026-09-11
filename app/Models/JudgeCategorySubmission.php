@@ -39,6 +39,7 @@ class JudgeCategorySubmission extends Model
         if ($cat === 'qanda') {
             return 'qa';
         }
+
         return $cat;
     }
 
@@ -52,7 +53,7 @@ class JudgeCategorySubmission extends Model
         return self::where('judge_id', $judgeId)
             ->where(function ($q) use ($normalized, $category) {
                 $q->where('category', $normalized)
-                  ->orWhere('category', $category);
+                    ->orWhere('category', $category);
             })
             ->where('is_finalized', true)
             ->exists();
@@ -68,7 +69,7 @@ class JudgeCategorySubmission extends Model
         return self::where('judge_id', $judgeId)
             ->where(function ($q) use ($normalized, $category) {
                 $q->where('category', $normalized)
-                  ->orWhere('category', $category);
+                    ->orWhere('category', $category);
             })
             ->where('is_finalized', true)
             ->first();
@@ -103,7 +104,7 @@ class JudgeCategorySubmission extends Model
         return (bool) self::where('judge_id', $judgeId)
             ->where(function ($q) use ($normalized, $category) {
                 $q->where('category', $normalized)
-                  ->orWhere('category', $category);
+                    ->orWhere('category', $category);
             })
             ->delete();
     }
