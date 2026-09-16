@@ -57,6 +57,13 @@ class SiteSettingsController extends Controller
             $filename = 'logo_'.time().'.'.$logo->getClientOriginalExtension();
             $logo->move(public_path('images'), $filename);
             SiteSetting::set('site_logo', 'images/'.$filename);
+
+            // Sync to public/favicon.png and favicon.ico for browser tab icons
+            try {
+                @copy(public_path('images/'.$filename), public_path('favicon.png'));
+                @copy(public_path('images/'.$filename), public_path('favicon.ico'));
+            } catch (\Throwable $e) {
+            }
         }
 
         if ($request->hasFile('hero_image')) {

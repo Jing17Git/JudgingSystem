@@ -37,7 +37,7 @@ class JudgeCustomCategoryController extends Controller
 
         $scores = [];
         foreach ($rawScores as $candId => $sObj) {
-            $scores[$candId] = (float) $sObj->score;
+            $scores[$candId] = (int) round($sObj->score);
         }
 
         // Icon path for generic custom category

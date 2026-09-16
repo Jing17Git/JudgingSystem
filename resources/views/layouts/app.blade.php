@@ -6,9 +6,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="Real-Time Pageant Judging and Tabulation System — Professional scoring, rankings, and live results.">
 
-    <title>@yield('title', 'Dashboard') — {{ config('app.name', 'JudgingSystem') }}</title>
+    <title>@yield('title', 'Dashboard') — {{ \App\Models\SiteSetting::get('site_name', config('app.name', 'JudgingSystem')) }}</title>
 
-    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="icon" href="{{ asset(\App\Models\SiteSetting::get('site_logo', 'favicon.png')) }}">
+    <link rel="shortcut icon" href="{{ asset(\App\Models\SiteSetting::get('site_logo', 'favicon.png')) }}">
+    <link rel="apple-touch-icon" href="{{ asset(\App\Models\SiteSetting::get('site_logo', 'favicon.png')) }}">
 
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

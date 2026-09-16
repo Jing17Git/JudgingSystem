@@ -79,12 +79,42 @@ class SuperCategoryController extends Controller
 
         $dbCategories = Category::orderBy('sort_order')->get();
 
+        // Load judges and per-judge submission map for the lock status grid
+        $judges = User::where('role', 'judge')
+            ->orderByRaw('judge_number IS NULL, judge_number ASC')
+            ->get();
+
+        $allSubmissions = JudgeCategorySubmission::where('is_finalized', true)->get();
+        $submissionsMap = [];
+        foreach ($allSubmissions as $sub) {
+            $cat = $sub->category;
+            $slug = strtolower(str_replace('_', '-', $cat));
+            $key = strtolower(str_replace('-', '_', $cat));
+            $submissionsMap[$sub->judge_id.'_'.$cat] = true;
+            $submissionsMap[$sub->judge_id.'_'.$slug] = true;
+            $submissionsMap[$sub->judge_id.'_'.$key] = true;
+            if (str_starts_with($cat, 'custom:')) {
+                $raw = substr($cat, 7);
+                $submissionsMap[$sub->judge_id.'_'.$raw] = true;
+                $submissionsMap[$sub->judge_id.'_'.strtolower(str_replace('_', '-', $raw))] = true;
+                $submissionsMap[$sub->judge_id.'_'.strtolower(str_replace('-', '_', $raw))] = true;
+            }
+            if (in_array($cat, ['qa', 'qanda', 'qa_score', 'qa-score'])) {
+                $submissionsMap[$sub->judge_id.'_qa'] = true;
+                $submissionsMap[$sub->judge_id.'_qa_score'] = true;
+                $submissionsMap[$sub->judge_id.'_qa-score'] = true;
+                $submissionsMap[$sub->judge_id.'_qanda'] = true;
+            }
+        }
+
         return view('admin.categories.management', compact(
             'preliminarySettings',
             'finalSettings',
             'preliminaryTotal',
             'finalTotal',
-            'dbCategories'
+            'dbCategories',
+            'judges',
+            'submissionsMap'
         ));
     }
 
@@ -316,6 +346,129 @@ class SuperCategoryController extends Controller
         $feedback = $isUnlocked
             ? "Voting for '{$setting->name}' has been UNLOCKED. Judges are now allowed to vote and submit scores."
             : "Voting for '{$setting->name}' has been LOCKED. Judges can no longer enter or modify scores for this category.";
+
+        return redirect()->route('admin.categories.management')
+            ->with('success', $feedback);
+    }
+
+    /**
+     * Lock or unlock a specific judge's submission for a category (admin-only).
+     */
+    public function lockJudge(Request $request, CriteriaSetting $setting, User $judge)
+    {
+        $catSlug = strtolower(str_replace('_', '-', $setting->key));
+        $catKey = strtolower(str_replace('-', '_', $setting->key));
+
+        // Determine if the judge is already locked
+        $isLocked = JudgeCategorySubmission::where('judge_id', $judge->id)
+            ->where(function ($q) use ($catSlug, $catKey) {
+                $q->where('category', $catSlug)
+                    ->orWhere('category', $catKey)
+                    ->orWhere('category', 'custom:'.$catSlug)
+                    ->orWhere('category', 'custom:'.$catKey);
+                if (in_array($catKey, ['qa', 'qa_score', 'qanda'])) {
+                    $q->orWhereIn('category', ['qa', 'qanda', 'qa_score', 'qa-score']);
+                }
+            })
+            ->where('is_finalized', true)
+            ->exists();
+
+        if ($isLocked) {
+            // Unlock this judge
+            JudgeCategorySubmission::where('judge_id', $judge->id)
+                ->where(function ($q) use ($catSlug, $catKey) {
+                    $q->where('category', $catSlug)
+                        ->orWhere('category', $catKey)
+                        ->orWhere('category', 'custom:'.$catSlug)
+                        ->orWhere('category', 'custom:'.$catKey);
+                    if (in_array($catKey, ['qa', 'qa_score', 'qanda'])) {
+                        $q->orWhereIn('category', ['qa', 'qanda', 'qa_score', 'qa-score']);
+                    }
+                })
+                ->delete();
+
+            $action = 'unlocked';
+            $status = 'success';
+        } else {
+            // Lock this judge
+            JudgeCategorySubmission::updateOrCreate(
+                ['judge_id' => $judge->id, 'category' => $catSlug],
+                ['is_finalized' => true, 'finalized_at' => now()]
+            );
+
+            $action = 'locked';
+            $status = 'warning';
+        }
+
+        try {
+            AuditRecord::create([
+                'event_type' => 'judge_lock_toggled',
+                'category' => 'system',
+                'user_id' => auth()->id(),
+                'user_name' => auth()->user()?->name ?? 'Admin',
+                'user_role' => 'admin',
+                'action_description' => "Admin {$action} Judge #{$judge->judge_number} ({$judge->name}) for category '{$setting->name}'",
+                'ip_address' => $request->ip(),
+                'status' => $status,
+            ]);
+        } catch (\Throwable $e) {
+        }
+
+        $label = $action === 'locked' ? 'locked' : 'unlocked';
+
+        return redirect()->route('admin.categories.management')
+            ->with('success', "Judge '{$judge->name}' has been {$label} for '{$setting->name}'.");
+    }
+
+    /**
+     * Lock ALL judges' submissions for a category simultaneously (admin-only).
+     */
+    public function lockAllJudges(Request $request, CriteriaSetting $setting)
+    {
+        $validated = $request->validate([
+            'action' => 'required|in:lock,unlock',
+        ]);
+
+        $catSlug = strtolower(str_replace('_', '-', $setting->key));
+        $catKey = strtolower(str_replace('-', '_', $setting->key));
+        $judges = User::where('role', 'judge')->get();
+
+        if ($validated['action'] === 'lock') {
+            foreach ($judges as $judge) {
+                JudgeCategorySubmission::updateOrCreate(
+                    ['judge_id' => $judge->id, 'category' => $catSlug],
+                    ['is_finalized' => true, 'finalized_at' => now()]
+                );
+            }
+            $feedback = "All judges have been LOCKED for '{$setting->name}'.";
+            $auditAction = 'all_judges_locked';
+        } else {
+            JudgeCategorySubmission::where(function ($q) use ($catSlug, $catKey) {
+                $q->where('category', $catSlug)
+                    ->orWhere('category', $catKey)
+                    ->orWhere('category', 'custom:'.$catSlug)
+                    ->orWhere('category', 'custom:'.$catKey);
+                if (in_array($catKey, ['qa', 'qa_score', 'qanda'])) {
+                    $q->orWhereIn('category', ['qa', 'qanda', 'qa_score', 'qa-score']);
+                }
+            })->delete();
+            $feedback = "All judges have been UNLOCKED for '{$setting->name}'.";
+            $auditAction = 'all_judges_unlocked';
+        }
+
+        try {
+            AuditRecord::create([
+                'event_type' => $auditAction,
+                'category' => 'system',
+                'user_id' => auth()->id(),
+                'user_name' => auth()->user()?->name ?? 'Admin',
+                'user_role' => 'admin',
+                'action_description' => "Admin performed '{$validated['action']} all' for category '{$setting->name}' ({$judges->count()} judges affected)",
+                'ip_address' => $request->ip(),
+                'status' => $validated['action'] === 'lock' ? 'warning' : 'success',
+            ]);
+        } catch (\Throwable $e) {
+        }
 
         return redirect()->route('admin.categories.management')
             ->with('success', $feedback);

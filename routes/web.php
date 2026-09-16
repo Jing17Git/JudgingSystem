@@ -111,6 +111,8 @@ Route::prefix('admin')->middleware('admin')->name('admin.')->group(function () {
     Route::delete('/categories/management/{setting}', [SuperCategoryController::class, 'destroy'])->name('categories.management.destroy');
     Route::post('/categories/management/percentages', [SuperCategoryController::class, 'updatePercentages'])->name('categories.management.percentages');
     Route::post('/categories/management/{setting}/toggle', [SuperCategoryController::class, 'toggleEnabled'])->name('categories.management.toggle');
+    Route::post('/categories/management/{setting}/lock-judge/{judge}', [SuperCategoryController::class, 'lockJudge'])->name('categories.management.lock-judge');
+    Route::post('/categories/management/{setting}/lock-all-judges', [SuperCategoryController::class, 'lockAllJudges'])->name('categories.management.lock-all-judges');
 
     // Reset Category Score Data (all or individual)
     Route::get('/categories/reset', [SuperCategoryController::class, 'resetPage'])->name('categories.reset');
