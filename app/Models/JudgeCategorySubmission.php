@@ -36,7 +36,7 @@ class JudgeCategorySubmission extends Model
     public static function normalizeCategory(string $category): string
     {
         $cat = trim($category);
-        if ($cat === 'qanda') {
+        if (in_array($cat, ['qanda', 'qa_score', 'qa-score'])) {
             return 'qa';
         }
 

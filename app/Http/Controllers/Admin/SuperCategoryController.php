@@ -74,6 +74,11 @@ class SuperCategoryController extends Controller
         $preliminarySettings = CriteriaSetting::where('stage', 'preliminary')->orderBy('sort_order')->get();
         $finalSettings = CriteriaSetting::where('stage', 'final')->orderBy('sort_order')->get();
 
+        // Actual scoreable Final judging categories (excludes the aggregation/carry-over rows like preliminary_score)
+        $finalJudgingSettings = $finalSettings->filter(function ($s) {
+            return ! in_array($s->key, ['preliminary_score', 'preliminary-score']);
+        })->values();
+
         $preliminaryTotal = $preliminarySettings->sum('percentage');
         $finalTotal = $finalSettings->sum('percentage');
 
@@ -110,6 +115,7 @@ class SuperCategoryController extends Controller
         return view('admin.categories.management', compact(
             'preliminarySettings',
             'finalSettings',
+            'finalJudgingSettings',
             'preliminaryTotal',
             'finalTotal',
             'dbCategories',
