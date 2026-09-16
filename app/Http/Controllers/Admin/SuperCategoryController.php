@@ -359,14 +359,19 @@ class SuperCategoryController extends Controller
         $catSlug = strtolower(str_replace('_', '-', $setting->key));
         $catKey = strtolower(str_replace('-', '_', $setting->key));
 
+        // Resolve the canonical category slug used by the judge scoring pad.
+        // Q&A is always stored as 'qa' regardless of the CriteriaSetting key (qa_score / qa-score).
+        $isQa = in_array($catKey, ['qa', 'qa_score', 'qanda']);
+        $canonicalSlug = $isQa ? 'qa' : $catSlug;
+
         // Determine if the judge is already locked
         $isLocked = JudgeCategorySubmission::where('judge_id', $judge->id)
-            ->where(function ($q) use ($catSlug, $catKey) {
+            ->where(function ($q) use ($catSlug, $catKey, $isQa) {
                 $q->where('category', $catSlug)
                     ->orWhere('category', $catKey)
                     ->orWhere('category', 'custom:'.$catSlug)
                     ->orWhere('category', 'custom:'.$catKey);
-                if (in_array($catKey, ['qa', 'qa_score', 'qanda'])) {
+                if ($isQa) {
                     $q->orWhereIn('category', ['qa', 'qanda', 'qa_score', 'qa-score']);
                 }
             })
@@ -376,12 +381,12 @@ class SuperCategoryController extends Controller
         if ($isLocked) {
             // Unlock this judge
             JudgeCategorySubmission::where('judge_id', $judge->id)
-                ->where(function ($q) use ($catSlug, $catKey) {
+                ->where(function ($q) use ($catSlug, $catKey, $isQa) {
                     $q->where('category', $catSlug)
                         ->orWhere('category', $catKey)
                         ->orWhere('category', 'custom:'.$catSlug)
                         ->orWhere('category', 'custom:'.$catKey);
-                    if (in_array($catKey, ['qa', 'qa_score', 'qanda'])) {
+                    if ($isQa) {
                         $q->orWhereIn('category', ['qa', 'qanda', 'qa_score', 'qa-score']);
                     }
                 })
@@ -390,9 +395,9 @@ class SuperCategoryController extends Controller
             $action = 'unlocked';
             $status = 'success';
         } else {
-            // Lock this judge
+            // Lock this judge — store under canonical slug so the judge's scoring pad sees it
             JudgeCategorySubmission::updateOrCreate(
-                ['judge_id' => $judge->id, 'category' => $catSlug],
+                ['judge_id' => $judge->id, 'category' => $canonicalSlug],
                 ['is_finalized' => true, 'finalized_at' => now()]
             );
 
@@ -433,22 +438,26 @@ class SuperCategoryController extends Controller
         $catKey = strtolower(str_replace('-', '_', $setting->key));
         $judges = User::where('role', 'judge')->get();
 
+        // Resolve canonical slug — Q&A is always stored as 'qa' on the judge side
+        $isQa = in_array($catKey, ['qa', 'qa_score', 'qanda']);
+        $canonicalSlug = $isQa ? 'qa' : $catSlug;
+
         if ($validated['action'] === 'lock') {
             foreach ($judges as $judge) {
                 JudgeCategorySubmission::updateOrCreate(
-                    ['judge_id' => $judge->id, 'category' => $catSlug],
+                    ['judge_id' => $judge->id, 'category' => $canonicalSlug],
                     ['is_finalized' => true, 'finalized_at' => now()]
                 );
             }
             $feedback = "All judges have been LOCKED for '{$setting->name}'.";
             $auditAction = 'all_judges_locked';
         } else {
-            JudgeCategorySubmission::where(function ($q) use ($catSlug, $catKey) {
+            JudgeCategorySubmission::where(function ($q) use ($catSlug, $catKey, $isQa) {
                 $q->where('category', $catSlug)
                     ->orWhere('category', $catKey)
                     ->orWhere('category', 'custom:'.$catSlug)
                     ->orWhere('category', 'custom:'.$catKey);
-                if (in_array($catKey, ['qa', 'qa_score', 'qanda'])) {
+                if ($isQa) {
                     $q->orWhereIn('category', ['qa', 'qanda', 'qa_score', 'qa-score']);
                 }
             })->delete();
