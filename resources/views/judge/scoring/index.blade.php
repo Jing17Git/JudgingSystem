@@ -910,7 +910,7 @@
                           <option value="{{ $s }}" {{ ($mHasScore && (float)$mScore == $s) ? 'selected' : '' }}>{{ $s }}</option>
                         @endfor
                         @if($mHasScore && !in_array((float)$mScore, [1,2,3,4,5,6,7,8,9,10]))
-                          <option value="{{ $mScore }}" selected>{{ number_format((float)$mScore, 2) }}</option>
+                          <option value="{{ (int) round($mScore) }}" selected>{{ (int) round($mScore) }}</option>
                         @endif
                       </select>
                       <span class="max">/ 10</span>
@@ -925,7 +925,7 @@
 
                 <div class="confirm-msg" id="status-{{ $mCand->id }}">
                   @if($mHasScore)
-                    ✓ score {{ (float)$mScore }} recorded for #{{ str_pad($mCand->candidate_number, 2, '0', STR_PAD_LEFT) }}
+                    ✓ score {{ (int) round($mScore) }} recorded for #{{ str_pad($mCand->candidate_number, 2, '0', STR_PAD_LEFT) }}
                   @endif
                 </div>
               </div>
@@ -987,7 +987,7 @@
                           <option value="{{ $s }}" {{ ($fHasScore && (float)$fScore == $s) ? 'selected' : '' }}>{{ $s }}</option>
                         @endfor
                         @if($fHasScore && !in_array((float)$fScore, [1,2,3,4,5,6,7,8,9,10]))
-                          <option value="{{ $fScore }}" selected>{{ number_format((float)$fScore, 2) }}</option>
+                          <option value="{{ (int) round($fScore) }}" selected>{{ (int) round($fScore) }}</option>
                         @endif
                       </select>
                       <span class="max">/ 10</span>
@@ -1002,7 +1002,7 @@
 
                 <div class="confirm-msg" id="status-{{ $fCand->id }}">
                   @if($fHasScore)
-                    ✓ score {{ (float)$fScore }} recorded for #{{ str_pad($fCand->candidate_number, 2, '0', STR_PAD_LEFT) }}
+                    ✓ score {{ (int) round($fScore) }} recorded for #{{ str_pad($fCand->candidate_number, 2, '0', STR_PAD_LEFT) }}
                   @endif
                 </div>
               </div>
@@ -1046,7 +1046,7 @@
               <span class="gender-badge-dot male-dot"></span>
               <span>Male Contestants ({{ $maleCandidates->count() }})</span>
             </div>
-            <span class="text-xs font-semibold text-slate-500">Evaluation Range: 1.00 – 10.00</span>
+            <span class="text-xs font-semibold text-slate-500">Evaluation Range: 1 – 10</span>
           </div>
           <div class="overflow-x-auto">
             <table class="overall-data-table">
@@ -1084,11 +1084,11 @@
                     </td>
                     <td>
                       <div class="table-score-input-wrap">
-                        <input type="number" step="0.01" min="1" max="10"
+                        <input type="number" step="1" min="1" max="10"
                           class="table-score-input"
                           id="table-score-{{ $cand->id }}"
-                          value="{{ $cHasScore ? number_format((float)$cScore, 2, '.', '') : '' }}"
-                          placeholder="1.00–10"
+                          value="{{ $cHasScore ? (int) round($cScore) : '' }}"
+                          placeholder="1–10"
                           {{ ($cHasScore || !empty($isFinalized)) ? 'disabled' : '' }}
                           data-candidate-id="{{ $cand->id }}"
                           data-cand-num="{{ str_pad($cand->candidate_number, 2, '0', STR_PAD_LEFT) }}"
@@ -1108,7 +1108,7 @@
                     </td>
                     <td>
                       <span class="status-chip {{ $cHasScore ? 'scored' : 'pending' }}" id="table-status-chip-{{ $cand->id }}">
-                        {{ $cHasScore ? '✓ ' . number_format((float)$cScore, 2) : '○ Pending' }}
+                        {{ $cHasScore ? '✓ ' . (int) round($cScore) : '○ Pending' }}
                       </span>
                     </td>
                   </tr>
@@ -1127,7 +1127,7 @@
               <span class="gender-badge-dot female-dot"></span>
               <span>Female Contestants ({{ $femaleCandidates->count() }})</span>
             </div>
-            <span class="text-xs font-semibold text-slate-500">Evaluation Range: 1.00 – 10.00</span>
+            <span class="text-xs font-semibold text-slate-500">Evaluation Range: 1 – 10</span>
           </div>
           <div class="overflow-x-auto">
             <table class="overall-data-table">
@@ -1165,11 +1165,11 @@
                     </td>
                     <td>
                       <div class="table-score-input-wrap">
-                        <input type="number" step="0.01" min="1" max="10"
+                        <input type="number" step="1" min="1" max="10"
                           class="table-score-input"
                           id="table-score-{{ $cand->id }}"
-                          value="{{ $cHasScore ? number_format((float)$cScore, 2, '.', '') : '' }}"
-                          placeholder="1.00–10"
+                          value="{{ $cHasScore ? (int) round($cScore) : '' }}"
+                          placeholder="1–10"
                           {{ ($cHasScore || !empty($isFinalized)) ? 'disabled' : '' }}
                           data-candidate-id="{{ $cand->id }}"
                           data-cand-num="{{ str_pad($cand->candidate_number, 2, '0', STR_PAD_LEFT) }}"
@@ -1189,7 +1189,7 @@
                     </td>
                     <td>
                       <span class="status-chip {{ $cHasScore ? 'scored' : 'pending' }}" id="table-status-chip-{{ $cand->id }}">
-                        {{ $cHasScore ? '✓ ' . number_format((float)$cScore, 2) : '○ Pending' }}
+                        {{ $cHasScore ? '✓ ' . (int) round($cScore) : '○ Pending' }}
                       </span>
                     </td>
                   </tr>
@@ -1558,9 +1558,10 @@
 
         if (!input) return;
 
-        const val = parseFloat(input.value);
-        if (isNaN(val) || val < 1 || val > 10) {
-            alert(`Please enter a valid score between 1.00 and 10.00 for Candidate #${candNum}.`);
+        const raw = input.value.trim();
+        const val = parseInt(raw, 10);
+        if (isNaN(val) || val < 1 || val > 10 || raw !== String(val)) {
+            alert(`Please enter a valid whole number score (1–10) with no decimals for Candidate #${candNum}.`);
             input.focus();
             return;
         }
@@ -1585,7 +1586,7 @@
         .then(data => {
             btnSave.textContent = 'Save';
             if (data.success) {
-                const formattedScore = parseFloat(data.score).toFixed(2);
+                const formattedScore = Math.round(data.score);
                 input.value = formattedScore;
                 input.disabled = true;
                 btnSave.disabled = true;
@@ -1597,7 +1598,7 @@
                 }
 
                 // Sync with Card View
-                syncCardAfterSave(candidateId, parseFloat(data.score), candNum);
+                syncCardAfterSave(candidateId, formattedScore, candNum);
 
                 const cardSelect = document.getElementById(`score-select-${candidateId}`);
                 const hadScore = cardSelect && cardSelect.dataset.hasScore;
@@ -1689,16 +1690,17 @@
         const btnSave  = document.getElementById(`table-save-${candidateId}`);
         const btnReset = document.getElementById(`table-reset-${candidateId}`);
         const chip     = document.getElementById(`table-status-chip-${candidateId}`);
+        const rounded  = Math.round(score);
 
         if (input) {
-            input.value = score.toFixed(2);
+            input.value = rounded;
             input.disabled = true;
         }
         if (btnSave) btnSave.disabled = true;
         if (btnReset) btnReset.disabled = isCategoryFinalized;
         if (chip) {
             chip.className = 'status-chip scored';
-            chip.textContent = `✓ ${score.toFixed(2)}`;
+            chip.textContent = `✓ ${rounded}`;
         }
     }
 
@@ -1725,22 +1727,23 @@
         const btnSubmit = document.getElementById(`btn-submit-${candidateId}`);
         const btnReset  = document.getElementById(`btn-reset-${candidateId}`);
         const status    = document.getElementById(`status-${candidateId}`);
+        const rounded   = Math.round(score);
 
         if (select) {
             // Find option matching score, or set custom
-            let opt = Array.from(select.options).find(o => parseFloat(o.value) === score);
+            let opt = Array.from(select.options).find(o => parseInt(o.value, 10) === rounded);
             if (!opt) {
-                opt = new Option(score.toFixed(2), score, true, true);
+                opt = new Option(rounded, rounded, true, true);
                 select.add(opt);
             }
-            select.value = score;
+            select.value = rounded;
             select.disabled = true;
         }
         if (btnSubmit) btnSubmit.disabled = true;
         if (btnReset) btnReset.disabled = isCategoryFinalized;
         if (status) {
             status.className = 'confirm-msg';
-            status.textContent = `✓ score ${score} recorded for #${candNum}`;
+            status.textContent = `✓ score ${rounded} recorded for #${candNum}`;
         }
     }
 

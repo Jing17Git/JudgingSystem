@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\CriteriaSetting;
 use App\Models\JudgeCategorySubmission;
+use App\Models\SiteSetting;
 use App\Models\User;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -23,6 +24,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Share site settings branding (name, logo, tagline) globally to all views
+        View::composer('*', function ($view) {
+            try {
+                $view->with('siteName', SiteSetting::get('site_name', 'JudgingSystem'));
+                $view->with('siteLogo', SiteSetting::get('site_logo', 'favicon.png'));
+                $view->with('siteTagline', SiteSetting::get('site_tagline', 'Pageant Judging System'));
+            } catch (\Throwable $e) {
+                $view->with('siteName', 'JudgingSystem');
+                $view->with('siteLogo', 'favicon.png');
+                $view->with('siteTagline', 'Pageant Judging System');
+            }
+        });
+
         // Share dynamic sidebar preliminary categories to admin and judge layouts.
         // This allows categories added by superadmin to automatically appear in both sidebars.
         View::composer(

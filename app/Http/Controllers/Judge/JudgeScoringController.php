@@ -62,7 +62,7 @@ class JudgeScoringController extends Controller
 
         $scores = [];
         foreach ($rawScores as $candId => $sObj) {
-            $scores[$candId] = (float) $sObj->score;
+            $scores[$candId] = (int) round($sObj->score);
         }
 
         if (in_array($categorySlug, ['qa', 'qanda'])) {
@@ -180,7 +180,7 @@ class JudgeScoringController extends Controller
         $validated = $request->validate([
             'category' => 'required|string',
             'candidate_id' => 'required|exists:candidates,id',
-            'score' => 'required|numeric|min:1|max:10',
+            'score' => 'required|integer|min:1|max:10',
         ]);
 
         if (in_array($validated['category'], ['qa', 'qanda'], true)) {
@@ -194,6 +194,7 @@ class JudgeScoringController extends Controller
         }
 
         $judgeId = Auth::id();
+        $scoreVal = (int) $validated['score'];
 
         // Guard: Check if scoring for this category is already finalized & disabled
         $catKeyCheck = str_starts_with($validated['category'], 'custom:')
@@ -222,7 +223,7 @@ class JudgeScoringController extends Controller
                     'judge_id' => $judgeId,
                     'category_key' => $catKey,
                 ],
-                ['score' => $validated['score']]
+                ['score' => $scoreVal]
             );
 
             try {
@@ -230,7 +231,7 @@ class JudgeScoringController extends Controller
                     $validated['category'],
                     (int) $validated['candidate_id'],
                     (int) $judgeId,
-                    (float) $scoreObj->score,
+                    (int) round($scoreObj->score),
                     'saved'
                 ));
             } catch (\Throwable $e) {
@@ -240,7 +241,7 @@ class JudgeScoringController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Score submitted successfully!',
-                'score' => number_format((float) $scoreObj->score, 2),
+                'score' => (int) round($scoreObj->score),
                 'candidate_id' => $validated['candidate_id'],
             ]);
         }
@@ -256,7 +257,7 @@ class JudgeScoringController extends Controller
                 'judge_id' => $judgeId,
             ],
             [
-                'score' => $validated['score'],
+                'score' => $scoreVal,
             ]
         );
 
@@ -266,7 +267,7 @@ class JudgeScoringController extends Controller
                 $validated['category'],
                 (int) $validated['candidate_id'],
                 (int) $judgeId,
-                (float) $scoreObj->score,
+                (int) round($scoreObj->score),
                 'saved'
             ));
         } catch (\Throwable $e) {
@@ -276,7 +277,7 @@ class JudgeScoringController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Score submitted successfully!',
-            'score' => number_format((float) $scoreObj->score, 2),
+            'score' => (int) round($scoreObj->score),
             'candidate_id' => $validated['candidate_id'],
         ]);
     }
@@ -396,22 +397,12 @@ class JudgeScoringController extends Controller
             ]);
         }
 
-        // Create per-judge submission lock
+        // Create per-judge submission lock (locks only THIS judge's inputs)
         $submission = JudgeCategorySubmission::finalize($judgeId, $category);
 
-        // Lock the category afterwards so that it is marked locked
-        $catKeyCheck = str_starts_with($category, 'custom:')
-            ? substr($category, 7)
-            : str_replace('-', '_', $category);
-        $searchKeys = [$catKeyCheck, $category, str_replace('_', '-', $category)];
-        if (in_array($category, ['qa', 'qanda'])) {
-            $searchKeys[] = 'qa_score';
-            $searchKeys[] = 'qa-score';
-        }
-        $catSetting = CriteriaSetting::whereIn('key', $searchKeys)->first();
-        if ($catSetting) {
-            $catSetting->update(['is_enabled' => false]);
-        }
+        // NOTE: We intentionally do NOT set is_enabled=false here.
+        // Global category locking is admin-only via the management page.
+        // Each judge's finalization is tracked individually via JudgeCategorySubmission.
 
         // Record security audit
         try {

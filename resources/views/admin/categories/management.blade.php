@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-<div x-data="{ activeStage: 'preliminary', showAddModal: false, editModal: false, activeEdit: {} }" class="space-y-6">
+<div x-data="{ activeStage: 'preliminary', showAddModal: false, editModal: false, activeEdit: {}, expandedLocks: {} }" class="space-y-6">
     {{-- Flash Messages --}}
     @if(session('success'))
         <div class="panel p-4 bg-emerald-50/70 border-emerald-200 flex items-center gap-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)" x-transition>
@@ -110,26 +110,49 @@
                     </thead>
                     <tbody>
                         @forelse($preliminarySettings as $setting)
+                            @php
+                                $catSlug = strtolower(str_replace('_', '-', $setting->key));
+                                $catKey = strtolower(str_replace('-', '_', $setting->key));
+                                $lockedCount = 0;
+                                foreach($judges as $j) {
+                                    if (!empty($submissionsMap[$j->id . '_' . $setting->key]) ||
+                                        !empty($submissionsMap[$j->id . '_' . $catSlug]) ||
+                                        !empty($submissionsMap[$j->id . '_' . $catKey])) {
+                                        $lockedCount++;
+                                    }
+                                }
+                                $totalJudges = $judges->count();
+                            @endphp
                             <tr class="{{ !$setting->is_enabled ? 'opacity-60 bg-rose-50/20' : '' }}">
                                 <td class="font-mono font-medium text-[var(--text-muted)]">#{{ $setting->sort_order }}</td>
                                 <td>
-                                    <span class="font-bold text-[var(--text-primary)]">{{ $setting->name }}</span>
+                                    <div class="flex flex-col">
+                                        <span class="font-bold text-[var(--text-primary)]">{{ $setting->name }}</span>
+                                        <button type="button" 
+                                                @click="expandedLocks['{{ $setting->id }}'] = !expandedLocks['{{ $setting->id }}']" 
+                                                class="inline-flex items-center gap-1 text-[11px] font-medium text-indigo-600 hover:text-indigo-800 text-left mt-0.5 cursor-pointer">
+                                            <span>Judges: <strong>{{ $lockedCount }}/{{ $totalJudges }} locked</strong></span>
+                                            <span class="text-[10px]" x-text="expandedLocks['{{ $setting->id }}'] ? '▲' : '▼'"></span>
+                                        </button>
+                                    </div>
                                 </td>
                                 <td>
                                     <span class="badge badge-info font-mono text-[11px]">{{ $setting->key }}</span>
                                 </td>
                                 <td>
-                                    @if($setting->is_enabled)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300" title="Voting is unlocked. Judges can submit and modify scores.">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                            <span>Voting Unlocked</span>
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300" title="Voting is locked. Judges cannot submit or modify scores.">
-                                            <svg class="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                            <span>Voting Locked</span>
-                                        </span>
-                                    @endif
+                                    <div class="flex flex-col gap-1.5 items-start">
+                                        @if($setting->is_enabled)
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300" title="Category voting is globally enabled.">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                <span>Voting Unlocked</span>
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300" title="Category voting is globally locked.">
+                                                <svg class="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                                <span>Voting Locked</span>
+                                            </span>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td>
                                     <div class="flex items-center gap-2">
@@ -144,22 +167,32 @@
                                 </td>
                                 <td class="text-right">
                                     <div class="flex items-center justify-end gap-2">
-                                        {{-- Lock / Unlock voting toggle button --}}
+                                        {{-- Per-Judge Locks toggle drawer button --}}
+                                        <button type="button" 
+                                                @click="expandedLocks['{{ $setting->id }}'] = !expandedLocks['{{ $setting->id }}']" 
+                                                class="btn btn-outline btn-sm font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
+                                                :class="expandedLocks['{{ $setting->id }}'] ? 'bg-indigo-100 text-indigo-800 border-indigo-300' : 'text-indigo-700 border-indigo-200 hover:bg-indigo-50'"
+                                                title="Open judge lock management for {{ $setting->name }}">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                            <span>Judges ({{ $lockedCount }}/{{ $totalJudges }})</span>
+                                        </button>
+
+                                        {{-- Lock / Unlock voting toggle button (Global) --}}
                                         <form action="{{ route('admin.categories.management.toggle', $setting->id) }}" method="POST">
                                             @csrf
                                             @if($setting->is_enabled)
                                                 <button type="submit" 
                                                         class="btn btn-outline btn-sm text-rose-600 border-rose-300 hover:bg-rose-50 hover:border-rose-400 font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer" 
-                                                        title="Lock judges from voting in {{ $setting->name }}">
+                                                        title="Globally lock judges from voting in {{ $setting->name }}">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                                    <span>Lock Voting</span>
+                                                    <span>Lock All</span>
                                                 </button>
                                             @else
                                                 <button type="submit" 
                                                         class="btn btn-outline btn-sm text-emerald-700 border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400 font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer" 
-                                                        title="Unlock judges to allow voting in {{ $setting->name }}">
+                                                        title="Globally unlock judges to allow voting in {{ $setting->name }}">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
-                                                    <span>Unlock Voting</span>
+                                                    <span>Unlock All</span>
                                                 </button>
                                             @endif
                                         </form>
@@ -173,6 +206,105 @@
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                                         </form>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            {{-- Expandable Per-Judge Lock Management Drawer --}}
+                            <tr x-show="expandedLocks['{{ $setting->id }}']" x-cloak class="bg-indigo-50/30 border-y border-indigo-100">
+                                <td colspan="6" class="p-4 sm:p-5">
+                                    <div class="rounded-xl border border-indigo-200/80 bg-white p-4 shadow-sm space-y-4">
+                                        {{-- Header: Category Title + Simultaneous Controls --}}
+                                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
+                                                    ⚖️
+                                                </div>
+                                                <div>
+                                                    <div class="flex items-center gap-2">
+                                                        <h4 class="text-sm font-bold text-[var(--text-primary)]">Per-Judge Lock Controls: {{ $setting->name }}</h4>
+                                                        <span class="badge {{ $lockedCount === $totalJudges && $totalJudges > 0 ? 'bg-rose-100 text-rose-800' : ($lockedCount > 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800') }} font-mono text-xs">
+                                                            {{ $lockedCount }}/{{ $totalJudges }} Judges Locked
+                                                        </span>
+                                                    </div>
+                                                    <p class="text-xs text-[var(--text-muted)] mt-0.5">Control scoring pad access individually per judge, or lock/unlock all judges simultaneously.</p>
+                                                </div>
+                                            </div>
+
+                                            {{-- Simultaneous Controls --}}
+                                            <div class="flex items-center gap-2">
+                                                <form action="{{ route('admin.categories.management.lock-all-judges', $setting->id) }}" method="POST" onsubmit="return confirm('Lock scoring pad for ALL {{ $totalJudges }} judges in {{ $setting->name }}?');">
+                                                    @csrf
+                                                    <input type="hidden" name="action" value="lock">
+                                                    <button type="submit" class="btn btn-sm btn-outline text-rose-700 border-rose-300 hover:bg-rose-50 flex items-center gap-1.5 font-semibold text-xs py-1.5 px-3 cursor-pointer shadow-2xs">
+                                                        <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                                        <span>Lock All Judges</span>
+                                                    </button>
+                                                </form>
+
+                                                <form action="{{ route('admin.categories.management.lock-all-judges', $setting->id) }}" method="POST" onsubmit="return confirm('Unlock scoring pad for ALL {{ $totalJudges }} judges in {{ $setting->name }}?');">
+                                                    @csrf
+                                                    <input type="hidden" name="action" value="unlock">
+                                                    <button type="submit" class="btn btn-sm btn-outline text-emerald-700 border-emerald-300 hover:bg-emerald-50 flex items-center gap-1.5 font-semibold text-xs py-1.5 px-3 cursor-pointer shadow-2xs">
+                                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                                                        <span>Unlock All Judges</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+
+                                        {{-- Grid of Judges --}}
+                                        @if($judges->isEmpty())
+                                            <p class="text-xs text-slate-400 italic py-2">No evaluator judge accounts found.</p>
+                                        @else
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                                @foreach($judges as $judge)
+                                                    @php
+                                                        $isJudgeLocked = !empty($submissionsMap[$judge->id . '_' . $setting->key]) ||
+                                                                         !empty($submissionsMap[$judge->id . '_' . $catSlug]) ||
+                                                                         !empty($submissionsMap[$judge->id . '_' . $catKey]);
+                                                    @endphp
+                                                    <div class="p-3 rounded-lg border flex items-center justify-between gap-3 {{ $isJudgeLocked ? 'bg-rose-50/70 border-rose-200 shadow-2xs' : 'bg-slate-50/70 border-slate-200 hover:border-slate-300' }}">
+                                                        <div class="min-w-0">
+                                                            <div class="flex items-center gap-1.5">
+                                                                <span class="text-xs font-bold text-slate-800 truncate">
+                                                                    Judge #{{ $judge->judge_number ?? $loop->iteration }}
+                                                                </span>
+                                                                @if($isJudgeLocked)
+                                                                    <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-300">
+                                                                        Locked
+                                                                    </span>
+                                                                @else
+                                                                    <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-300">
+                                                                        Open
+                                                                    </span>
+                                                                @endif
+                                                            </div>
+                                                            <p class="text-[11px] text-slate-500 truncate" title="{{ $judge->name }}">{{ $judge->name }}</p>
+                                                        </div>
+
+                                                        <form action="{{ route('admin.categories.management.lock-judge', [$setting->id, $judge->id]) }}" method="POST">
+                                                            @csrf
+                                                            @if($isJudgeLocked)
+                                                                <button type="submit" 
+                                                                        class="btn btn-sm btn-outline text-emerald-700 border-emerald-300 hover:bg-emerald-100 px-2.5 py-1 text-xs font-bold flex items-center gap-1 shadow-2xs cursor-pointer"
+                                                                        title="Click to unlock scoring pad for {{ $judge->name }}">
+                                                                    <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                                                                    <span>Unlock</span>
+                                                                </button>
+                                                            @else
+                                                                <button type="submit" 
+                                                                        class="btn btn-sm btn-outline text-rose-700 border-rose-300 hover:bg-rose-100 px-2.5 py-1 text-xs font-bold flex items-center gap-1 shadow-2xs cursor-pointer"
+                                                                        title="Click to lock scoring pad for {{ $judge->name }}">
+                                                                    <svg class="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                                                    <span>Lock</span>
+                                                                </button>
+                                                            @endif
+                                                        </form>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -238,26 +370,49 @@
                     </thead>
                     <tbody>
                         @forelse($finalSettings as $setting)
+                            @php
+                                $catSlug = strtolower(str_replace('_', '-', $setting->key));
+                                $catKey = strtolower(str_replace('-', '_', $setting->key));
+                                $lockedCount = 0;
+                                foreach($judges as $j) {
+                                    if (!empty($submissionsMap[$j->id . '_' . $setting->key]) ||
+                                        !empty($submissionsMap[$j->id . '_' . $catSlug]) ||
+                                        !empty($submissionsMap[$j->id . '_' . $catKey])) {
+                                        $lockedCount++;
+                                    }
+                                }
+                                $totalJudges = $judges->count();
+                            @endphp
                             <tr class="{{ !$setting->is_enabled ? 'opacity-60 bg-rose-50/20' : '' }}">
                                 <td class="font-mono font-medium text-[var(--text-muted)]">#{{ $setting->sort_order }}</td>
                                 <td>
-                                    <span class="font-bold text-[var(--text-primary)]">{{ $setting->name }}</span>
+                                    <div class="flex flex-col">
+                                        <span class="font-bold text-[var(--text-primary)]">{{ $setting->name }}</span>
+                                        <button type="button" 
+                                                @click="expandedLocks['{{ $setting->id }}'] = !expandedLocks['{{ $setting->id }}']" 
+                                                class="inline-flex items-center gap-1 text-[11px] font-medium text-indigo-600 hover:text-indigo-800 text-left mt-0.5 cursor-pointer">
+                                            <span>Judges: <strong>{{ $lockedCount }}/{{ $totalJudges }} locked</strong></span>
+                                            <span class="text-[10px]" x-text="expandedLocks['{{ $setting->id }}'] ? '▲' : '▼'"></span>
+                                        </button>
+                                    </div>
                                 </td>
                                 <td>
                                     <span class="badge badge-info font-mono text-[11px]">{{ $setting->key }}</span>
                                 </td>
                                 <td>
-                                    @if($setting->is_enabled)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300" title="Voting is unlocked. Judges can submit and modify scores.">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                            <span>Voting Unlocked</span>
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300" title="Voting is locked. Judges cannot submit or modify scores.">
-                                            <svg class="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                            <span>Voting Locked</span>
-                                        </span>
-                                    @endif
+                                    <div class="flex flex-col gap-1.5 items-start">
+                                        @if($setting->is_enabled)
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300" title="Category voting is globally enabled.">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                <span>Voting Unlocked</span>
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300" title="Category voting is globally locked.">
+                                                <svg class="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                                <span>Voting Locked</span>
+                                            </span>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td>
                                     <div class="flex items-center gap-2">
@@ -272,22 +427,32 @@
                                 </td>
                                 <td class="text-right">
                                     <div class="flex items-center justify-end gap-2">
-                                        {{-- Lock / Unlock voting toggle button --}}
+                                        {{-- Per-Judge Locks toggle drawer button --}}
+                                        <button type="button" 
+                                                @click="expandedLocks['{{ $setting->id }}'] = !expandedLocks['{{ $setting->id }}']" 
+                                                class="btn btn-outline btn-sm font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
+                                                :class="expandedLocks['{{ $setting->id }}'] ? 'bg-indigo-100 text-indigo-800 border-indigo-300' : 'text-indigo-700 border-indigo-200 hover:bg-indigo-50'"
+                                                title="Open judge lock management for {{ $setting->name }}">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                            <span>Judges ({{ $lockedCount }}/{{ $totalJudges }})</span>
+                                        </button>
+
+                                        {{-- Lock / Unlock voting toggle button (Global) --}}
                                         <form action="{{ route('admin.categories.management.toggle', $setting->id) }}" method="POST">
                                             @csrf
                                             @if($setting->is_enabled)
                                                 <button type="submit" 
                                                         class="btn btn-outline btn-sm text-rose-600 border-rose-300 hover:bg-rose-50 hover:border-rose-400 font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer" 
-                                                        title="Lock judges from voting in {{ $setting->name }}">
+                                                        title="Globally lock judges from voting in {{ $setting->name }}">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                                    <span>Lock Voting</span>
+                                                    <span>Lock All</span>
                                                 </button>
                                             @else
                                                 <button type="submit" 
                                                         class="btn btn-outline btn-sm text-emerald-700 border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400 font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer" 
-                                                        title="Unlock judges to allow voting in {{ $setting->name }}">
+                                                        title="Globally unlock judges to allow voting in {{ $setting->name }}">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
-                                                    <span>Unlock Voting</span>
+                                                    <span>Unlock All</span>
                                                 </button>
                                             @endif
                                         </form>
@@ -301,6 +466,105 @@
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                                         </form>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            {{-- Expandable Per-Judge Lock Management Drawer --}}
+                            <tr x-show="expandedLocks['{{ $setting->id }}']" x-cloak class="bg-indigo-50/30 border-y border-indigo-100">
+                                <td colspan="6" class="p-4 sm:p-5">
+                                    <div class="rounded-xl border border-indigo-200/80 bg-white p-4 shadow-sm space-y-4">
+                                        {{-- Header: Category Title + Simultaneous Controls --}}
+                                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
+                                                    ⚖️
+                                                </div>
+                                                <div>
+                                                    <div class="flex items-center gap-2">
+                                                        <h4 class="text-sm font-bold text-[var(--text-primary)]">Per-Judge Lock Controls: {{ $setting->name }}</h4>
+                                                        <span class="badge {{ $lockedCount === $totalJudges && $totalJudges > 0 ? 'bg-rose-100 text-rose-800' : ($lockedCount > 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800') }} font-mono text-xs">
+                                                            {{ $lockedCount }}/{{ $totalJudges }} Judges Locked
+                                                        </span>
+                                                    </div>
+                                                    <p class="text-xs text-[var(--text-muted)] mt-0.5">Control scoring pad access individually per judge, or lock/unlock all judges simultaneously.</p>
+                                                </div>
+                                            </div>
+
+                                            {{-- Simultaneous Controls --}}
+                                            <div class="flex items-center gap-2">
+                                                <form action="{{ route('admin.categories.management.lock-all-judges', $setting->id) }}" method="POST" onsubmit="return confirm('Lock scoring pad for ALL {{ $totalJudges }} judges in {{ $setting->name }}?');">
+                                                    @csrf
+                                                    <input type="hidden" name="action" value="lock">
+                                                    <button type="submit" class="btn btn-sm btn-outline text-rose-700 border-rose-300 hover:bg-rose-50 flex items-center gap-1.5 font-semibold text-xs py-1.5 px-3 cursor-pointer shadow-2xs">
+                                                        <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                                        <span>Lock All Judges</span>
+                                                    </button>
+                                                </form>
+
+                                                <form action="{{ route('admin.categories.management.lock-all-judges', $setting->id) }}" method="POST" onsubmit="return confirm('Unlock scoring pad for ALL {{ $totalJudges }} judges in {{ $setting->name }}?');">
+                                                    @csrf
+                                                    <input type="hidden" name="action" value="unlock">
+                                                    <button type="submit" class="btn btn-sm btn-outline text-emerald-700 border-emerald-300 hover:bg-emerald-50 flex items-center gap-1.5 font-semibold text-xs py-1.5 px-3 cursor-pointer shadow-2xs">
+                                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                                                        <span>Unlock All Judges</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+
+                                        {{-- Grid of Judges --}}
+                                        @if($judges->isEmpty())
+                                            <p class="text-xs text-slate-400 italic py-2">No evaluator judge accounts found.</p>
+                                        @else
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                                @foreach($judges as $judge)
+                                                    @php
+                                                        $isJudgeLocked = !empty($submissionsMap[$judge->id . '_' . $setting->key]) ||
+                                                                         !empty($submissionsMap[$judge->id . '_' . $catSlug]) ||
+                                                                         !empty($submissionsMap[$judge->id . '_' . $catKey]);
+                                                    @endphp
+                                                    <div class="p-3 rounded-lg border flex items-center justify-between gap-3 {{ $isJudgeLocked ? 'bg-rose-50/70 border-rose-200 shadow-2xs' : 'bg-slate-50/70 border-slate-200 hover:border-slate-300' }}">
+                                                        <div class="min-w-0">
+                                                            <div class="flex items-center gap-1.5">
+                                                                <span class="text-xs font-bold text-slate-800 truncate">
+                                                                    Judge #{{ $judge->judge_number ?? $loop->iteration }}
+                                                                </span>
+                                                                @if($isJudgeLocked)
+                                                                    <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-300">
+                                                                        Locked
+                                                                    </span>
+                                                                @else
+                                                                    <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-300">
+                                                                        Open
+                                                                    </span>
+                                                                @endif
+                                                            </div>
+                                                            <p class="text-[11px] text-slate-500 truncate" title="{{ $judge->name }}">{{ $judge->name }}</p>
+                                                        </div>
+
+                                                        <form action="{{ route('admin.categories.management.lock-judge', [$setting->id, $judge->id]) }}" method="POST">
+                                                            @csrf
+                                                            @if($isJudgeLocked)
+                                                                <button type="submit" 
+                                                                        class="btn btn-sm btn-outline text-emerald-700 border-emerald-300 hover:bg-emerald-100 px-2.5 py-1 text-xs font-bold flex items-center gap-1 shadow-2xs cursor-pointer"
+                                                                        title="Click to unlock scoring pad for {{ $judge->name }}">
+                                                                    <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                                                                    <span>Unlock</span>
+                                                                </button>
+                                                            @else
+                                                                <button type="submit" 
+                                                                        class="btn btn-sm btn-outline text-rose-700 border-rose-300 hover:bg-rose-100 px-2.5 py-1 text-xs font-bold flex items-center gap-1 shadow-2xs cursor-pointer"
+                                                                        title="Click to lock scoring pad for {{ $judge->name }}">
+                                                                    <svg class="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                                                    <span>Lock</span>
+                                                                </button>
+                                                            @endif
+                                                        </form>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>

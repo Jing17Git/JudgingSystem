@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>JudgingSystem — Sign In</title>
-<link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+<title>{{ \App\Models\SiteSetting::get('site_name', 'JudgingSystem') }} — Sign In</title>
+<link rel="icon" href="{{ asset(\App\Models\SiteSetting::get('site_logo', 'favicon.png')) }}">
+<link rel="shortcut icon" href="{{ asset(\App\Models\SiteSetting::get('site_logo', 'favicon.png')) }}">
+<link rel="apple-touch-icon" href="{{ asset(\App\Models\SiteSetting::get('site_logo', 'favicon.png')) }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -384,7 +386,7 @@
       </div>
 
       <h1 class="brand-headline">Every score,<br><em>tallied live.</em></h1>
-      <p class="brand-sub">JudgingSystem keeps every judge, every criterion, and every result in sync — from the first walk to the final tally.</p>
+      <p class="brand-sub">{{ \App\Models\SiteSetting::get('site_name', 'JudgingSystem') }} keeps every judge, every criterion, and every result in sync — from the first walk to the final tally.</p>
 
       <ul class="feature-list">
         <li><span class="num">01</span><div><strong>Live scorekeeping</strong>Judges submit scores in real time, no paper sheets to reconcile.</div></li>
@@ -414,12 +416,12 @@
         <div class="brand-logo-wrap mobile">
           <img src="{{ asset(\App\Models\SiteSetting::get('site_logo', 'images/logo.png')) }}" alt="Logo" class="brand-logo-img">
         </div>
-        <h1>JudgingSystem</h1>
+        <h1>{{ \App\Models\SiteSetting::get('site_name', 'JudgingSystem') }}</h1>
         <p>Sign in to your account</p>
       </div>
 
       <!-- shown only on desktop, alongside brand panel -->
-      <p class="form-eyebrow">JudgingSystem</p>
+      <p class="form-eyebrow">{{ \App\Models\SiteSetting::get('site_name', 'JudgingSystem') }}</p>
       <h2 class="form-title">Sign in</h2>
       <p class="form-desc">Enter your credentials to access your judging panel.</p>
 
