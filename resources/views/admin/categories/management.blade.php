@@ -343,17 +343,14 @@
             </div>
         </div>
 
-        {{-- Hidden Form for Final Percentages (prevents nested forms inside the table) --}}
-        <form id="finalPercentagesForm" action="{{ route('admin.categories.management.percentages') }}" method="POST" style="display: none;">
-            @csrf
-            <input type="hidden" name="stage" value="final">
-        </form>
 
-        {{-- Categories Table Panel --}}
+        {{-- ══ Final Judging Categories (scoreable categories with per-judge locks) ══ --}}
         <div class="panel">
             <div class="panel-header">
-                <h3 class="panel-title">Final Judging Stage Weights</h3>
-                <button type="submit" form="finalPercentagesForm" class="btn btn-green btn-sm">Save Percentages</button>
+                <div>
+                    <h3 class="panel-title">🏆 Final Judging Categories</h3>
+                    <p class="text-xs text-[var(--text-muted)] mt-0.5">Scoreable categories judges evaluate during the Final Stage (e.g. Q&amp;A). Control locking per judge.</p>
+                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -364,15 +361,15 @@
                             <th>Category Name</th>
                             <th>Key Identifier</th>
                             <th>Voting Status</th>
-                            <th>Percentage Weight</th>
+                            <th>Judge Lock Status</th>
                             <th class="text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($finalSettings as $setting)
+                        @forelse($finalJudgingSettings as $setting)
                             @php
                                 $catSlug = strtolower(str_replace('_', '-', $setting->key));
-                                $catKey = strtolower(str_replace('-', '_', $setting->key));
+                                $catKey  = strtolower(str_replace('-', '_', $setting->key));
                                 $lockedCount = 0;
                                 foreach($judges as $j) {
                                     if (!empty($submissionsMap[$j->id . '_' . $setting->key]) ||
@@ -388,11 +385,11 @@
                                 <td>
                                     <div class="flex flex-col">
                                         <span class="font-bold text-[var(--text-primary)]">{{ $setting->name }}</span>
-                                        <button type="button" 
-                                                @click="expandedLocks['{{ $setting->id }}'] = !expandedLocks['{{ $setting->id }}']" 
+                                        <button type="button"
+                                                @click="expandedLocks['fj_{{ $setting->id }}'] = !expandedLocks['fj_{{ $setting->id }}']"
                                                 class="inline-flex items-center gap-1 text-[11px] font-medium text-indigo-600 hover:text-indigo-800 text-left mt-0.5 cursor-pointer">
                                             <span>Judges: <strong>{{ $lockedCount }}/{{ $totalJudges }} locked</strong></span>
-                                            <span class="text-[10px]" x-text="expandedLocks['{{ $setting->id }}'] ? '▲' : '▼'"></span>
+                                            <span class="text-[10px]" x-text="expandedLocks['fj_{{ $setting->id }}'] ? '▲' : '▼'"></span>
                                         </button>
                                     </div>
                                 </td>
@@ -415,70 +412,61 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="flex items-center gap-2">
-                                        <input type="number" 
-                                               form="finalPercentagesForm"
-                                               name="percentages[{{ $setting->key }}]" 
-                                               value="{{ (int) $setting->percentage }}" 
-                                               min="0" max="100" 
-                                               class="form-input w-24 font-mono font-bold text-center py-1">
-                                        <span class="text-xs text-[var(--text-muted)] font-bold">%</span>
-                                    </div>
+                                    <span class="badge {{ $lockedCount === $totalJudges && $totalJudges > 0 ? 'bg-rose-100 text-rose-800' : ($lockedCount > 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800') }} font-mono text-xs">
+                                        {{ $lockedCount }}/{{ $totalJudges }} Locked
+                                    </span>
                                 </td>
                                 <td class="text-right">
                                     <div class="flex items-center justify-end gap-2">
                                         {{-- Per-Judge Locks toggle drawer button --}}
-                                        <button type="button" 
-                                                @click="expandedLocks['{{ $setting->id }}'] = !expandedLocks['{{ $setting->id }}']" 
+                                        <button type="button"
+                                                @click="expandedLocks['fj_{{ $setting->id }}'] = !expandedLocks['fj_{{ $setting->id }}']"
                                                 class="btn btn-outline btn-sm font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
-                                                :class="expandedLocks['{{ $setting->id }}'] ? 'bg-indigo-100 text-indigo-800 border-indigo-300' : 'text-indigo-700 border-indigo-200 hover:bg-indigo-50'"
+                                                :class="expandedLocks['fj_{{ $setting->id }}'] ? 'bg-indigo-100 text-indigo-800 border-indigo-300' : 'text-indigo-700 border-indigo-200 hover:bg-indigo-50'"
                                                 title="Open judge lock management for {{ $setting->name }}">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                                             <span>Judges ({{ $lockedCount }}/{{ $totalJudges }})</span>
                                         </button>
 
-                                        {{-- Lock / Unlock voting toggle button (Global) --}}
+                                        {{-- Global Lock / Unlock toggle --}}
                                         <form action="{{ route('admin.categories.management.toggle', $setting->id) }}" method="POST">
                                             @csrf
                                             @if($setting->is_enabled)
-                                                <button type="submit" 
-                                                        class="btn btn-outline btn-sm text-rose-600 border-rose-300 hover:bg-rose-50 hover:border-rose-400 font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer" 
+                                                <button type="submit"
+                                                        class="btn btn-outline btn-sm text-rose-600 border-rose-300 hover:bg-rose-50 hover:border-rose-400 font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer"
                                                         title="Globally lock judges from voting in {{ $setting->name }}">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                                                     <span>Lock All</span>
                                                 </button>
                                             @else
-                                                <button type="submit" 
-                                                        class="btn btn-outline btn-sm text-emerald-700 border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400 font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer" 
+                                                <button type="submit"
+                                                        class="btn btn-outline btn-sm text-emerald-700 border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400 font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer"
                                                         title="Globally unlock judges to allow voting in {{ $setting->name }}">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
                                                     <span>Unlock All</span>
                                                 </button>
                                             @endif
                                         </form>
+
                                         <button type="button" 
                                                 @click="editModal = true; activeEdit = { id: '{{ $setting->id }}', name: '{{ $setting->name }}', percentage: '{{ $setting->percentage }}', sort_order: '{{ $setting->sort_order }}' }"
-                                                class="btn btn-outline btn-sm text-blue-600 border-blue-200 hover:bg-blue-50">
+                                                class="btn btn-outline btn-sm text-blue-600 border-blue-200 hover:bg-blue-50"
+                                                title="Edit category details">
                                             Edit
                                         </button>
-                                        <form action="{{ route('admin.categories.management.destroy', $setting->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete category {{ $setting->name }}?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                        </form>
                                     </div>
                                 </td>
                             </tr>
 
-                            {{-- Expandable Per-Judge Lock Management Drawer --}}
-                            <tr x-show="expandedLocks['{{ $setting->id }}']" x-cloak class="bg-indigo-50/30 border-y border-indigo-100">
+                            {{-- Expandable Per-Judge Lock Management Drawer (uses 'fj_' prefix to avoid ID collision) --}}
+                            <tr x-show="expandedLocks['fj_{{ $setting->id }}']" x-cloak class="bg-indigo-50/30 border-y border-indigo-100">
                                 <td colspan="6" class="p-4 sm:p-5">
                                     <div class="rounded-xl border border-indigo-200/80 bg-white p-4 shadow-sm space-y-4">
-                                        {{-- Header: Category Title + Simultaneous Controls --}}
+                                        {{-- Header + Simultaneous Controls --}}
                                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
                                             <div class="flex items-center gap-2.5">
                                                 <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
-                                                    ⚖️
+                                                    🏆
                                                 </div>
                                                 <div>
                                                     <div class="flex items-center gap-2">
@@ -506,7 +494,7 @@
                                                     @csrf
                                                     <input type="hidden" name="action" value="unlock">
                                                     <button type="submit" class="btn btn-sm btn-outline text-emerald-700 border-emerald-300 hover:bg-emerald-50 flex items-center gap-1.5 font-semibold text-xs py-1.5 px-3 cursor-pointer shadow-2xs">
-                                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2z"/></svg>
                                                         <span>Unlock All Judges</span>
                                                     </button>
                                                 </form>
@@ -531,13 +519,9 @@
                                                                     Judge #{{ $judge->judge_number ?? $loop->iteration }}
                                                                 </span>
                                                                 @if($isJudgeLocked)
-                                                                    <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-300">
-                                                                        Locked
-                                                                    </span>
+                                                                    <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-300">Locked</span>
                                                                 @else
-                                                                    <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-300">
-                                                                        Open
-                                                                    </span>
+                                                                    <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-300">Open</span>
                                                                 @endif
                                                             </div>
                                                             <p class="text-[11px] text-slate-500 truncate" title="{{ $judge->name }}">{{ $judge->name }}</p>
@@ -546,14 +530,14 @@
                                                         <form action="{{ route('admin.categories.management.lock-judge', [$setting->id, $judge->id]) }}" method="POST">
                                                             @csrf
                                                             @if($isJudgeLocked)
-                                                                <button type="submit" 
+                                                                <button type="submit"
                                                                         class="btn btn-sm btn-outline text-emerald-700 border-emerald-300 hover:bg-emerald-100 px-2.5 py-1 text-xs font-bold flex items-center gap-1 shadow-2xs cursor-pointer"
                                                                         title="Click to unlock scoring pad for {{ $judge->name }}">
                                                                     <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
                                                                     <span>Unlock</span>
                                                                 </button>
                                                             @else
-                                                                <button type="submit" 
+                                                                <button type="submit"
                                                                         class="btn btn-sm btn-outline text-rose-700 border-rose-300 hover:bg-rose-100 px-2.5 py-1 text-xs font-bold flex items-center gap-1 shadow-2xs cursor-pointer"
                                                                         title="Click to lock scoring pad for {{ $judge->name }}">
                                                                     <svg class="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
@@ -571,7 +555,7 @@
                         @empty
                             <tr>
                                 <td colspan="6" class="py-8 text-center text-[var(--text-muted)]">
-                                    No final categories configured.
+                                    No final judging categories configured. Add categories with the <strong>Final</strong> stage.
                                 </td>
                             </tr>
                         @endforelse
